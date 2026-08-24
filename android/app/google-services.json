@@ -1,13 +1,13 @@
 {
   "project_info": {
-    "project_number": "1058652756280",
-    "project_id": "task-manager-app-d5f1f",
-    "storage_bucket": "task-manager-app-d5f1f.appspot.com"
+    "project_number": "386289257828",
+    "project_id": "taf-match",
+    "storage_bucket": "taf-match.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:1058652756280:android:2449758a544a607e7e89cd",
+        "mobilesdk_app_id": "1:386289257828:android:f3e123ae8463df88adbe71",
         "android_client_info": {
           "package_name": "com.example.task_manager"
         }
@@ -15,7 +15,7 @@
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyBpIOWKPqDFcL_hsDA6XY-4BEuNrbBeZAE"
+          "current_key": "AIzaSyA8Q7vtQ3HDmmeIDvZI1XXYHZOqcczNijQ"
         }
       ],
       "services": {

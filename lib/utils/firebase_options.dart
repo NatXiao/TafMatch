@@ -4,6 +4,16 @@ import 'package:firebase_core/firebase_core.dart' show FirebaseOptions;
 import 'package:flutter/foundation.dart'
     show defaultTargetPlatform, kIsWeb, TargetPlatform;
 
+/// Default [FirebaseOptions] for use with your Firebase apps.
+///
+/// Example:
+/// ```dart
+/// import 'firebase_options.dart';
+/// // ...
+/// await Firebase.initializeApp(
+///   options: DefaultFirebaseOptions.currentPlatform,
+/// );
+/// ```
 class DefaultFirebaseOptions {
   static FirebaseOptions get currentPlatform {
     if (kIsWeb) {
@@ -31,46 +41,44 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'AIzaSyCP8Ed06jGnto6WK-Cn4vwOnvyLkLGsqwQ',
-    appId: '1:1058652756280:web:7b5f54c77f9623367e89cd',
-    messagingSenderId: '1058652756280',
-    projectId: 'task-manager-app-d5f1f',
-    authDomain: 'task-manager-app-d5f1f.firebaseapp.com',
-    storageBucket: 'task-manager-app-d5f1f.appspot.com',
+    apiKey: 'AIzaSyCoe5lm8BuE1w2_o_vt_8Ne4K_d6RbZ3n4',
+    appId: '1:386289257828:web:7dcfe4bd6e74dca3adbe71',
+    messagingSenderId: '386289257828',
+    projectId: 'taf-match',
+    authDomain: 'taf-match.firebaseapp.com',
+    storageBucket: 'taf-match.firebasestorage.app',
   );
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyBpIOWKPqDFcL_hsDA6XY-4BEuNrbBeZAE',
-    appId: '1:1058652756280:android:2449758a544a607e7e89cd',
-    messagingSenderId: '1058652756280',
-    projectId: 'task-manager-app-d5f1f',
-    storageBucket: 'task-manager-app-d5f1f.appspot.com',
+    apiKey: 'AIzaSyA8Q7vtQ3HDmmeIDvZI1XXYHZOqcczNijQ',
+    appId: '1:386289257828:android:f3e123ae8463df88adbe71',
+    messagingSenderId: '386289257828',
+    projectId: 'taf-match',
+    storageBucket: 'taf-match.firebasestorage.app',
   );
-
   static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyDKNK4vqYRbDjPPR1Jqk8oFqcm6KuzxptA',
-    appId: '1:1058652756280:ios:a9d4afcc188fffe97e89cd',
-    messagingSenderId: '1058652756280',
-    projectId: 'task-manager-app-d5f1f',
-    storageBucket: 'task-manager-app-d5f1f.appspot.com',
+    apiKey: 'AIzaSyDMhRL2b8GVL5JDl4RdmpKuqkWGnUm9tTo',
+    appId: '1:386289257828:ios:5049add1e5fae438adbe71',
+    messagingSenderId: '386289257828',
+    projectId: 'taf-match',
+    storageBucket: 'taf-match.firebasestorage.app',
     iosBundleId: 'com.example.taskManager',
   );
-
   static const FirebaseOptions macos = FirebaseOptions(
-    apiKey: 'AIzaSyDKNK4vqYRbDjPPR1Jqk8oFqcm6KuzxptA',
-    appId: '1:1058652756280:ios:a9d4afcc188fffe97e89cd',
-    messagingSenderId: '1058652756280',
-    projectId: 'task-manager-app-d5f1f',
-    storageBucket: 'task-manager-app-d5f1f.appspot.com',
+    apiKey: 'AIzaSyDMhRL2b8GVL5JDl4RdmpKuqkWGnUm9tTo',
+    appId: '1:386289257828:ios:5049add1e5fae438adbe71',
+    messagingSenderId: '386289257828',
+    projectId: 'taf-match',
+    storageBucket: 'taf-match.firebasestorage.app',
     iosBundleId: 'com.example.taskManager',
   );
 
   static const FirebaseOptions windows = FirebaseOptions(
-    apiKey: 'AIzaSyCP8Ed06jGnto6WK-Cn4vwOnvyLkLGsqwQ',
-    appId: '1:1058652756280:web:b2ec8d99faf1b2ca7e89cd',
-    messagingSenderId: '1058652756280',
-    projectId: 'task-manager-app-d5f1f',
-    authDomain: 'task-manager-app-d5f1f.firebaseapp.com',
-    storageBucket: 'task-manager-app-d5f1f.appspot.com',
+    apiKey: 'AIzaSyCoe5lm8BuE1w2_o_vt_8Ne4K_d6RbZ3n4',
+    appId: '1:386289257828:web:f5a2996bf2036609adbe71',
+    messagingSenderId: '386289257828',
+    projectId: 'taf-match',
+    authDomain: 'taf-match.firebaseapp.com',
+    storageBucket: 'taf-match.firebasestorage.app',
   );
 }
