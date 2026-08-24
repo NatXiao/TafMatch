@@ -1,6 +1,6 @@
 {
-    "name": "task_manager",
-    "short_name": "task_manager",
+    "name": "taf_match",
+    "short_name": "taf_match",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

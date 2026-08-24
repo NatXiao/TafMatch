@@ -3,7 +3,7 @@ import 'dart:typed_data';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
-import 'package:task_manager/repositories/cloudinary_image_repository.dart';
+import 'package:taf_match/repositories/cloudinary_image_repository.dart';
 
 void main() {
   final bytes = Uint8List.fromList([1, 2, 3, 4]);

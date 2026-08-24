@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:task_manager/providers/auth_provider.dart';
+import 'package:taf_match/providers/auth_provider.dart';
 
 import '../fakes.dart';
 

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:task_manager/views/task_list_screen.dart';
+import 'package:taf_match/views/task_list_screen.dart';
 
 import '../providers/auth_provider.dart';
 

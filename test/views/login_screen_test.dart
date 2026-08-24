@@ -9,8 +9,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
-import 'package:task_manager/providers/auth_provider.dart';
-import 'package:task_manager/views/login_screen.dart';
+import 'package:taf_match/providers/auth_provider.dart';
+import 'package:taf_match/views/login_screen.dart';
 
 import '../fakes.dart';
 

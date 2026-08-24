@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:task_manager/models/task_model.dart';
-import 'package:task_manager/providers/auth_provider.dart';
-import 'package:task_manager/providers/task_provider.dart';
+import 'package:taf_match/models/task_model.dart';
+import 'package:taf_match/providers/auth_provider.dart';
+import 'package:taf_match/providers/task_provider.dart';
 
 import '../fakes.dart';
 

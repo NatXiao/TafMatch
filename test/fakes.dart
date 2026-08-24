@@ -1,8 +1,8 @@
 import 'dart:async';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:task_manager/models/task_model.dart';
-import 'package:task_manager/repositories/task_repository.dart';
-import 'package:task_manager/services/auth_service.dart';
+import 'package:taf_match/models/task_model.dart';
+import 'package:taf_match/repositories/task_repository.dart';
+import 'package:taf_match/services/auth_service.dart';
 
 class FakeUser implements User {
   @override

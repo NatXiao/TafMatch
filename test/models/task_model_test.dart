@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:task_manager/models/task_model.dart';
+import 'package:taf_match/models/task_model.dart';
 
 void main() {
   test('toMap includes the imageUrl', () {
