@@ -1,4 +1,4 @@
-package com.example.taf_match
+package com.tafmatch.app
 
 import io.flutter.embedding.android.FlutterActivity
 

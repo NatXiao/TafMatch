@@ -15,10 +15,22 @@ class LoginScreen extends StatefulWidget {
 }
 
 class LoginScreenState extends State<LoginScreen> {
+  final TextEditingController _nameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+  final TextEditingController _addressController = TextEditingController();
+  
   final _formKey = GlobalKey<FormState>();
   bool _isLogin = true;
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _emailController.dispose();
+    _passwordController.dispose();
+    _addressController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -178,17 +190,6 @@ class LoginScreenState extends State<LoginScreen> {
 
 
 
-              // TextButton(
-              //   onPressed: authProvider.isLoading
-              //       ? null
-              //       : () {
-              //           context.read<AuthProvider>().clearError();
-              //           setState(() {
-              //             _isLogin = !_isLogin;
-              //           });
-              //         },
-              //   child: Text(_isLogin ? 'Create an account' : 'Already have an account? Login'),
-              // ),
             ],
           ),
         ),
@@ -223,14 +224,12 @@ class LoginScreenState extends State<LoginScreen> {
 
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     final email = _emailController.text;
+    final role = 'user'; // Rôle par défaut pour l'inscription
     final password = _passwordController.text;
-    final isLogin = _isLogin;
 
     final navigator = Navigator.of(context);
 
-    final success = isLogin
-        ? await authProvider.signInWithEmailAndPassword(email, password)
-        : await authProvider.registerWithEmailAndPassword(email, password);
+    final success = await authProvider.signInWithEmailAndPassword(email, password);
 
     if (success) {
       navigator.pushReplacement(
