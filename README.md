@@ -22,7 +22,7 @@ On Android Studio > More Actions > SDK Manager > SDK Tools : Press on :
 
 And press "Apply"
 
-If there are problem with the JDK (example path : C:\Program Files\Java\jdk-21) :<br>
+If there are problem with the JDK (example path : `C:\Program Files\Java\jdk-21`) :<br>
 Run this in CMD : `flutter config --jdk-dir="{Full path to the JDK folder}"`
 
 To compile and make a .aab file, run in CMD : `flutter build appbundle`
