@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:taf_match/views/task_list_screen.dart';
 
 import '../providers/auth_provider.dart';
 
@@ -12,10 +11,22 @@ class LoginScreen extends StatefulWidget {
 }
 
 class LoginScreenState extends State<LoginScreen> {
+  final TextEditingController _nameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+  final TextEditingController _addressController = TextEditingController();
+  
   final _formKey = GlobalKey<FormState>();
   bool _isLogin = true;
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _emailController.dispose();
+    _passwordController.dispose();
+    _addressController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -29,69 +40,106 @@ class LoginScreenState extends State<LoginScreen> {
         padding: const EdgeInsets.all(16.0),
         child: Form(
           key: _formKey,
-          child: Column(
-            children: [
+          child: SingleChildScrollView(
+            child: Column(
+              children: [
+                // Champ Nom (Uniquement à l'inscription)
+                if (!_isLogin) ...[
+                  TextFormField(
+                    controller: _nameController,
+                    decoration: const InputDecoration(labelText: 'Full Name'),
+                    textCapitalization: TextCapitalization.words,
+                    validator: (value) {
+                      if (value == null || value.trim().isEmpty) {
+                        return 'Please enter your name';
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                ],
 
-              TextFormField(
-                controller: _emailController,
-                decoration: const InputDecoration(labelText: 'Email'),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter an email';
-                  }
-                  final regex = RegExp(r'^[^@]+@[^@]+\.[^@]+');
-                  if (!regex.hasMatch(value)) {
-                    return 'Please enter a valid email';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: _passwordController,
-                decoration: const InputDecoration(labelText: 'Password'),
-                obscureText: true,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter a password';
-                  }
-                  if (value.length < 6) {
-                    return 'Password must be at least 6 characters long';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 20),
-              if (authProvider.errorMessage != null) ...[
-                Text(
-                  authProvider.errorMessage!,
-                  style: TextStyle(color: Theme.of(context).colorScheme.error),
+                // Champ Email
+                TextFormField(
+                  controller: _emailController,
+                  decoration: const InputDecoration(labelText: 'Email'),
+                  keyboardType: TextInputType.emailAddress,
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter an email';
+                    }
+                    final regex = RegExp(r'^[^@]+@[^@]+\.[^@]+');
+                    if (!regex.hasMatch(value)) {
+                      return 'Please enter a valid email';
+                    }
+                    return null;
+                  },
                 ),
-                const SizedBox(height: 10),
-              ],
-              ElevatedButton(
-                onPressed: authProvider.isLoading ? null : () => _authenticate(context),
-                child: authProvider.isLoading
-                    ? const SizedBox(
-                        height: 20,
-                        width: 20,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : Text(_isLogin ? 'Login' : 'Register'),
-              ),
+                const SizedBox(height: 16),
 
-              TextButton(
-                onPressed: authProvider.isLoading
-                    ? null
-                    : () {
-                        context.read<AuthProvider>().clearError();
-                        setState(() {
-                          _isLogin = !_isLogin;
-                        });
-                      },
-                child: Text(_isLogin ? 'Create an account' : 'Already have an account? Login'),
-              ),
-            ],
+                // Champ Mot de passe
+                TextFormField(
+                  controller: _passwordController,
+                  decoration: const InputDecoration(labelText: 'Password'),
+                  obscureText: true,
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter a password';
+                    }
+                    if (value.length < 6) {
+                      return 'Password must be at least 6 characters long';
+                    }
+                    return null;
+                  },
+                ),
+
+                // Champ Adresse (Uniquement à l'inscription)
+                if (!_isLogin) ...[
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    controller: _addressController,
+                    decoration: const InputDecoration(labelText: 'Address'),
+                    validator: (value) {
+                      if (value == null || value.trim().isEmpty) {
+                        return 'Please enter your address';
+                      }
+                      return null;
+                    },
+                  ),
+                ],
+
+                const SizedBox(height: 20),
+                if (authProvider.errorMessage != null) ...[
+                  Text(
+                    authProvider.errorMessage!,
+                    style: TextStyle(color: Theme.of(context).colorScheme.error),
+                  ),
+                  const SizedBox(height: 10),
+                ],
+                ElevatedButton(
+                  onPressed: authProvider.isLoading ? null : () => _authenticate(context),
+                  child: authProvider.isLoading
+                      ? const SizedBox(
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : Text(_isLogin ? 'Login' : 'Register'),
+                ),
+
+                TextButton(
+                  onPressed: authProvider.isLoading
+                      ? null
+                      : () {
+                          context.read<AuthProvider>().clearError();
+                          setState(() {
+                            _isLogin = !_isLogin;
+                          });
+                        },
+                  child: Text(_isLogin ? 'Create an account' : 'Already have an account? Login'),
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -105,6 +153,7 @@ class LoginScreenState extends State<LoginScreen> {
 
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     final email = _emailController.text;
+    final role = 'user'; // Rôle par défaut pour l'inscription
     final password = _passwordController.text;
     final isLogin = _isLogin;
 
@@ -112,12 +161,12 @@ class LoginScreenState extends State<LoginScreen> {
 
     final success = isLogin
         ? await authProvider.signInWithEmailAndPassword(email, password)
-        : await authProvider.registerWithEmailAndPassword(email, password);
-
-    if (success) {
-      navigator.pushReplacement(
-        MaterialPageRoute(builder: (_) => const TaskListScreen()),
-      );
-    }
+        : await authProvider.register(
+            email: email,
+            role: role,
+            password: password,
+            address: _addressController.text,
+            fullName: _nameController.text,
+          );
   }
 }
