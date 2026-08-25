@@ -9,7 +9,7 @@
       "client_info": {
         "mobilesdk_app_id": "1:386289257828:android:f3e123ae8463df88adbe71",
         "android_client_info": {
-          "package_name": "com.example.taf_match"
+          "package_name": "com.tafmatch.app"
         }
       },
       "oauth_client": [],
