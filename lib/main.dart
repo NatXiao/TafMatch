@@ -1,6 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:provider/provider.dart';
+import 'package:taf_match/repositories/cloudinary_image_repository.dart';
+import 'package:taf_match/repositories/firestore_user_repository.dart';
+import 'package:taf_match/repositories/image_storage_repository.dart';
+import 'package:taf_match/services/firebase_auth_service.dart';
+import 'package:taf_match/utils/cloudinary_config.dart';
 import 'package:taf_match/utils/firebase_options.dart';
 import 'package:taf_match/utils/theme.dart';
 import 'package:taf_match/views/job_list_screen.dart';
@@ -29,12 +35,12 @@ class MyApp extends StatelessWidget {
             uploadPreset: CloudinaryConfig.uploadPreset,
           ),
         ),
-        ChangeNotifierProvider(create: (_) => AuthProvider(FirebaseAuthService())),
-        ChangeNotifierProxyProvider<AuthProvider, TaskProvider>(
-          create: (_) => TaskProvider(FirestoreTaskRepository()),
-          update: (_, authProvider, taskProvider) =>
-          taskProvider!..updateAuthProvider(authProvider),
-        ),
+        ChangeNotifierProvider(create: (_) => AuthProvider(FirebaseAuthService(), FirestoreUserRepository())),
+        // ChangeNotifierProxyProvider<AuthProvider>(
+        //   create: (_) => TaskProvider(FirestoreTaskRepository()),
+        //   update: (_, authProvider, taskProvider) =>
+        //   taskProvider!..updateAuthProvider(authProvider),
+        // ),
       ],
       child: Consumer<AuthProvider>(
         builder: (context, auth, _) {

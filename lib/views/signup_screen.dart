@@ -195,11 +195,12 @@ class SignupScreenState extends State<SignupScreen> {
     final password = _passwordController.text;
     final fullname = _fullnameController.text;
     final address = _addressController.text;
+    final role = "user"; // Rôle par défaut pour l'inscription
 
     final navigator = Navigator.of(context);
 
     // TODO : create account
-    final success = await authProvider.registerWithEmailAndPassword(email, password);
+    final success = await authProvider.register(email, password, fullname, role, address);
 
     if (success) {
       navigator.pushReplacement(

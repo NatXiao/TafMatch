@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:taf_match/views/about_screen.dart';
-import 'package:taf_match/views/task_list_screen.dart';
+import 'package:taf_match/views/job_list_screen.dart';
 
 import '../providers/auth_provider.dart';
 
@@ -198,13 +198,11 @@ class FaceLoginScreenState extends State<FaceLoginScreen> {
 
     final navigator = Navigator.of(context);
 
-    final success = isLogin
-        ? await authProvider.signInWithEmailAndPassword(email, password)
-        : await authProvider.registerWithEmailAndPassword(email, password);
+    final success = await authProvider.signInWithEmailAndPassword(email, password);
 
     if (success) {
       navigator.pushReplacement(
-        MaterialPageRoute(builder: (_) => const TaskListScreen()),
+        MaterialPageRoute(builder: (_) => const JobListScreen()),
       );
     }
   }

@@ -31,14 +31,14 @@ class AuthProvider with ChangeNotifier {
   }
 
   // INSCRIPTION
-  Future<bool> register({
-    required String email,
-    required String password,
-    required String fullName,
-    required String role,
-    required String address,
-    String profilePictureUrl = '',
-  }) async {
+  Future<bool> register(
+    String email,
+    String password,
+    String fullName,
+    String role,
+    String address,
+    {String profilePictureUrl = ''}
+  ) async {
     _isLoading = true;
     _errorMessage = null;
     notifyListeners();
