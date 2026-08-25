@@ -3,19 +3,21 @@ import 'package:flutter/material.dart';
 ThemeData buildThemeData() {
   final base = ThemeData.light();
   return base.copyWith(
-    primaryColor: Colors.blue,
+    primaryColor: Color.fromARGB(255, 77, 115, 255), // Colors.blue,
     colorScheme: base.colorScheme.copyWith(
-      primary: Colors.blue,
+      primary: Color.fromARGB(255, 77, 115, 255),
       secondary: Colors.orange,
       error: Colors.red,
     ),
     scaffoldBackgroundColor: Colors.grey[100],
     textTheme: buildTextTheme(base.textTheme),
+
     inputDecorationTheme: InputDecorationTheme(
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(8.0),
       ),
     ),
+
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(
         foregroundColor: Colors.white, backgroundColor: Colors.blue,
@@ -24,9 +26,30 @@ ThemeData buildThemeData() {
         ),
       ),
     ),
+
     floatingActionButtonTheme: const FloatingActionButtonThemeData(
       backgroundColor: Colors.blue,
     ),
+
+    filledButtonTheme: FilledButtonThemeData(
+      style: FilledButton.styleFrom(
+        foregroundColor: Colors.white, backgroundColor: Color.fromARGB(255, 77, 115, 255),
+        // shape: RoundedRectangleBorder(
+        //   borderRadius: BorderRadius.circular(8.0),
+        // ),
+      ),
+    ),
+
+    outlinedButtonTheme: OutlinedButtonThemeData(
+      style: OutlinedButton.styleFrom(
+        foregroundColor: Color.fromARGB(255, 77, 115, 255),
+        // shape: RoundedRectangleBorder(
+        //   borderRadius: BorderRadius.circular(8.0),
+        // ),
+      ),
+    ),
+
+
   );
 }
 
@@ -38,6 +61,6 @@ TextTheme buildTextTheme(TextTheme base) {
     bodyMedium: base.bodyMedium?.copyWith(fontSize: 14.0),
   )
       .apply(
-    fontFamily: 'Roboto',
+    fontFamily: 'Fredoka',
   );
 }

@@ -1,20 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:taf_match/views/about_screen.dart';
-import 'package:taf_match/views/face_login_screen.dart';
-import 'package:taf_match/views/job_list_screen.dart';
-import 'package:taf_match/views/signup_screen.dart';
+import 'package:taf_match/views/task_list_screen.dart';
 
 import '../providers/auth_provider.dart';
 
-class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key});
+class FaceLoginScreen extends StatefulWidget {
+  const FaceLoginScreen({super.key});
 
   @override
-  LoginScreenState createState() => LoginScreenState();
+  FaceLoginScreenState createState() => FaceLoginScreenState();
 }
 
-class LoginScreenState extends State<LoginScreen> {
+class FaceLoginScreenState extends State<FaceLoginScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
@@ -36,67 +34,50 @@ class LoginScreenState extends State<LoginScreen> {
             children: [
 
               Text(
-                "Hi There !",
-                style: TextStyle(fontWeight: FontWeight.w700, fontSize: 28.0),
-              ),
-
-              Text(
-                "Log in to find your next job",
-                style: TextStyle(fontSize: 14.0, color: Colors.blueGrey),
+                "Log in with a photo",
+                style: TextStyle(fontWeight: FontWeight.w700, fontSize: 22.0),
               ),
 
               const SizedBox(height: 20),
 
-              // ElevatedButton(
-              //   onPressed: authProvider.isLoading ? null : () => _authenticate(context),
-              //   child: authProvider.isLoading
-              //       ? const SizedBox(
-              //           height: 20,
-              //           width: 20,
-              //           child: CircularProgressIndicator(strokeWidth: 2),
-              //         )
-              //       : Text("Log in"),
+              // TextFormField(
+              //   controller: _emailController,
+              //   decoration: InputDecoration(
+              //     labelText: 'Email',
+              //     focusedBorder: OutlineInputBorder(
+              //       borderRadius: BorderRadius.circular(15.0),
+              //       borderSide: BorderSide(
+              //         color: Theme.of(context).colorScheme.primary,
+              //         width: 2.0,
+              //       ),
+              //     ),
+              //     enabledBorder: OutlineInputBorder(
+              //       borderRadius: BorderRadius.circular(15.0),
+              //       borderSide: BorderSide(
+              //         color: Colors.black,
+              //       ),
+              //     ),
+              //   ),
+              //   validator: (value) {
+              //     if (value == null || value.isEmpty) {
+              //       return 'Please enter an email';
+              //     }
+              //     final regex = RegExp(r'^[^@]+@[^@]+\.[^@]+');
+              //     if (!regex.hasMatch(value)) {
+              //       return 'Please enter a valid email';
+              //     }
+              //     return null;
+              //   },
+                
               // ),
 
-              // ElevatedButton(
-              //   onPressed: authProvider.isLoading ? null : () => navigate,
-              //   child: authProvider.isLoading
-              //       ? const SizedBox(
-              //           height: 20,
-              //           width: 20,
-              //           child: CircularProgressIndicator(strokeWidth: 2),
-              //         )
-              //       : Text("Sign up"),
-              // ),
-
-              TextFormField(
-                controller: _emailController,
-                decoration: InputDecoration(
-                  labelText: 'Email',
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(15.0),
-                    borderSide: BorderSide(
-                      color: Theme.of(context).colorScheme.primary,
-                      width: 2.0,
-                    ),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(15.0),
-                    borderSide: BorderSide(
-                      color: Colors.black,
-                    ),
-                  ),
+              Container(
+                width: 150.0,
+                height: 150.0,
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.primary,
+                  shape: BoxShape.circle,
                 ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter an email';
-                  }
-                  final regex = RegExp(r'^[^@]+@[^@]+\.[^@]+');
-                  if (!regex.hasMatch(value)) {
-                    return 'Please enter a valid email';
-                  }
-                  return null;
-                },
               ),
 
               const SizedBox(height: 16),
@@ -154,27 +135,15 @@ class LoginScreenState extends State<LoginScreen> {
 
               const SizedBox(height: 10),
 
-              OutlinedButton(
-                onPressed: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(builder: (context) => FaceLoginScreen()),
-                  );
-                },
-                child: Text('Log in with photo'),
-              ),
+              // OutlinedButton(
+              //   onPressed: authProvider.isLoading ? null : () => _authenticate(context),
+              //   child: Text('Log in with photo'),
+              // ),
 
 
-              const SizedBox(height: 10),
-
-              // TODO : Ceci est un bouton provisoire
-              OutlinedButton(
-                onPressed: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(builder: (context) => SignupScreen()),
-                  );
-                },
-                child: Text('Create account'),
-              ),
+              InkWell(
+                child: Text("Retake photo"),
+              )
 
 
 
@@ -216,6 +185,7 @@ class LoginScreenState extends State<LoginScreen> {
     );
   }
 
+  // TODO : Authentication with image
   void _authenticate(BuildContext context) async {
     FocusScope.of(context).unfocus();
 
@@ -234,7 +204,7 @@ class LoginScreenState extends State<LoginScreen> {
 
     if (success) {
       navigator.pushReplacement(
-        MaterialPageRoute(builder: (_) => const JobListScreen()),
+        MaterialPageRoute(builder: (_) => const TaskListScreen()),
       );
     }
   }
