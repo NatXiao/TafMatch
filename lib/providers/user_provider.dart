@@ -18,7 +18,8 @@ class UserProvider with ChangeNotifier {
   UserModel? get profile => _profile;
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
-
+  bool get isAdmin => profile?.role == 'admin';
+  
   Future<void> loadProfile(String uid) async {
     _isLoading = true;
     notifyListeners();
