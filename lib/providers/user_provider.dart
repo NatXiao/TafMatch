@@ -12,19 +12,34 @@ class UserProvider with ChangeNotifier {
   String? _currentUserId;
 
   UserModel? _profile;
+  List<UserModel> _users = const [];
   bool _isLoading = false;
   String? _errorMessage;
 
   UserModel? get profile => _profile;
+  List<UserModel> get users => _users;
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
   bool get isAdmin => profile?.role == 'admin';
-  
+
   Future<void> loadProfile(String uid) async {
     _isLoading = true;
     notifyListeners();
     try {
       _profile = await _repository.getProfile(uid);
+      _errorMessage = null;
+    } catch (e) {
+      _errorMessage = e.toString();
+    }
+    _isLoading = false;
+    notifyListeners();
+  }
+
+  Future<void> loadUsers() async {
+    _isLoading = true;
+    notifyListeners();
+    try {
+      _users = await _repository.getUsers();
       _errorMessage = null;
     } catch (e) {
       _errorMessage = e.toString();
@@ -45,6 +60,7 @@ class UserProvider with ChangeNotifier {
 
   void clear() {
     _profile = null;
+    _users = const [];
     notifyListeners();
   }
 
@@ -60,7 +76,5 @@ class UserProvider with ChangeNotifier {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       loadProfile(_currentUserId!);
     });
-
   }
-
 }
