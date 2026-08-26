@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:taf_match/providers/auth_provider.dart';
 import '../models/user_model.dart';
 import '../repositories/firestore_user_repository.dart';
 
@@ -6,6 +7,9 @@ class UserProvider with ChangeNotifier {
   final FirestoreUserRepository _repository;
 
   UserProvider(this._repository);
+
+  AuthProvider? _authProvider;
+  String? _currentUserId;
 
   UserModel? _profile;
   bool _isLoading = false;
@@ -42,4 +46,20 @@ class UserProvider with ChangeNotifier {
     _profile = null;
     notifyListeners();
   }
+
+  void updateAuthProvider(AuthProvider authProvider) {
+    _authProvider = authProvider;
+    final userId = _authProvider?.user?.uid;
+
+    if (userId == _currentUserId) return;
+    _currentUserId = userId;
+
+    if (_currentUserId == null) return;
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      loadProfile(_currentUserId!);
+    });
+
+  }
+
 }

@@ -169,9 +169,10 @@ class SignupScreenState extends State<SignupScreen> {
                 },
               ),
 
+              const SizedBox(height: 16),
 
               FilledButton(
-                onPressed: () => _create_account(context),
+                onPressed: () => _createAccount(context),
                 child: Text('Create account'),
               ),
 
@@ -184,7 +185,7 @@ class SignupScreenState extends State<SignupScreen> {
     );
   }
 
-  void _create_account(BuildContext context) async {
+  void _createAccount(BuildContext context) async {
     FocusScope.of(context).unfocus();
 
     if (!(_formKey.currentState?.validate() ?? false)) return;

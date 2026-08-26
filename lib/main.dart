@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:provider/provider.dart';
+import 'package:taf_match/providers/user_provider.dart';
 import 'package:taf_match/repositories/cloudinary_image_repository.dart';
 import 'package:taf_match/repositories/firestore_user_repository.dart';
 import 'package:taf_match/repositories/image_storage_repository.dart';
@@ -36,11 +37,10 @@ class MyApp extends StatelessWidget {
           ),
         ),
         ChangeNotifierProvider(create: (_) => AuthProvider(FirebaseAuthService(), FirestoreUserRepository())),
-        // ChangeNotifierProxyProvider<AuthProvider>(
-        //   create: (_) => TaskProvider(FirestoreTaskRepository()),
-        //   update: (_, authProvider, taskProvider) =>
-        //   taskProvider!..updateAuthProvider(authProvider),
-        // ),
+        ChangeNotifierProxyProvider<AuthProvider, UserProvider>(
+          create: (_) => UserProvider(FirestoreUserRepository()),
+          update: (_, authProvider, userProvider) => userProvider!..updateAuthProvider(authProvider),
+        ),
       ],
       child: Consumer<AuthProvider>(
         builder: (context, auth, _) {
