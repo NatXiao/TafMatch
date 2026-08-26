@@ -2,15 +2,23 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:provider/provider.dart';
-
-import 'package:taf_match/services/firebase_auth_service.dart';
+import 'package:taf_match/providers/user_provider.dart';
+import 'package:taf_match/repositories/cloudinary_image_repository.dart';
 import 'package:taf_match/repositories/firestore_user_repository.dart';
-import 'package:taf_match/repositories/firestore_job_repository.dart';
+import 'package:taf_match/repositories/image_storage_repository.dart';
+import 'package:taf_match/services/firebase_auth_service.dart';
+import 'package:taf_match/utils/cloudinary_config.dart';
 import 'package:taf_match/utils/firebase_options.dart';
-
+import 'package:taf_match/utils/theme.dart';
+import 'package:taf_match/views/job_list_screen.dart';
 import 'providers/auth_provider.dart';
-import 'providers/job_provider.dart';
-import 'views/my_postings_screen.dart';
+import 'views/login_screen.dart';
+
+import 'package:taf_match/providers/job_provider.dart';
+import 'package:taf_match/repositories/firestore_job_repository.dart';
+import 'package:taf_match/views/jp_my_posting_screen.dart';
+import 'package:taf_match/providers/application_provider.dart';
+import 'package:taf_match/repositories/firestore_application_repository.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -28,19 +36,30 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider(
-          create: (_) => AuthProvider(
-            FirebaseAuthService(),
-            FirestoreUserRepository(),
+        Provider<ImageStorageRepository>(
+          create: (_) => CloudinaryImageRepository(
+            cloudName: CloudinaryConfig.cloudName,
+            uploadPreset: CloudinaryConfig.uploadPreset,
           ),
         ),
         ChangeNotifierProvider(
-          create: (_) => JobProvider(FirestoreJobRepository()),
+          create: (_) => ApplicationProvider(FirestoreApplicationRepository()),
         ),
+        ChangeNotifierProvider(create: (_) => AuthProvider(FirebaseAuthService(), FirestoreUserRepository())),
+        ChangeNotifierProxyProvider<AuthProvider, UserProvider>(
+          create: (_) => UserProvider(FirestoreUserRepository()),
+          update: (_, authProvider, userProvider) => userProvider!..updateAuthProvider(authProvider),
+        ),
+        ChangeNotifierProvider(create: (_) => JobProvider(FirestoreJobRepository())),
       ],
-      child: const MaterialApp(
-        title: 'Taf Match',
-        home: MyPostingsScreen(),
+      child: Consumer<AuthProvider>(
+        builder: (context, auth, _) {
+          return MaterialApp(
+            title: 'Taf Match',
+            theme: buildThemeData(),
+            home: auth.user != null ? const MyPostingsScreen() : const LoginScreen(),
+          );
+        },
       ),
     );
   }

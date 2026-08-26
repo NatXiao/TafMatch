@@ -96,5 +96,13 @@ flutter:
   #       - asset: fonts/TrajanPro_Bold.ttf
   #         weight: 700
   #
+
+  fonts:
+    - family: Fredoka
+      fonts:
+        - asset: fonts/Fredoka/Fredoka-Regular.ttf
+        - asset: fonts/Fredoka/Fredoka-Bold.ttf
+          weight: 700
+
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/custom-fonts/#from-packages
