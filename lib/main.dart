@@ -52,15 +52,32 @@ class MyApp extends StatelessWidget {
         ),
         ChangeNotifierProvider(create: (_) => JobProvider(FirestoreJobRepository())),
       ],
-      child: Consumer<AuthProvider>(
-        builder: (context, auth, _) {
-          return MaterialApp(
-            title: 'Taf Match',
-            theme: buildThemeData(),
-            home: auth.user != null ? const MyPostingsScreen() : const LoginScreen(),
+      child: Consumer2<AuthProvider, UserProvider>(
+      builder: (context, auth, userProvider, _) {
+        Widget home;
+        if (auth.user == null) {
+          // 1. Pas connecté
+          home = const LoginScreen();
+        } else if (userProvider.profile == null) {
+          // 2. Connecté, mais le profil se charge encore
+          home = const Scaffold(
+            body: Center(child: CircularProgressIndicator()),
           );
-        },
-      ),
+        } else if (userProvider.profile!.role == 'employer') {
+          // 3a. Employeur
+          home = const MyPostingsScreen();
+        } else {
+          // 3b. Étudiant (ou tout autre rôle)
+          home = const JobListScreen();
+        }
+        return MaterialApp(
+          title: 'Taf Match',
+          theme: buildThemeData(),
+          home: home,
+        );
+      },
+    ),
+    
     );
   }
 }
