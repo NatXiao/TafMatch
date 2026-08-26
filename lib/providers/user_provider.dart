@@ -56,9 +56,9 @@ class UserProvider with ChangeNotifier {
 
     if (_currentUserId == null) return;
 
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    // WidgetsBinding.instance.addPostFrameCallback((_) {
       loadProfile(_currentUserId!);
-    });
+    // });
 
   }
 
