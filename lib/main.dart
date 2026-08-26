@@ -1,7 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:provider/provider.dart';
+
+import 'package:taf_match/services/firebase_auth_service.dart';
+import 'package:taf_match/repositories/firestore_user_repository.dart';
+import 'package:taf_match/repositories/firestore_job_repository.dart';
 import 'package:taf_match/utils/firebase_options.dart';
+
+import 'providers/auth_provider.dart';
+import 'providers/job_provider.dart';
+import 'views/my_postings_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -17,12 +26,21 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
-      title: 'Taf Match',
-      home: Scaffold(
-        body: Center(
-          child: Text('Hello World'),
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(
+          create: (_) => AuthProvider(
+            FirebaseAuthService(),
+            FirestoreUserRepository(),
+          ),
         ),
+        ChangeNotifierProvider(
+          create: (_) => JobProvider(FirestoreJobRepository()),
+        ),
+      ],
+      child: const MaterialApp(
+        title: 'Taf Match',
+        home: MyPostingsScreen(),
       ),
     );
   }
