@@ -7,6 +7,7 @@ import 'package:taf_match/repositories/firestore_application_repository.dart';
 import 'package:taf_match/views/jp_new_posting_screen.dart';
 import 'package:taf_match/views/about_screen.dart';
 import 'package:taf_match/views/jp_applicants_screen.dart';
+import 'package:taf_match/views/login_screen.dart';
 
 // --- Design  ---
 const _accent = Color(0xFF4D73FF);
@@ -153,18 +154,18 @@ class _NavItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = active ? _accent : _muted;
-    return InkWell(                   
-      onTap: onTap,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(width: 8, height: 8,
-              decoration: BoxDecoration(
-                  color: active ? _accent : _border, shape: BoxShape.circle)),
-          const SizedBox(height: 6),
-          Text(label, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: color)),
-        ],
+    return InkWell(
+      onTap: () {
+        Provider.of<AuthProvider>(context, listen: false).signOut();
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (context) => const LoginScreen()),
+        );
+      },
+      borderRadius: BorderRadius.circular(999),
+      child: Container(
+        width: 40, height: 40,
+        decoration: const BoxDecoration(color: _softAccent, shape: BoxShape.circle),
+        child: const Icon(Icons.logout, size: 18, color: _accent),
       ),
     );
   }
