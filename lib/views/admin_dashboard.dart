@@ -42,25 +42,14 @@ class AdminDashboardScreenState extends State<AdminDashboardScreen> {
           user.uid.toLowerCase().contains(query);
     }).toList();
 
-    if (!userProvider.isAdmin) {
-      return const Scaffold(
-        body: Center(
-          child: Text(
-            'Access denied',
-            style: TextStyle(fontSize: 20),
-          ),
-        ),
-      );
-    }
-
     return Scaffold(
       appBar: AppBar(
         title: const Text("Admin Dashboard", style: TextStyle(fontSize: 20)),
         actions: [
           IconButton(
             icon: const Icon(Icons.logout),
-            onPressed: () {
-              Provider.of<AuthProvider>(context, listen: false).signOut();
+            onPressed: () async {
+              await Provider.of<AuthProvider>(context, listen: false).signOut();
               Navigator.of(context).pushReplacement(
                 MaterialPageRoute(builder: (context) => const LoginScreen()),
               );
@@ -68,7 +57,8 @@ class AdminDashboardScreenState extends State<AdminDashboardScreen> {
           ),
         ],
       ),
-      body: Padding(
+      body:userProvider.isAdmin
+        ? Padding(
         padding: const EdgeInsets.all(16.0),
         child: Form(
           key: _formKey,
@@ -78,7 +68,7 @@ class AdminDashboardScreenState extends State<AdminDashboardScreen> {
                 Expanded(
                     child: _buildStatCard(
                         count: users
-                            .where((user) => user.role == 'student')
+                            .where((user) => user.role == 'user')
                             .length
                             .toString(),
                         label: "Job seekers")),
@@ -95,6 +85,7 @@ class AdminDashboardScreenState extends State<AdminDashboardScreen> {
                     child: _buildStatCard(
                         count: users.length.toString(), label: "All users")),
               ]),
+
               TextField(
                 controller: _filterController,
                 onChanged: (_) => setState(() {}),
@@ -115,6 +106,7 @@ class AdminDashboardScreenState extends State<AdminDashboardScreen> {
                   ),
                 ),
               ),
+
               const SizedBox(width: 16),
               if (userProvider.isLoading)
                 const Expanded(
@@ -130,17 +122,24 @@ class AdminDashboardScreenState extends State<AdminDashboardScreen> {
                   child: Text("No users found."),
                 )
               else
-                ListView.builder(
-                  shrinkWrap: true,
+              Expanded(
+                child: ListView.builder(
                   itemCount: users.length,
                   itemBuilder: (context, index) {
                     return _buildUserCard(users[index]);
                   },
                 ),
+              )
             ],
           ),
         ),
-      ),
+      )
+      : const Center(
+            child: Text(
+              'Access denied',
+              style: TextStyle(fontSize: 20),
+            ),
+          ),
     );
   }
 }
