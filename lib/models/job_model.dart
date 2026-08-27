@@ -43,6 +43,7 @@ class Job {
       'degree': degree,
       'languages': languages,
       'salaryChfPerHour': salaryChfPerHour,
+      'workPercentage': workPercentage,
       'endDate': endDate != null ? Timestamp.fromDate(endDate!) : null,
       'pictureUrl': pictureUrl,
       'status': status,
