@@ -7,12 +7,10 @@ import '../fakes.dart';
 void main() {
   late FakeAuthService authService;
   late AuthProvider provider;
-  late FakeUserRepository userRepository;
 
   setUp(() {
     authService = FakeAuthService();
-    userRepository = FakeUserRepository();
-    provider = AuthProvider(authService, userRepository);
+    provider = AuthProvider(authService);
   });
 
   tearDown(() {
@@ -55,14 +53,14 @@ void main() {
   });
 
   test('isLoading is true while authenticating', () async {
-    authService.stringGate = Completer<String?>();
+    authService.gate = Completer<void>();
 
-    final future = provider.register('a@b.c', 'pw', "abc", "user", "12 abc");
+    final future = provider.registerWithEmailAndPassword('a@b.c', 'pw');
     await Future<void>.delayed(Duration.zero);
 
     expect(provider.isLoading, isTrue);
 
-    authService.stringGate!.complete();
+    authService.gate!.complete();
     await future;
 
     expect(provider.isLoading, isFalse);

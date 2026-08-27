@@ -3,34 +3,8 @@ A Flutter app for students to find a job and enterprises to find new employes
 
 
 # Update Firebase firestore rules
-To apply rules after a modification of `firestore.rules` files, run this in CMD : <br>
-```
-firebase deploy --only firestore:rules --project taf-match
-```
-
-
-# Create and run Unit test
-To create a unit test, create file in `/test` folder with name like this :
-```
-<file_name>_test.dart
-```
-
-/!\ If the end of file is not `_test.dart`, it's not considered like unit test !
-
-To run all unit test :
-```
-flutter test
-```
-
-To run specific unit test :
-```
-flutter test test/<path_to_the_file>/<file_name>_test.dart
-```
-
-To run with activated print, add this to the test command :
-```
- --reporter=expanded
-```
+To apply rules after a modification of `firestore.rules` files, run this in CMD :
+`firebase deploy --only firestore:rules --project taf-match`
 
 
 # Installation for Android compilation
@@ -49,14 +23,9 @@ On Android Studio > More Actions > SDK Manager > SDK Tools : Press on :
 And press "Apply"
 
 If there are problem with the JDK (example path : `C:\Program Files\Java\jdk-21`) :<br>
-```
-flutter config --jdk-dir="{Full path to the JDK folder}"
-```
+Run this in CMD : `flutter config --jdk-dir="{Full path to the JDK folder}"`
 
-To compile and make a .aab file, run in CMD : 
-```
-flutter build appbundle
-```
+To compile and make a .aab file, run in CMD : `flutter build appbundle`
 
 To run on the tablet, link it to the computer, run `flutter run` and select it in options.
 
