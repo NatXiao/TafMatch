@@ -10,16 +10,18 @@ import 'package:taf_match/utils/theme.dart';
 typedef _Applicant = ({String name, String photoUrl, double rating, int reviews});
 
 class ApplicantsScreen extends StatefulWidget {
-  const ApplicantsScreen({super.key, required this.job});
+  const ApplicantsScreen({super.key, required this.job, this.userRepository, this.reviewRepository,});
   final Job job;
+  final FirestoreUserRepository? userRepository;
+  final FirestoreReviewRepository? reviewRepository;
 
   @override
   State<ApplicantsScreen> createState() => _ApplicantsScreenState();
 }
 
 class _ApplicantsScreenState extends State<ApplicantsScreen> {
-  final _userRepository = FirestoreUserRepository();
-  final _reviewRepository = FirestoreReviewRepository();
+  late final FirestoreUserRepository _userRepository;
+  late final FirestoreReviewRepository _reviewRepository;
 
   @override
   void initState() {
@@ -27,6 +29,9 @@ class _ApplicantsScreenState extends State<ApplicantsScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<ApplicationProvider>().listenToJobApplications(widget.job.id);
     });
+    _userRepository = widget.userRepository ?? FirestoreUserRepository();
+    _reviewRepository = widget.reviewRepository ?? FirestoreReviewRepository();
+  
   }
 
   Future<_Applicant> _loadApplicant(String studentId) async {
