@@ -7,7 +7,7 @@ import 'package:taf_match/repositories/firestore_application_repository.dart';
 import 'package:taf_match/views/jp_new_posting_screen.dart';
 import 'package:taf_match/views/about_screen.dart';
 import 'package:taf_match/views/jp_applicants_screen.dart';
-import 'package:taf_match/utils/theme.dart'; // pour AppColors
+import 'package:taf_match/utils/theme.dart';
 
 String _shortDate(DateTime d) {
   const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
@@ -51,7 +51,6 @@ class _MyPostingsScreenState extends State<MyPostingsScreen> {
                   Text('My postings',
                       style: TextStyle(fontSize: 28, fontWeight: FontWeight.w700, color: colors.text)),
                   const Spacer(),
-                  // Bouton logout (en haut à droite)
                   InkWell(
                     onTap: () =>
                         Provider.of<AuthProvider>(context, listen: false).signOut(),
@@ -132,7 +131,7 @@ class _MyPostingsScreenState extends State<MyPostingsScreen> {
             _NavItem(
               label: 'Profile',
               active: false,
-              // TODO: remplacer AboutScreen par ta vraie page profil
+              // TODO: remplacer AboutScreen par une vraie page profil
               onTap: () => Navigator.push(context,
                   MaterialPageRoute(builder: (_) => const AboutScreen())),
             ),
@@ -236,7 +235,6 @@ class _JobCard extends StatelessWidget {
                         style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: colors.accent)),
                   ),
                 const Spacer(),
-                // One-shot count of applicants for this posting.
               ],
             ),
           ],

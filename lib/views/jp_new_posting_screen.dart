@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:taf_match/models/job_model.dart';
 import 'package:taf_match/providers/auth_provider.dart';
 import 'package:taf_match/providers/job_provider.dart';
-import 'package:taf_match/utils/theme.dart'; // pour AppColors
+import 'package:taf_match/utils/theme.dart';
 
 String _shortDate(DateTime d) {
   const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
@@ -313,7 +313,7 @@ class NewPostingScreenState extends State<NewPostingScreen> {
               ],
             ),
           ),
-          // TODO: replace with the value from your salary prediction model.
+          // TODO: remplacer en utilisant le vrai estimateur de salaire
           Text('—',
               style: TextStyle(fontSize: 22, fontWeight: FontWeight.w700, color: colors.accent)),
         ],

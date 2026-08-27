@@ -70,8 +70,6 @@ class MyApp extends StatelessWidget {
             );
           } else {
               final role = userProvider.profile!.role.trim().toLowerCase();
-              print('ROLE = [$role]');
-
               if (role == 'employer') {
                 home = const MyPostingsScreen();
               } else if (role == 'admin') {
