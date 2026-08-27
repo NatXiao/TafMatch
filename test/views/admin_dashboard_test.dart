@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import 'package:taf_match/models/user_model.dart';
 import 'package:taf_match/providers/auth_provider.dart';
 import 'package:taf_match/providers/user_provider.dart';
+import 'package:taf_match/utils/theme.dart';
 import 'package:taf_match/views/admin_dashboard.dart';
 import 'package:network_image_mock/network_image_mock.dart';
 import '../fakes.dart';
@@ -78,7 +79,8 @@ Future<void> signInAsAdmin() async {
           value: authProvider,
         ),
       ],
-      child: const MaterialApp(
+      child: MaterialApp(
+        theme: buildThemeData(),
         home: AdminDashboardScreen(),
       ),
     );
