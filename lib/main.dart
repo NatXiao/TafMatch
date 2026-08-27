@@ -10,9 +10,16 @@ import 'package:taf_match/services/firebase_auth_service.dart';
 import 'package:taf_match/utils/cloudinary_config.dart';
 import 'package:taf_match/utils/firebase_options.dart';
 import 'package:taf_match/utils/theme.dart';
-import 'package:taf_match/views/job_list_screen.dart';
+import 'package:taf_match/views/admin_dashboard.dart';
 import 'providers/auth_provider.dart';
 import 'views/login_screen.dart';
+
+import 'package:taf_match/providers/job_provider.dart';
+import 'package:taf_match/repositories/firestore_job_repository.dart';
+import 'package:taf_match/providers/application_provider.dart';
+import 'package:taf_match/repositories/firestore_application_repository.dart';
+import 'package:taf_match/views/jp_main_screen.dart';
+import 'package:taf_match/views/je_main_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -36,18 +43,46 @@ class MyApp extends StatelessWidget {
             uploadPreset: CloudinaryConfig.uploadPreset,
           ),
         ),
-        ChangeNotifierProvider(create: (_) => AuthProvider(FirebaseAuthService(), FirestoreUserRepository())),
+        ChangeNotifierProvider(
+          create: (_) => ApplicationProvider(FirestoreApplicationRepository()),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => AuthProvider(FirebaseAuthService(), FirestoreUserRepository()),
+        ),
         ChangeNotifierProxyProvider<AuthProvider, UserProvider>(
           create: (_) => UserProvider(FirestoreUserRepository()),
-          update: (_, authProvider, userProvider) => userProvider!..updateAuthProvider(authProvider),
+          update: (_, authProvider, userProvider) =>
+              userProvider!..updateAuthProvider(authProvider),
         ),
+        ChangeNotifierProvider(create: (_) => JobProvider(FirestoreJobRepository())),
       ],
-      child: Consumer<AuthProvider>(
-        builder: (context, auth, _) {
+      child: Consumer2<AuthProvider, UserProvider>(
+        builder: (context, auth, userProvider, _) {
+          Widget home;
+
+          if (auth.user == null) {
+            // 1. Pas connecté
+            home = const LoginScreen();
+          } else if (userProvider.profile == null) {
+            // 2. Connecté, mais le profil se charge encore
+            home = const Scaffold(
+              body: Center(child: CircularProgressIndicator()),
+            );
+          } else {
+              final role = userProvider.profile!.role.trim().toLowerCase();
+              if (role == 'employer') {
+                home = const JpMainScreen();
+              } else if (role == 'admin') {
+                home = const AdminDashboardScreen();
+              } else {
+                home = const JeMainScreen();
+              }
+            }
+
           return MaterialApp(
             title: 'Taf Match',
             theme: buildThemeData(),
-            home: auth.user != null ? const JobListScreen() : const LoginScreen(),
+            home: home,
           );
         },
       ),

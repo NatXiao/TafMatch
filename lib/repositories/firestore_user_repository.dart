@@ -20,6 +20,13 @@ class FirestoreUserRepository {
     return UserModel.fromMap(uid, doc.data()!);
   }
 
+  Future<List<UserModel>> getUsers() async {
+    final snapshot = await _users.get();
+    return snapshot.docs
+        .map((doc) => UserModel.fromMap(doc.id, doc.data()))
+        .toList();
+  }
+
   // ÉCOUTER un profil en temps réel (pour un StreamBuilder)
   Stream<UserModel?> watchProfile(String uid) {
     return _users.doc(uid).snapshots().map((doc) {

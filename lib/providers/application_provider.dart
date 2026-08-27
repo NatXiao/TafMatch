@@ -35,6 +35,9 @@ class ApplicationProvider with ChangeNotifier {
   Future<void> apply(Application application) =>
       _repository.apply(application);
 
+  Future<void> cancel(String applicationId) =>
+      _repository.cancel(applicationId);
+
   Future<void> updateStatus(String applicationId, String status) =>
       _repository.updateStatus(applicationId, status);
 
