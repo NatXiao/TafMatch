@@ -40,37 +40,6 @@ class FaceLoginScreenState extends State<FaceLoginScreen> {
 
               const SizedBox(height: 20),
 
-              // TextFormField(
-              //   controller: _emailController,
-              //   decoration: InputDecoration(
-              //     labelText: 'Email',
-              //     focusedBorder: OutlineInputBorder(
-              //       borderRadius: BorderRadius.circular(15.0),
-              //       borderSide: BorderSide(
-              //         color: Theme.of(context).colorScheme.primary,
-              //         width: 2.0,
-              //       ),
-              //     ),
-              //     enabledBorder: OutlineInputBorder(
-              //       borderRadius: BorderRadius.circular(15.0),
-              //       borderSide: BorderSide(
-              //         color: Colors.black,
-              //       ),
-              //     ),
-              //   ),
-              //   validator: (value) {
-              //     if (value == null || value.isEmpty) {
-              //       return 'Please enter an email';
-              //     }
-              //     final regex = RegExp(r'^[^@]+@[^@]+\.[^@]+');
-              //     if (!regex.hasMatch(value)) {
-              //       return 'Please enter a valid email';
-              //     }
-              //     return null;
-              //   },
-                
-              // ),
-
               Container(
                 width: 150.0,
                 height: 150.0,
@@ -135,29 +104,10 @@ class FaceLoginScreenState extends State<FaceLoginScreen> {
 
               const SizedBox(height: 10),
 
-              // OutlinedButton(
-              //   onPressed: authProvider.isLoading ? null : () => _authenticate(context),
-              //   child: Text('Log in with photo'),
-              // ),
-
-
               InkWell(
                 child: Text("Retake photo"),
               )
 
-
-
-              // TextButton(
-              //   onPressed: authProvider.isLoading
-              //       ? null
-              //       : () {
-              //           context.read<AuthProvider>().clearError();
-              //           setState(() {
-              //             _isLogin = !_isLogin;
-              //           });
-              //         },
-              //   child: Text(_isLogin ? 'Create an account' : 'Already have an account? Login'),
-              // ),
             ],
           ),
         ),

@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:developer';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:taf_match/models/user_model.dart';
 import 'package:taf_match/repositories/firestore_user_repository.dart';

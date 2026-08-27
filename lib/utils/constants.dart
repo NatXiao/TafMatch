@@ -2,7 +2,7 @@
 
 class Constants {
 
-  static final ROLE_STUDENT = "user";
-  static final ROLE_EMPLOYER = "employer";
+  static const ROLE_STUDENT = "user";
+  static const ROLE_EMPLOYER = "employer";
 
 }

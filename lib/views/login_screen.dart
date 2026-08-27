@@ -21,7 +21,6 @@ class LoginScreenState extends State<LoginScreen> {
   final TextEditingController _addressController = TextEditingController();
   
   final _formKey = GlobalKey<FormState>();
-  bool _isLogin = true;
 
   @override
   void dispose() {
