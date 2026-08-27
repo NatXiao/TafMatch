@@ -170,7 +170,15 @@ Widget _buildUserCard(UserModel user) {
   return Card(
     child: ListTile(
       title: Text(user.fullName),
-      leading: const Icon(Icons.person),
+      leading: CircleAvatar(
+        radius: 28,
+        backgroundImage: user.profilePictureUrl.isNotEmpty
+            ? NetworkImage(user.profilePictureUrl)
+            : null,
+        child: user.profilePictureUrl.isEmpty
+            ? const Icon(Icons.person)
+            : null,
+      ),
       subtitle: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
