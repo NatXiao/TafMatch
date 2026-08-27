@@ -113,4 +113,10 @@ class FakeUserRepository implements FirestoreUserRepository {
     _users.clear();
   }
 
+  @override
+  Future<List<UserModel>> getUsers() {
+    // TODO: implement getUsers
+    throw UnimplementedError();
+  }
+
 }
