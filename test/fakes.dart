@@ -109,6 +109,12 @@ class FakeUserRepository implements FirestoreUserRepository {
     throw UnimplementedError();
   }
 
+  @override
+  Future<List<UserModel>> getUsers() {
+    // TODO: implement getUsers
+    throw UnimplementedError();
+  }
+
   void dispose() {
     _users.clear();
   }
