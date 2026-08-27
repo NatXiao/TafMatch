@@ -5,17 +5,7 @@ import 'package:taf_match/models/job_model.dart';
 import 'package:taf_match/providers/application_provider.dart';
 import 'package:taf_match/repositories/firestore_review_repository.dart';
 import 'package:taf_match/repositories/firestore_user_repository.dart';
-
-// --- Design ---
-const _accent = Color(0xFF4D73FF);
-const _softAccent = Color(0xFFE6EDFF);
-const _text = Color(0xFF1F212E);
-const _muted = Color(0xFF8A91A3);
-const _border = Color(0xFFE6EBF5);
-const _avatar = Color(0xFFCCD9F0);
-const _danger = Color(0xFFE5484D);
-const _softDanger = Color(0xFFFDEBEC);
-
+import 'package:taf_match/utils/theme.dart'; // pour AppColors
 
 typedef _Applicant = ({String name, String photoUrl, double rating, int reviews});
 
@@ -55,6 +45,8 @@ class _ApplicantsScreenState extends State<ApplicantsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).extension<AppColors>()!;
+
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
@@ -66,27 +58,27 @@ class _ApplicantsScreenState extends State<ApplicantsScreen> {
               child: Row(
                 children: [
                   IconButton(
-                    icon: const Icon(Icons.chevron_left, size: 30, color: _text),
+                    icon: Icon(Icons.chevron_left, size: 30, color: colors.text),
                     onPressed: () => Navigator.maybePop(context),
                   ),
-                  const Text('Applicants',
-                      style: TextStyle(fontSize: 24, fontWeight: FontWeight.w600, color: _text)),
+                  Text('Applicants',
+                      style: TextStyle(fontSize: 24, fontWeight: FontWeight.w600, color: colors.text)),
                 ],
               ),
             ),
-            const Padding(
-              padding: EdgeInsets.fromLTRB(22, 0, 22, 8),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(22, 0, 22, 8),
               child: Text('Tap an applicant to open their profile and rate them',
-                  style: TextStyle(fontSize: 13, color: _muted)),
+                  style: TextStyle(fontSize: 13, color: colors.muted)),
             ),
             Expanded(
               child: Consumer<ApplicationProvider>(
                 builder: (context, provider, _) {
                   final apps = provider.applications;
                   if (apps.isEmpty) {
-                    return const Center(
+                    return Center(
                       child: Text('No applicants yet.',
-                          style: TextStyle(fontSize: 15, color: _muted)),
+                          style: TextStyle(fontSize: 15, color: colors.muted)),
                     );
                   }
                   return ListView.separated(
@@ -116,12 +108,14 @@ class _ApplicantCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).extension<AppColors>()!;
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: _border),
+        border: Border.all(color: colors.border),
         boxShadow: const [BoxShadow(color: Color(0x242E3D8C), offset: Offset(0, 14), blurRadius: 34)],
       ),
       child: Column(
@@ -136,7 +130,7 @@ class _ApplicantCard extends StatelessWidget {
                 children: [
                   CircleAvatar(
                     radius: 22,
-                    backgroundColor: _avatar,
+                    backgroundColor: colors.avatar,
                     backgroundImage:
                         a.photoUrl.isNotEmpty ? NetworkImage(a.photoUrl) : null,
                     child: a.photoUrl.isEmpty
@@ -154,25 +148,25 @@ class _ApplicantCard extends StatelessWidget {
                             Flexible(
                               child: Text(a.name,
                                   overflow: TextOverflow.ellipsis,
-                                  style: const TextStyle(fontSize: 16,
-                                      fontWeight: FontWeight.w600, color: _accent)),
+                                  style: TextStyle(fontSize: 16,
+                                      fontWeight: FontWeight.w600, color: colors.accent)),
                             ),
-                            const Icon(Icons.chevron_right, size: 18, color: _accent),
+                            Icon(Icons.chevron_right, size: 18, color: colors.accent),
                           ],
                         ),
                         const SizedBox(height: 4),
                         Row(
                           children: [
-                            const Icon(Icons.star, size: 15, color: _accent),
+                            Icon(Icons.star, size: 15, color: colors.accent),
                             const SizedBox(width: 4),
                             Text('${a.rating.toStringAsFixed(1)} · ${a.reviews} reviews',
-                                style: const TextStyle(fontSize: 13, color: _muted)),
+                                style: TextStyle(fontSize: 13, color: colors.muted)),
                           ],
                         ),
                       ],
                     ),
                   ),
-                  _statusBadge(application.status),
+                  _statusBadge(context, application.status),
                 ],
               );
             },
@@ -187,7 +181,7 @@ class _ApplicantCard extends StatelessWidget {
                       : () => context.read<ApplicationProvider>()
                           .updateStatus(application.id, 'accepted'),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: _accent, foregroundColor: Colors.white,
+                    backgroundColor: colors.accent, foregroundColor: Colors.white,
                     elevation: 0, padding: const EdgeInsets.symmetric(vertical: 14),
                     shape: const StadiumBorder(),
                     textStyle: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
@@ -203,8 +197,8 @@ class _ApplicantCard extends StatelessWidget {
                       : () => context.read<ApplicationProvider>()
                           .updateStatus(application.id, 'rejected'),
                   style: OutlinedButton.styleFrom(
-                    foregroundColor: _accent,
-                    side: const BorderSide(color: _accent, width: 1.5),
+                    foregroundColor: colors.accent,
+                    side: BorderSide(color: colors.accent, width: 1.5),
                     padding: const EdgeInsets.symmetric(vertical: 14),
                     shape: const StadiumBorder(),
                     textStyle: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
@@ -219,17 +213,18 @@ class _ApplicantCard extends StatelessWidget {
     );
   }
 
-  Widget _statusBadge(String status) {
+  Widget _statusBadge(BuildContext context, String status) {
+    final colors = Theme.of(context).extension<AppColors>()!;
     late final String label;
     late final Color bg;
     late final Color fg;
     switch (status) {
       case 'accepted':
-        label = 'Accepted'; bg = _accent; fg = Colors.white;
+        label = 'Accepted'; bg = colors.accent; fg = Colors.white;
       case 'rejected':
-        label = 'Rejected'; bg = _softDanger; fg = _danger;
+        label = 'Rejected'; bg = colors.softDanger; fg = colors.danger;
       default:
-        label = 'To review'; bg = _softAccent; fg = _accent;
+        label = 'To review'; bg = colors.softAccent; fg = colors.accent;
     }
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),

@@ -68,16 +68,17 @@ class MyApp extends StatelessWidget {
               body: Center(child: CircularProgressIndicator()),
             );
           } else {
-            // 3. Profil chargé : on choisit selon le rôle
-            final role = userProvider.profile!.role.trim().toLowerCase();
-            print('ROLE = [$role]');
+              final role = userProvider.profile!.role.trim().toLowerCase();
+              print('ROLE = [$role]');
 
-            if (role == 'employer') {
-              home = const MyPostingsScreen();
-            } else {
-              home = const JobListScreen();
+              if (role == 'employer') {
+                home = const MyPostingsScreen();
+              //} else if (role == 'admin') {
+              //  home = const JobListScreen();        // TODO à changer
+              } else {
+                home = const JobListScreen();
+              }
             }
-          }
 
           return MaterialApp(
             title: 'Taf Match',

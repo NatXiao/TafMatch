@@ -185,29 +185,24 @@ class SignupScreenState extends State<SignupScreen> {
     );
   }
 
-  void _createAccount(BuildContext context) async {
-    FocusScope.of(context).unfocus();
+void _createAccount(BuildContext context) async {
+  FocusScope.of(context).unfocus();
 
-    if (!(_formKey.currentState?.validate() ?? false)) return;
+  if (!(_formKey.currentState?.validate() ?? false)) return;
 
-    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+  final authProvider = Provider.of<AuthProvider>(context, listen: false);
 
-    final email = _emailController.text;
-    final password = _passwordController.text;
-    final fullname = _fullnameController.text;
-    final address = _addressController.text;
-    final role = "user"; // Rôle par défaut pour l'inscription
+  final email = _emailController.text;
+  final password = _passwordController.text;
+  final fullname = _fullnameController.text;
+  final address = _addressController.text;
+  final role = "user"; // rôle par défaut à l'inscription
 
-    final navigator = Navigator.of(context);
+  final success = await authProvider.register(email, password, fullname, role, address);
 
-    // TODO : create account
-    final success = await authProvider.register(email, password, fullname, role, address);
-
-    if (success) {
-      navigator.pushReplacement(
-        MaterialPageRoute(builder: (_) => const JobListScreen()),
-      );
-    }
+  if (success && context.mounted) {
+    Navigator.of(context).pop();   // ferme le signup ; main.dart affiche le bon home
   }
+}
 
 }

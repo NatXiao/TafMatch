@@ -28,9 +28,6 @@ class JobListScreenState extends State<JobListScreen> {
             icon: const Icon(Icons.logout),
             onPressed: () {
               Provider.of<AuthProvider>(context, listen: false).signOut();
-              Navigator.of(context).pushReplacement(
-                MaterialPageRoute(builder: (context) => const LoginScreen()),
-              );
             },
           ),
         ],

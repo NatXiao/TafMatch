@@ -7,14 +7,7 @@ import 'package:taf_match/repositories/firestore_application_repository.dart';
 import 'package:taf_match/views/jp_new_posting_screen.dart';
 import 'package:taf_match/views/about_screen.dart';
 import 'package:taf_match/views/jp_applicants_screen.dart';
-import 'package:taf_match/views/login_screen.dart';
-
-// --- Design  ---
-const _accent = Color(0xFF4D73FF);
-const _softAccent = Color(0xFFE6EDFF);
-const _text = Color(0xFF1F212E);
-const _muted = Color(0xFF8A91A3);
-const _border = Color(0xFFE6EBF5);
+import 'package:taf_match/utils/theme.dart'; // pour AppColors
 
 String _shortDate(DateTime d) {
   const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
@@ -28,11 +21,9 @@ class MyPostingsScreen extends StatefulWidget {
   State<MyPostingsScreen> createState() => _MyPostingsScreenState();
 }
 
-// Variables inside the memory
 class _MyPostingsScreenState extends State<MyPostingsScreen> {
   final _applicationRepository = FirestoreApplicationRepository();
 
-  // Listen to the job postings of the current employer.
   @override
   void initState() {
     super.initState();
@@ -44,6 +35,8 @@ class _MyPostingsScreenState extends State<MyPostingsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).extension<AppColors>()!;
+
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
@@ -55,15 +48,18 @@ class _MyPostingsScreenState extends State<MyPostingsScreen> {
               const SizedBox(height: 12),
               Row(
                 children: [
-                  const Text('My postings',
-                      style: TextStyle(fontSize: 28, fontWeight: FontWeight.w700, color: _text)),
+                  Text('My postings',
+                      style: TextStyle(fontSize: 28, fontWeight: FontWeight.w700, color: colors.text)),
                   const Spacer(),
-                  Container(
-                    width: 40, height: 40,
-                    decoration: const BoxDecoration(color: _softAccent, shape: BoxShape.circle),
-                    child: Center(
-                      child: Container(width: 14, height: 14,
-                          decoration: const BoxDecoration(color: _accent, shape: BoxShape.circle)),
+                  // Bouton logout (en haut à droite)
+                  InkWell(
+                    onTap: () =>
+                        Provider.of<AuthProvider>(context, listen: false).signOut(),
+                    borderRadius: BorderRadius.circular(999),
+                    child: Container(
+                      width: 40, height: 40,
+                      decoration: BoxDecoration(color: colors.softAccent, shape: BoxShape.circle),
+                      child: Icon(Icons.logout, size: 18, color: colors.accent),
                     ),
                   ),
                 ],
@@ -77,7 +73,7 @@ class _MyPostingsScreenState extends State<MyPostingsScreen> {
                   icon: const Icon(Icons.add),
                   label: const Text('New posting'),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: _accent, foregroundColor: Colors.white,
+                    backgroundColor: colors.accent, foregroundColor: Colors.white,
                     elevation: 0, padding: const EdgeInsets.symmetric(vertical: 16),
                     shape: const StadiumBorder(),
                     textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
@@ -90,9 +86,9 @@ class _MyPostingsScreenState extends State<MyPostingsScreen> {
                   builder: (context, jobProvider, _) {
                     final jobs = jobProvider.jobs;
                     if (jobs.isEmpty) {
-                      return const Center(
+                      return Center(
                         child: Text('No postings yet.',
-                            style: TextStyle(fontSize: 15, color: _muted)),
+                            style: TextStyle(fontSize: 15, color: colors.muted)),
                       );
                     }
                     return ListView.separated(
@@ -116,27 +112,28 @@ class _MyPostingsScreenState extends State<MyPostingsScreen> {
   }
 
   Widget _bottomNav() {
+    final colors = Theme.of(context).extension<AppColors>()!;
     return Container(
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         color: Colors.white,
-        border: Border(top: BorderSide(color: _border)),
+        border: Border(top: BorderSide(color: colors.border)),
       ),
       padding: const EdgeInsets.symmetric(vertical: 10),
       child: SafeArea(
         top: false,
         child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: [
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
             _NavItem(
               label: 'Postings',
               active: true,
-              onTap: () {},   // on est déjà dessus, rien à faire
+              onTap: () {}, // on est déjà dessus, rien à faire
             ),
             _NavItem(
               label: 'Profile',
               active: false,
+              // TODO: remplacer AboutScreen par ta vraie page profil
               onTap: () => Navigator.push(context,
-              // TODO A CHANGER ABOUTSCREEN AVEC PAGE PROFILE
                   MaterialPageRoute(builder: (_) => const AboutScreen())),
             ),
           ],
@@ -154,18 +151,22 @@ class _NavItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).extension<AppColors>()!;
+    final color = active ? colors.accent : colors.muted;
     return InkWell(
-      onTap: () {
-        Provider.of<AuthProvider>(context, listen: false).signOut();
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (context) => const LoginScreen()),
-        );
-      },
-      borderRadius: BorderRadius.circular(999),
-      child: Container(
-        width: 40, height: 40,
-        decoration: const BoxDecoration(color: _softAccent, shape: BoxShape.circle),
-        child: const Icon(Icons.logout, size: 18, color: _accent),
+      onTap: onTap,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 8, height: 8,
+            decoration: BoxDecoration(
+                color: active ? colors.accent : colors.border, shape: BoxShape.circle),
+          ),
+          const SizedBox(height: 6),
+          Text(label,
+              style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: color)),
+        ],
       ),
     );
   }
@@ -178,6 +179,7 @@ class _JobCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).extension<AppColors>()!;
     final parts = [
       if (job.address.isNotEmpty) job.address,
       if (job.endDate != null) _shortDate(job.endDate!),
@@ -195,7 +197,7 @@ class _JobCard extends StatelessWidget {
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(18),
-          border: Border.all(color: _border),
+          border: Border.all(color: colors.border),
           boxShadow: const [BoxShadow(color: Color(0x242E3D8C), offset: Offset(0, 14), blurRadius: 34)],
         ),
         child: Column(
@@ -205,13 +207,13 @@ class _JobCard extends StatelessWidget {
               children: [
                 Expanded(
                   child: Text(job.title,
-                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: _text)),
+                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: colors.text)),
                 ),
                 OutlinedButton(
                   onPressed: () => _confirmDelete(context),
                   style: OutlinedButton.styleFrom(
-                    foregroundColor: _muted,
-                    side: const BorderSide(color: _muted, width: 1.4),
+                    foregroundColor: colors.muted,
+                    side: BorderSide(color: colors.muted, width: 1.4),
                     shape: const StadiumBorder(),
                     padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
                     textStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
@@ -221,7 +223,7 @@ class _JobCard extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 14),
-            Text(parts.join(' · '), style: const TextStyle(fontSize: 13, color: _muted)),
+            Text(parts.join(' · '), style: TextStyle(fontSize: 13, color: colors.muted)),
             const SizedBox(height: 16),
             Row(
               children: [
@@ -229,13 +231,12 @@ class _JobCard extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
                     decoration: BoxDecoration(
-                        color: _softAccent, borderRadius: BorderRadius.circular(999)),
-                    child: const Text('Live',
-                        style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: _accent)),
+                        color: colors.softAccent, borderRadius: BorderRadius.circular(999)),
+                    child: Text('Live',
+                        style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: colors.accent)),
                   ),
                 const Spacer(),
                 // One-shot count of applicants for this posting.
-
               ],
             ),
           ],
