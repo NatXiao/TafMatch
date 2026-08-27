@@ -15,17 +15,19 @@ String _shortDate(DateTime d) {
 }
 
 class MyPostingsScreen extends StatefulWidget {
-  const MyPostingsScreen({super.key});
+  const MyPostingsScreen({super.key, this.applicationRepository});
+  final FirestoreApplicationRepository? applicationRepository;
   @override
   State<MyPostingsScreen> createState() => _MyPostingsScreenState();
 }
 
 class _MyPostingsScreenState extends State<MyPostingsScreen> {
-  final _applicationRepository = FirestoreApplicationRepository();
-
+  late final FirestoreApplicationRepository _applicationRepository;
   @override
   void initState() {
     super.initState();
+    _applicationRepository = widget.applicationRepository ?? FirestoreApplicationRepository();
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final uid = context.read<AuthProvider>().user?.uid ?? '';
       context.read<JobProvider>().listenToEmployerJobs(uid);
