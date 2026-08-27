@@ -18,7 +18,7 @@ import '../fakes.dart';
 void main() {
   testWidgets('shows the auth error returned by the service', (tester) async {
     final authService = FakeAuthService();
-    authService.signInError = 'Wrong password provided for that user.';
+    authService.signInError = 'The supplied auth credential is incorrect, malformed or has expired.';
 
     final userRepository = FakeUserRepository();
 
