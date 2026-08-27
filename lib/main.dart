@@ -11,15 +11,15 @@ import 'package:taf_match/utils/cloudinary_config.dart';
 import 'package:taf_match/utils/firebase_options.dart';
 import 'package:taf_match/utils/theme.dart';
 import 'package:taf_match/views/admin_dashboard.dart';
-import 'package:taf_match/views/job_list_screen.dart';
 import 'providers/auth_provider.dart';
 import 'views/login_screen.dart';
 
 import 'package:taf_match/providers/job_provider.dart';
 import 'package:taf_match/repositories/firestore_job_repository.dart';
-import 'package:taf_match/views/jp_my_posting_screen.dart';
 import 'package:taf_match/providers/application_provider.dart';
 import 'package:taf_match/repositories/firestore_application_repository.dart';
+import 'package:taf_match/views/jp_main_screen.dart';
+import 'package:taf_match/views/je_main_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -71,11 +71,11 @@ class MyApp extends StatelessWidget {
           } else {
               final role = userProvider.profile!.role.trim().toLowerCase();
               if (role == 'employer') {
-                home = const MyPostingsScreen();
+                home = const JpMainScreen();
               } else if (role == 'admin') {
                 home = const AdminDashboardScreen();
               } else {
-                home = const JobListScreen();
+                home = const JeMainScreen();
               }
             }
 
