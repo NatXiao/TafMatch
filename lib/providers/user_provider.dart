@@ -48,6 +48,15 @@ class UserProvider with ChangeNotifier {
     notifyListeners();
   }
 
+  Future<UserModel?> getUserById(String uid) async {
+    return await _repository.getProfile(uid);
+  }
+
+  Future<Map<String, UserModel>> getUsersByIds(Iterable<String> userIds) async {
+    final users = await _repository.getUsersByIds(userIds);
+    return {for (final user in users) user.uid: user};
+  }
+
   Future<void> addSkill(String uid, String skill) async {
     await _repository.addSkill(uid, skill);
     await loadProfile(uid); // on recharge pour refléter le changement
