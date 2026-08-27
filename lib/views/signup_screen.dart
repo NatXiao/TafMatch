@@ -297,14 +297,10 @@ class SignupScreenState extends State<SignupScreen> {
     final role = roleState; // Rôle par défaut pour l'inscription
     final profilePictureUrl = _imageUrl ?? '';
 
-    final navigator = Navigator.of(context);
+    final success = await authProvider.register(email, password, fullname, role, address);
 
-    final success = await authProvider.register(email, password, fullname, role, address, profilePictureUrl: profilePictureUrl);
-
-    if (success) {
-      navigator.pushReplacement(
-        MaterialPageRoute(builder: (_) => const JobListScreen()),
-      );
+    if (success && context.mounted) {
+      Navigator.of(context).pop();   // ferme le signup ; main.dart affiche le bon home
     }
   }
 

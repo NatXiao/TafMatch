@@ -135,25 +135,17 @@ class FaceLoginScreenState extends State<FaceLoginScreen> {
     );
   }
 
-  // TODO : Authentication with image
-  void _authenticate(BuildContext context) async {
-    FocusScope.of(context).unfocus();
+// TODO : Authentication with image
+void _authenticate(BuildContext context) async {
+  FocusScope.of(context).unfocus();
 
-    if (!(_formKey.currentState?.validate() ?? false)) return;
+  if (!(_formKey.currentState?.validate() ?? false)) return;
 
-    final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    final email = _emailController.text;
-    final password = _passwordController.text;
-    final isLogin = _isLogin;
+  final authProvider = Provider.of<AuthProvider>(context, listen: false);
+  final email = _emailController.text;
+  final password = _passwordController.text;
 
-    final navigator = Navigator.of(context);
-
-    final success = await authProvider.signInWithEmailAndPassword(email, password);
-
-    if (success) {
-      navigator.pushReplacement(
-        MaterialPageRoute(builder: (_) => const JobListScreen()),
-      );
-    }
-  }
+  await authProvider.signInWithEmailAndPassword(email, password);
+  // Pas de navigation ici : main.dart route selon le rôle.
+}
 }
