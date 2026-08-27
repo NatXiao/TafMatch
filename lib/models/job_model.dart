@@ -8,6 +8,7 @@ class Job {
   final String address;
   final String domainName;
   final String degree;
+  final int? workPercentage;
   final String languages;
   final double? salaryChfPerHour;
   final DateTime? endDate;
@@ -25,6 +26,7 @@ class Job {
     this.degree = '',
     this.languages = '',
     this.salaryChfPerHour,
+    this.workPercentage, 
     this.endDate,
     this.pictureUrl = '',
     this.status = 'live',
@@ -59,6 +61,7 @@ class Job {
       degree: map['degree'] ?? '',
       languages: map['languages'] ?? '',
       salaryChfPerHour: (map['salaryChfPerHour'] as num?)?.toDouble(),
+      workPercentage: (map['workPercentage'] as num?)?.toInt(),
       endDate: (map['endDate'] as Timestamp?)?.toDate(),
       pictureUrl: map['pictureUrl'] ?? '',
       status: map['status'] ?? 'live',

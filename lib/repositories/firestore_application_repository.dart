@@ -15,6 +15,11 @@ class FirestoreApplicationRepository {
     return _apps.doc(docId).set(application.toMap());
   }
 
+  // Annuler une candidature (la supprime)
+  Future<void> cancel(String applicationId) {
+    return _apps.doc(applicationId).delete();
+  }
+  
   // Les candidatures d'un étudiant
   Stream<List<Application>> watchByStudent(String studentId) {
     return _apps

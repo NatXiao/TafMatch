@@ -86,4 +86,110 @@ void main() {
     
   });
 
+  test('loadUsers loads users successfully', () async {
+    final users = [
+      _user('1'),
+      _user('2'),
+      _user('3'),
+    ];
+
+    repository.usersToReturn = users;
+
+    await provider.loadUsers();
+
+    expect(provider.users.length, 3);
+    expect(provider.users[0].uid, '1');
+    expect(provider.users[1].uid, '2');
+    expect(provider.users[2].uid, '3');
+
+    expect(provider.errorMessage, isNull);
+    expect(provider.isLoading, isFalse);
+  });
+
+  test('loadUsers loads users successfully', () async {
+    final user1 = _user('1');
+
+    final user2 = UserModel(
+      uid: '2',
+      fullName: 'Employer',
+      email: 'employer@unit.ch',
+      role: 'employer',
+      address: 'Rue 2',
+    );
+
+    repository.usersToReturn = [user1, user2];
+
+    await provider.loadUsers();
+
+    expect(repository.getUsersCallCount, 1);
+
+    expect(provider.users.length, 2);
+    expect(provider.users[0].uid, '1');
+    expect(provider.users[1].uid, '2');
+
+    expect(provider.errorMessage, isNull);
+    expect(provider.isLoading, isFalse);
+  });
+
+  test('loadUsers sets isLoading to true while loading', () async {
+    repository.getUsersGate = Completer<List<UserModel>>();
+
+    final future = provider.loadUsers();
+
+    await Future<void>.delayed(Duration.zero);
+
+    expect(provider.isLoading, isTrue);
+
+    repository.getUsersGate!.complete([
+      _user('1'),
+    ]);
+
+    await future;
+
+    expect(provider.isLoading, isFalse);
+  });
+
+  test('loadUsers stores loaded users', () async {
+    repository.usersToReturn = [
+      _user('1'),
+      _user('2'),
+      _user('3'),
+    ];
+
+    await provider.loadUsers();
+
+    expect(provider.users, hasLength(3));
+    expect(
+      provider.users.map((user) => user.uid),
+      containsAll(['1', '2', '3']),
+    );
+
+    expect(provider.errorMessage, isNull);
+    expect(provider.isLoading, isFalse);
+  });
+
+  test('loadUsers stores error message when repository throws', () async {
+    repository.getUsersError = Exception('Unable to load users');
+
+    await provider.loadUsers();
+
+    expect(provider.errorMessage, contains('Unable to load users'));
+    expect(provider.isLoading, isFalse);
+  });
+
+  test('loadUsers clears previous error after successful load', () async {
+    repository.getUsersError = Exception('First error');
+
+    await provider.loadUsers();
+
+    expect(provider.errorMessage, isNotNull);
+
+    repository.getUsersError = null;
+    repository.usersToReturn = [_user('1')];
+
+    await provider.loadUsers();
+
+    expect(provider.errorMessage, isNull);
+    expect(provider.users, hasLength(1));
+  });
 }
