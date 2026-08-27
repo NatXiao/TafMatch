@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:taf_match/models/job_model.dart';
 import 'package:taf_match/providers/auth_provider.dart';
 import 'package:taf_match/providers/job_provider.dart';
-import 'package:taf_match/views/je_job_details_screen.dart';
+import 'package:taf_match/views/js_job_details_screen.dart';
 import 'package:taf_match/utils/theme.dart';
 
 String _shortDate(DateTime d) {
