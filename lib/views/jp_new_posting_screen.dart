@@ -4,6 +4,9 @@ import 'package:taf_match/models/job_model.dart';
 import 'package:taf_match/providers/auth_provider.dart';
 import 'package:taf_match/providers/job_provider.dart';
 import 'package:taf_match/utils/theme.dart';
+import 'dart:typed_data';
+import 'package:image_picker/image_picker.dart';
+import 'package:taf_match/repositories/image_storage_repository.dart';
 
 String _shortDate(DateTime d) {
   const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
@@ -30,6 +33,9 @@ class NewPostingScreenState extends State<NewPostingScreen> {
   String? _degree;
   String? _domains;
   bool _saving = false;
+  final _picker = ImagePicker();
+  String? _pictureUrl;
+  bool _uploadingPhoto = false;
 
   @override
   void dispose() {
@@ -56,6 +62,26 @@ class NewPostingScreenState extends State<NewPostingScreen> {
     }
   }
 
+  Future<void> _pickPhoto() async {
+    final imageRepository = context.read<ImageStorageRepository>();
+    final picked = await _picker.pickImage(source: ImageSource.gallery);
+    if (picked == null) return;
+
+    setState(() => _uploadingPhoto = true);
+    try {
+      final Uint8List bytes = await picked.readAsBytes();
+      final url = await imageRepository.uploadImage(bytes, picked.name);
+      if (!mounted) return;
+      setState(() => _pictureUrl = url);
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Image upload failed. Please try again.')));
+    } finally {
+      if (mounted) setState(() => _uploadingPhoto = false);
+    }
+  }
+
   Future<void> _publish() async {
     if (!_formKey.currentState!.validate()) return;
     setState(() => _saving = true);
@@ -71,6 +97,8 @@ class NewPostingScreenState extends State<NewPostingScreen> {
       degree: _degree?.trim() ?? '',
       languages: _languages.join(', '),
       salaryChfPerHour: double.tryParse(_salary.text.replaceAll(',', '.')),
+      workPercentage: int.tryParse(_workTime.text.replaceAll(RegExp(r'[^0-9]'), '')),
+      pictureUrl: _pictureUrl ?? '',
       endDate: _endDate,
       status: 'live',
     );
@@ -161,7 +189,7 @@ class NewPostingScreenState extends State<NewPostingScreen> {
                         style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600,
                             letterSpacing: 0.5, color: colors.muted)),
                     const SizedBox(height: 12),
-                    Row(children: [_photoTile(), const SizedBox(width: 12), _photoTile()]),
+                    _photoTile(),
                     const SizedBox(height: 28),
                     SizedBox(
                       width: double.infinity,
@@ -321,24 +349,29 @@ class NewPostingScreenState extends State<NewPostingScreen> {
     );
   }
 
-  Widget _photoTile() {
-    final colors = Theme.of(context).extension<AppColors>()!;
-    return InkWell(
-      onTap: () {
-        ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Connect the image picker to add photos.')));
-      },
-      borderRadius: BorderRadius.circular(14),
-      child: Container(
-        width: 76, height: 76,
-        decoration: BoxDecoration(
-          color: colors.field, borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: colors.border, width: 1.5),
-        ),
-        child: Icon(Icons.add, color: colors.muted),
+ Widget _photoTile() {
+  final colors = Theme.of(context).extension<AppColors>()!;
+  return InkWell(
+    onTap: _uploadingPhoto ? null : _pickPhoto,
+    borderRadius: BorderRadius.circular(14),
+    child: Container(
+      width: 76, height: 76,
+      decoration: BoxDecoration(
+        color: colors.field,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: colors.border, width: 1.5),
+        image: _pictureUrl != null
+            ? DecorationImage(image: NetworkImage(_pictureUrl!), fit: BoxFit.cover)
+            : null,
       ),
-    );
-  }
+      child: _uploadingPhoto
+          ? const Center(
+              child: SizedBox(height: 20, width: 20,
+                  child: CircularProgressIndicator(strokeWidth: 2)))
+          : (_pictureUrl == null ? Icon(Icons.add, color: colors.muted) : null),
+    ),
+  );
+}
 
   String? _required(String? v) => (v == null || v.trim().isEmpty) ? 'Required' : null;
 
