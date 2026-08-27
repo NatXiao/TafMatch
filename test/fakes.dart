@@ -1,7 +1,8 @@
 import 'dart:async';
+import 'dart:developer';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:taf_match/models/task_model.dart';
-import 'package:taf_match/repositories/task_repository.dart';
+import 'package:taf_match/models/user_model.dart';
+import 'package:taf_match/repositories/firestore_user_repository.dart';
 import 'package:taf_match/services/auth_service.dart';
 
 class FakeUser implements User {
@@ -24,6 +25,7 @@ class FakeAuthService implements AuthService {
   String? signOutError;
 
   Completer<void>? gate;
+  Completer<String?>? stringGate;
 
   @override
   User? get currentUser => _currentUser;
@@ -43,58 +45,73 @@ class FakeAuthService implements AuthService {
   }
 
   @override
-  Future<String?> registerWithEmailAndPassword(String email, String password) async {
-    if (gate != null) await gate!.future;
-    return registerError;
-  }
-
-  @override
   Future<String?> signOut() async => signOutError;
 
   void dispose() => _controller.close();
+
+  @override
+  Future<String?> register(String email, String password) async {
+    if (stringGate != null) return await stringGate!.future;
+    return registerError;
+  }
 }
 
-class FakeTaskRepository implements TaskRepository {
-  final Map<String, StreamController<List<Task>>> _controllers = {};
 
-  Task? lastAddedTask;
-  Task? lastUpdatedTask;
-  String? lastDeletedTaskId;
+class FakeUserRepository implements FirestoreUserRepository {
+
+ final Map<String, UserModel> _users = {};
+
+  UserModel? lastAddedUser;
+  UserModel? lastUpdatedUser;
+  String? lastDeletedUserId;
   String? lastUserId;
 
-  StreamController<List<Task>> _controllerFor(String userId) =>
-      _controllers.putIfAbsent(
-        userId,
-        () => StreamController<List<Task>>.broadcast(),
-      );
-
-  void emitTasks(String userId, List<Task> tasks) =>
-      _controllerFor(userId).add(tasks);
+  UserModel? _userDataFor(String userId) => _users[userId];
 
   @override
-  Stream<List<Task>> watchTasks(String userId) => _controllerFor(userId).stream;
-
-  @override
-  Future<void> addTask(Task task, String userId) async {
-    lastAddedTask = task;
-    lastUserId = userId;
+  Future<void> addSkill(String uid, String skill) {
+    // TODO: implement addSkill
+    throw UnimplementedError();
   }
 
   @override
-  Future<void> updateTask(Task task, String userId) async {
-    lastUpdatedTask = task;
-    lastUserId = userId;
+  Future<void> createProfile(UserModel user) {
+    lastAddedUser = user;
+    _users[user.uid] = user;
+    return Future<void>.delayed(Duration.zero);
   }
 
   @override
-  Future<void> deleteTask(String taskId, String userId) async {
-    lastDeletedTaskId = taskId;
-    lastUserId = userId;
+  Future<void> deleteProfile(String uid) {
+    // TODO: implement deleteProfile
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<UserModel?> getProfile(String uid) async {
+    return _userDataFor(uid);
+  }
+
+  @override
+  Future<void> removeSkill(String uid, String skill) {
+    // TODO: implement removeSkill
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<void> updateProfile(String uid, Map<String, dynamic> fields) {
+    // TODO: implement updateProfile
+    throw UnimplementedError();
+  }
+
+  @override
+  Stream<UserModel?> watchProfile(String uid) {
+    // TODO: implement watchProfile
+    throw UnimplementedError();
   }
 
   void dispose() {
-    for (final controller in _controllers.values) {
-      controller.close();
-    }
+    _users.clear();
   }
+
 }
