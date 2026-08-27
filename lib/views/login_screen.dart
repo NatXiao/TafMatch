@@ -79,6 +79,8 @@ class LoginScreenState extends State<LoginScreen> {
 
                 _label(colors, 'Password'),
                 _field(colors, _passwordController, hint: '••••••••', obscure: true,
+                  textInputAction: TextInputAction.done,
+                    onSubmitted: (_) => _authenticate(context),
                     validator: (value) {
                   if (value == null || value.isEmpty) return 'Please enter a password';
                   if (value.length < 6) return 'Password must be at least 6 characters long';
@@ -174,11 +176,17 @@ class LoginScreenState extends State<LoginScreen> {
       );
 
   Widget _field(AppColors colors, TextEditingController c,
-      {String? hint, bool obscure = false, String? Function(String?)? validator}) {
+      {String? hint,
+      bool obscure = false,
+      String? Function(String?)? validator,
+      TextInputAction? textInputAction,
+      void Function(String)? onSubmitted}) {
     return TextFormField(
       controller: c,
       obscureText: obscure,
       validator: validator,
+      textInputAction: textInputAction,
+      onFieldSubmitted: onSubmitted,
       style: TextStyle(fontSize: 15, color: colors.text),
       decoration: InputDecoration(
         hintText: hint,

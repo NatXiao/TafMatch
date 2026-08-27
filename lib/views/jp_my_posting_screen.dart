@@ -5,7 +5,6 @@ import 'package:taf_match/providers/auth_provider.dart';
 import 'package:taf_match/providers/job_provider.dart';
 import 'package:taf_match/repositories/firestore_application_repository.dart';
 import 'package:taf_match/views/jp_new_posting_screen.dart';
-import 'package:taf_match/views/about_screen.dart';
 import 'package:taf_match/views/jp_applicants_screen.dart';
 import 'package:taf_match/utils/theme.dart';
 
@@ -105,67 +104,6 @@ class _MyPostingsScreenState extends State<MyPostingsScreen> {
             ],
           ),
         ),
-      ),
-      bottomNavigationBar: _bottomNav(),
-    );
-  }
-
-  Widget _bottomNav() {
-    final colors = Theme.of(context).extension<AppColors>()!;
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        border: Border(top: BorderSide(color: colors.border)),
-      ),
-      padding: const EdgeInsets.symmetric(vertical: 10),
-      child: SafeArea(
-        top: false,
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: [
-            _NavItem(
-              label: 'Postings',
-              active: true,
-              onTap: () {}, // on est déjà dessus, rien à faire
-            ),
-            _NavItem(
-              label: 'Profile',
-              active: false,
-              // TODO: remplacer AboutScreen par une vraie page profil
-              onTap: () => Navigator.push(context,
-                  MaterialPageRoute(builder: (_) => const AboutScreen())),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _NavItem extends StatelessWidget {
-  const _NavItem({required this.label, required this.active, required this.onTap});
-  final String label;
-  final bool active;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = Theme.of(context).extension<AppColors>()!;
-    final color = active ? colors.accent : colors.muted;
-    return InkWell(
-      onTap: onTap,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: 8, height: 8,
-            decoration: BoxDecoration(
-                color: active ? colors.accent : colors.border, shape: BoxShape.circle),
-          ),
-          const SizedBox(height: 6),
-          Text(label,
-              style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: color)),
-        ],
       ),
     );
   }
