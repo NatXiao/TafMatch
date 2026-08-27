@@ -6,7 +6,9 @@ import 'package:taf_match/utils/theme.dart';
 
 /// Main screen for job seekers, with bottom navigation bar to switch between Jobs, Applications, and Profile.
 class JeMainScreen extends StatefulWidget {
-  const JeMainScreen({super.key});
+  const JeMainScreen({super.key, this.jobsScreen, this.applicationsScreen});
+  final Widget? jobsScreen;
+  final Widget? applicationsScreen;
 
   @override
   State<JeMainScreen> createState() => _JeMainScreenState();
@@ -16,10 +18,10 @@ class _JeMainScreenState extends State<JeMainScreen> {
   // Current index of the selected tab in the bottom navigation bar.
   int _currentIndex = 0;
 
-  final _screens = const [
-    JobListScreen(),
-    ApplicationsScreen(),
-    AboutScreen(),
+  late final List<Widget> _screens = [
+    widget.jobsScreen ?? const JobListScreen(),
+    widget.applicationsScreen ?? const ApplicationsScreen(),
+    const AboutScreen(),
   ];
 
   @override
