@@ -21,7 +21,6 @@ class LoginScreenState extends State<LoginScreen> {
   final TextEditingController _addressController = TextEditingController();
   
   final _formKey = GlobalKey<FormState>();
-  bool _isLogin = true;
 
   @override
   void dispose() {
@@ -37,9 +36,6 @@ class LoginScreenState extends State<LoginScreen> {
     final authProvider = context.watch<AuthProvider>();
 
     return Scaffold(
-      // appBar: AppBar(
-      //   title: Text(_isLogin ? 'Login' : 'Register'),
-      // ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Form(
@@ -58,28 +54,6 @@ class LoginScreenState extends State<LoginScreen> {
               ),
 
               const SizedBox(height: 20),
-
-              // ElevatedButton(
-              //   onPressed: authProvider.isLoading ? null : () => _authenticate(context),
-              //   child: authProvider.isLoading
-              //       ? const SizedBox(
-              //           height: 20,
-              //           width: 20,
-              //           child: CircularProgressIndicator(strokeWidth: 2),
-              //         )
-              //       : Text("Log in"),
-              // ),
-
-              // ElevatedButton(
-              //   onPressed: authProvider.isLoading ? null : () => navigate,
-              //   child: authProvider.isLoading
-              //       ? const SizedBox(
-              //           height: 20,
-              //           width: 20,
-              //           child: CircularProgressIndicator(strokeWidth: 2),
-              //         )
-              //       : Text("Sign up"),
-              // ),
 
               TextFormField(
                 controller: _emailController,
@@ -188,21 +162,19 @@ class LoginScreenState extends State<LoginScreen> {
                 child: Text('Create account'),
               ),
 
-
-
             ],
           ),
         ),
       ),
 
       bottomNavigationBar: BottomAppBar(
-        color: Colors.blue,
+        color: Theme.of(context).colorScheme.primary,
         elevation: 0,
         height: 40,
         child: Align(
           alignment: Alignment.center,
           child: InkWell(
-            child: Text("About developers - v1.0"),
+            child: Text("About developers - v1.0", style: TextStyle(color: Colors.white)),
             onTap: () {
               Navigator.of(context).push(
                 MaterialPageRoute(builder: (context) => AboutScreen()),
@@ -212,7 +184,6 @@ class LoginScreenState extends State<LoginScreen> {
         ),
         
       ),
-
 
     );
   }
