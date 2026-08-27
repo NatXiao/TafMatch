@@ -67,6 +67,11 @@ class FakeUserRepository implements FirestoreUserRepository {
 
   UserModel? _userDataFor(String userId) => _users[userId];
 
+  List<UserModel> usersToReturn = [];
+  Object? getUsersError;
+  Completer<List<UserModel>>? getUsersGate;
+  int getUsersCallCount = 0;
+
   @override
   Future<void> addSkill(String uid, String skill) {
     // TODO: implement addSkill
@@ -74,10 +79,9 @@ class FakeUserRepository implements FirestoreUserRepository {
   }
 
   @override
-  Future<void> createProfile(UserModel user) {
+  Future<void> createProfile(UserModel user) async{
     lastAddedUser = user;
     _users[user.uid] = user;
-    return Future<void>.delayed(Duration.zero);
   }
 
   @override
@@ -110,9 +114,18 @@ class FakeUserRepository implements FirestoreUserRepository {
   }
 
   @override
-  Future<List<UserModel>> getUsers() {
-    // TODO: implement getUsers
-    throw UnimplementedError();
+  Future<List<UserModel>> getUsers() async {
+    getUsersCallCount++;
+
+    if (getUsersGate != null) {
+      return await getUsersGate!.future;
+    }
+
+    if (getUsersError != null) {
+      throw getUsersError!;
+    }
+
+    return usersToReturn;
   }
 
   void dispose() {
