@@ -10,6 +10,7 @@ import 'package:taf_match/services/firebase_auth_service.dart';
 import 'package:taf_match/utils/cloudinary_config.dart';
 import 'package:taf_match/utils/firebase_options.dart';
 import 'package:taf_match/utils/theme.dart';
+import 'package:taf_match/views/admin_dashboard.dart';
 import 'package:taf_match/views/job_list_screen.dart';
 import 'providers/auth_provider.dart';
 import 'views/login_screen.dart';
@@ -73,8 +74,8 @@ class MyApp extends StatelessWidget {
 
               if (role == 'employer') {
                 home = const MyPostingsScreen();
-              //} else if (role == 'admin') {
-              //  home = const JobListScreen();        // TODO à changer
+              } else if (role == 'admin') {
+                home = const AdminDashboardScreen();
               } else {
                 home = const JobListScreen();
               }
