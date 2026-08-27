@@ -19,11 +19,9 @@ void main() {
     final authService = FakeAuthService();
     authService.signInError = 'Wrong password provided for that user.';
 
-    final userRepository = FakeUserRepository();
-
     await tester.pumpWidget(
       ChangeNotifierProvider(
-        create: (_) => AuthProvider(authService, userRepository),
+        create: (_) => AuthProvider(authService),
         child: const MaterialApp(home: LoginScreen()),
       ),
     );
@@ -31,7 +29,7 @@ void main() {
     await tester.enterText(find.byType(TextFormField).at(0), 'user@example.com');
     await tester.enterText(find.byType(TextFormField).at(1), 'secret123');
 
-    await tester.tap(find.widgetWithText(FilledButton, 'Log in'));
+    await tester.tap(find.widgetWithText(ElevatedButton, 'Login'));
     await tester.pumpAndSettle();
 
     expect(find.text('Wrong password provided for that user.'), findsOneWidget);

@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:taf_match/models/user_model.dart';
-import 'package:taf_match/repositories/firestore_user_repository.dart';
+import 'package:taf_match/models/task_model.dart';
+import 'package:taf_match/repositories/task_repository.dart';
 import 'package:taf_match/services/auth_service.dart';
 
 class FakeUser implements User {
@@ -24,7 +24,6 @@ class FakeAuthService implements AuthService {
   String? signOutError;
 
   Completer<void>? gate;
-  Completer<String?>? stringGate;
 
   @override
   User? get currentUser => _currentUser;
@@ -44,25 +43,23 @@ class FakeAuthService implements AuthService {
   }
 
   @override
+  Future<String?> registerWithEmailAndPassword(String email, String password) async {
+    if (gate != null) await gate!.future;
+    return registerError;
+  }
+
+  @override
   Future<String?> signOut() async => signOutError;
 
   void dispose() => _controller.close();
-
-  @override
-  Future<String?> register(String email, String password) async {
-    if (stringGate != null) return await stringGate!.future;
-    return registerError;
-  }
 }
 
+class FakeTaskRepository implements TaskRepository {
+  final Map<String, StreamController<List<Task>>> _controllers = {};
 
-class FakeUserRepository implements FirestoreUserRepository {
-
- final Map<String, UserModel> _users = {};
-
-  UserModel? lastAddedUser;
-  UserModel? lastUpdatedUser;
-  String? lastDeletedUserId;
+  Task? lastAddedTask;
+  Task? lastUpdatedTask;
+  String? lastDeletedTaskId;
   String? lastUserId;
 
   UserModel? _userDataFor(String userId) => _users[userId];
@@ -83,34 +80,34 @@ class FakeUserRepository implements FirestoreUserRepository {
     lastAddedUser = user;
     _users[user.uid] = user;
   }
+  StreamController<List<Task>> _controllerFor(String userId) =>
+      _controllers.putIfAbsent(
+        userId,
+        () => StreamController<List<Task>>.broadcast(),
+      );
+
+  void emitTasks(String userId, List<Task> tasks) =>
+      _controllerFor(userId).add(tasks);
 
   @override
-  Future<void> deleteProfile(String uid) {
-    // TODO: implement deleteProfile
-    throw UnimplementedError();
+  Stream<List<Task>> watchTasks(String userId) => _controllerFor(userId).stream;
+
+  @override
+  Future<void> addTask(Task task, String userId) async {
+    lastAddedTask = task;
+    lastUserId = userId;
   }
 
   @override
-  Future<UserModel?> getProfile(String uid) async {
-    return _userDataFor(uid);
+  Future<void> updateTask(Task task, String userId) async {
+    lastUpdatedTask = task;
+    lastUserId = userId;
   }
 
   @override
-  Future<void> removeSkill(String uid, String skill) {
-    // TODO: implement removeSkill
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<void> updateProfile(String uid, Map<String, dynamic> fields) {
-    // TODO: implement updateProfile
-    throw UnimplementedError();
-  }
-
-  @override
-  Stream<UserModel?> watchProfile(String uid) {
-    // TODO: implement watchProfile
-    throw UnimplementedError();
+  Future<void> deleteTask(String taskId, String userId) async {
+    lastDeletedTaskId = taskId;
+    lastUserId = userId;
   }
 
   @override
@@ -129,7 +126,8 @@ class FakeUserRepository implements FirestoreUserRepository {
   }
 
   void dispose() {
-    _users.clear();
+    for (final controller in _controllers.values) {
+      controller.close();
+    }
   }
-
 }
