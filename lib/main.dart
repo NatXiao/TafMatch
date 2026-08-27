@@ -19,7 +19,7 @@ import 'package:taf_match/repositories/firestore_job_repository.dart';
 import 'package:taf_match/providers/application_provider.dart';
 import 'package:taf_match/repositories/firestore_application_repository.dart';
 import 'package:taf_match/views/jp_main_screen.dart';
-import 'package:taf_match/views/je_main_screen.dart';
+import 'package:taf_match/views/js_main_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
