@@ -110,9 +110,18 @@ class FakeUserRepository implements FirestoreUserRepository {
   }
 
   @override
-  Future<List<UserModel>> getUsers() {
-    // TODO: implement getUsers
-    throw UnimplementedError();
+  Future<List<UserModel>> getUsers() async {
+    getUsersCallCount++;
+
+    if (getUsersGate != null) {
+      return await getUsersGate!.future;
+    }
+
+    if (getUsersError != null) {
+      throw getUsersError!;
+    }
+
+    return usersToReturn;
   }
 
   void dispose() {
