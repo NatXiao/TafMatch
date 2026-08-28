@@ -46,7 +46,9 @@ class _JobDetailScreenState extends State<JobDetailScreen> {
   Future<_Employer> _loadEmployer() async {
     final user = await _userRepository.getProfile(widget.job.employerId);
     final reviews = await _reviewRepository.watchForUser(widget.job.employerId).first;
-    final avg = 0.0; // TODO: calculer la note ??
+    final avg = reviews.isEmpty
+      ? 0.0
+      : reviews.map((r) => r.rating).reduce((a, b) => a + b) / reviews.length;
     return (
       name: user?.fullName ?? 'Unknown',
       photoUrl: user?.profilePictureUrl ?? '',
