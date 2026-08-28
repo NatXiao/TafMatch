@@ -5,11 +5,14 @@ import 'package:taf_match/models/user_model.dart';
 import 'package:taf_match/providers/auth_provider.dart';
 import 'package:taf_match/providers/review_provider.dart';
 import 'package:taf_match/providers/user_provider.dart';
+import 'package:taf_match/repositories/firestore_user_repository.dart';
 import 'package:taf_match/utils/theme.dart';
 import 'package:taf_match/views/login_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
-  const ProfileScreen({super.key});
+  const ProfileScreen({super.key, this.userId});
+  final String? userId;
+
   @override
   ProfileScreenState createState() => ProfileScreenState();
 }
@@ -17,12 +20,19 @@ class ProfileScreen extends StatefulWidget {
 class ProfileScreenState extends State<ProfileScreen> {
   final TextEditingController _reviewController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
+  final _userRepository = FirestoreUserRepository();
   bool _saving = false;
   int _userRating = 0;
 
   Future<Map<String, UserModel>>? _authorsFuture;
   String _authorIdsKey = '';
   String? _listeningTargetUserId;
+
+  Future<UserModel?>? _viewedUserFuture;
+  String? _loadedUserId;
+
+  String _targetUserId = '';
+
 
   Future<void> _publish() async {
     if (_saving) return; // block re-entrant taps immediately, synchronously
@@ -42,7 +52,7 @@ class ProfileScreenState extends State<ProfileScreen> {
     final review = Review(
       id: '',
       authorId: employerId,
-      targetUserId: context.read<UserProvider>().profile?.uid ?? '',
+      targetUserId: _targetUserId,
       rating: _userRating,
       comment: _reviewController.text.trim(),
     );
@@ -61,13 +71,21 @@ class ProfileScreenState extends State<ProfileScreen> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    final user = Provider.of<UserProvider>(context).profile;
-    if (user != null && user.uid != _listeningTargetUserId) {
-      _listeningTargetUserId = user.uid;
+    final authUid = context.read<AuthProvider>().user?.uid ?? '';
+    _targetUserId = widget.userId ?? authUid;
+ 
+    if (_targetUserId.isNotEmpty && _targetUserId != _loadedUserId) {
+      _loadedUserId = _targetUserId;
+      _viewedUserFuture = _userRepository.getProfile(_targetUserId);
+    }
+ 
+    if (_targetUserId.isNotEmpty && _targetUserId != _listeningTargetUserId) {
+      _listeningTargetUserId = _targetUserId;
       Provider.of<ReviewProvider>(context, listen: false)
-          .listenToUserReviews(user.uid);
+          .listenToUserReviews(_targetUserId);
     }
   }
+
 
   @override
   void dispose() {
@@ -91,7 +109,7 @@ class ProfileScreenState extends State<ProfileScreen> {
     }
 
     final isOwnProfile =
-        context.read<AuthProvider>().user?.uid == user?.uid;
+      _targetUserId == (context.read<AuthProvider>().user?.uid ?? '');
 
     final avgRating = reviews.isEmpty
         ? 0.0
@@ -113,6 +131,7 @@ class ProfileScreenState extends State<ProfileScreen> {
               fontSize: 22, fontWeight: FontWeight.w700, color: colors.text),
         ),
         actions: [
+          if (isOwnProfile)
           IconButton(
             icon: const Icon(Icons.logout),
             onPressed: () {
@@ -125,7 +144,20 @@ class ProfileScreenState extends State<ProfileScreen> {
         ],
       ),
       body: SafeArea(
-        child: SingleChildScrollView(
+          child: FutureBuilder<UserModel?>(
+          future: _viewedUserFuture,
+          builder: (context, userSnapshot) {
+            final user = userSnapshot.data;
+ 
+            if (userSnapshot.connectionState == ConnectionState.waiting &&
+                user == null) {
+              return const Center(child: CircularProgressIndicator());
+            }
+ 
+            // TODO: wire this to `user?.skills` once that field exists on UserModel.
+            final List<String> skills = <String>[];
+ 
+          return SingleChildScrollView(
           padding: const EdgeInsets.all(20.0),
           child: Form(
             key: _formKey,
@@ -335,7 +367,9 @@ class ProfileScreenState extends State<ProfileScreen> {
                 ),
               ],
             ),
-          ),
+          )
+          );
+          }
         ),
       ),
     );

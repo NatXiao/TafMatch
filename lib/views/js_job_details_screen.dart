@@ -55,11 +55,11 @@ class _JobDetailScreenState extends State<JobDetailScreen> {
     );
   }
 
-  // TODO Ouvre le profil de l'employeur. ( profile de la personne connectée pour l'instant, pas celle de l'employeur sélectionné )
+  // Ouvre le profil de l'employeur. 
   void _openEmployerProfile() {
     Navigator.push(
       context,
-      MaterialPageRoute(builder: (_) => const ProfileScreen()),
+      MaterialPageRoute(builder: (_) => ProfileScreen(userId: widget.job.employerId)),
     );
   }
 
