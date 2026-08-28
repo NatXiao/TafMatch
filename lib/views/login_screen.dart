@@ -3,7 +3,6 @@ import 'package:provider/provider.dart';
 import 'package:taf_match/views/about_screen.dart';
 import 'package:taf_match/views/face_login_screen.dart';
 
-import 'package:taf_match/views/profile.dart';
 import 'package:taf_match/views/signup_screen.dart';
 import 'package:taf_match/utils/theme.dart'; // pour AppColors
 

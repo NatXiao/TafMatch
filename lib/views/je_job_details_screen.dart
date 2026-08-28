@@ -7,7 +7,7 @@ import 'package:taf_match/providers/auth_provider.dart';
 import 'package:taf_match/repositories/firestore_review_repository.dart';
 import 'package:taf_match/repositories/firestore_user_repository.dart';
 import 'package:taf_match/utils/theme.dart';
-import 'package:taf_match/views/about_screen.dart'; // ⬅️ pour "View profile"
+import 'package:taf_match/views/profile_screen.dart';
 
 String _shortDate(DateTime d) {
   const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
@@ -55,11 +55,11 @@ class _JobDetailScreenState extends State<JobDetailScreen> {
     );
   }
 
-  // Ouvre le profil de l'employeur (page About pour l'instant).
+  // TODO Ouvre le profil de l'employeur. ( profile de la personne connectée pour l'instant, pas celle de l'employeur sélectionné )
   void _openEmployerProfile() {
     Navigator.push(
       context,
-      MaterialPageRoute(builder: (_) => const AboutScreen()),
+      MaterialPageRoute(builder: (_) => const ProfileScreen()),
     );
   }
 

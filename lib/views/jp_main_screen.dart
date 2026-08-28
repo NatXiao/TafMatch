@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:taf_match/views/jp_my_posting_screen.dart';
-import 'package:taf_match/views/about_screen.dart';
 import 'package:taf_match/utils/theme.dart';
+import 'package:taf_match/views/profile_screen.dart';
 
 /// Main screen for job seekers, with bottom navigation bar to switch between Jobs, Applications, and Profile.
 class JpMainScreen extends StatefulWidget {
@@ -17,7 +17,7 @@ class _JpMainScreenState extends State<JpMainScreen> {
 
   final _screens = const [
     MyPostingsScreen(),
-    AboutScreen(),
+    ProfileScreen(),
   ];
 
   @override
