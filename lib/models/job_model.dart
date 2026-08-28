@@ -29,7 +29,7 @@ class Job {
     this.workPercentage, 
     this.endDate,
     this.pictureUrl = '',
-    this.status = 'live',
+    this.status = '',
     this.createdAt,
   });
 
@@ -70,7 +70,7 @@ bool get isLive {
       workPercentage: (map['workPercentage'] as num?)?.toInt(),
       endDate: (map['endDate'] as Timestamp?)?.toDate(),
       pictureUrl: map['pictureUrl'] ?? '',
-      status: map['status'] ?? 'live',
+      status: map['status'] ?? '',
       createdAt: (map['createdAt'] as Timestamp?)?.toDate(),
     );
   }
