@@ -152,7 +152,7 @@ class NewPostingScreenState extends State<NewPostingScreen> {
                     _label('Location'),
                     _input(_address, hint: 'Sion', validator: _required),
                     const SizedBox(height: 18),
-                    _column('End date', _input(_endDateField, hint: 'Sat 14 Jun', readOnly: true, onTap: _pickEndDate)),
+                    _column('Application deadline', _input(_endDateField, hint: 'Sat 14 Jun', readOnly: true, onTap: _pickEndDate)),
                     const SizedBox(height: 18),
                     _column('Language', _languagePicker()),
                     Row(children: [
