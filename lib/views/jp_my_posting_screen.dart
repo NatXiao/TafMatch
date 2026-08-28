@@ -164,14 +164,21 @@ class _JobCard extends StatelessWidget {
             const SizedBox(height: 16),
             Row(
               children: [
-                if (job.status == 'live')
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
-                    decoration: BoxDecoration(
-                        color: colors.softAccent, borderRadius: BorderRadius.circular(999)),
-                    child: Text('Live',
-                        style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: colors.accent)),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+                  decoration: BoxDecoration(
+                    color: job.isLive ? colors.softAccent : colors.field,
+                    borderRadius: BorderRadius.circular(999),
                   ),
+                  child: Text(
+                    job.isLive ? 'Live' : 'Closed',
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: job.isLive ? colors.accent : colors.muted,
+                    ),
+                  ),
+                ),
                 const Spacer(),
               ],
             ),

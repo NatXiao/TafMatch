@@ -33,6 +33,11 @@ class Job {
     this.createdAt,
   });
 
+bool get isLive {
+  if (endDate == null) return status == 'live';
+  return status == 'live' && !endDate!.isBefore(DateTime.now());
+}
+
   Map<String, dynamic> toMap() {
     return {
       'employerId': employerId,
@@ -70,3 +75,5 @@ class Job {
     );
   }
 }
+
+
