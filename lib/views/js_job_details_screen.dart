@@ -2,7 +2,6 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_osm_plugin/flutter_osm_plugin.dart';
-import 'package:geolocator/geolocator.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:taf_match/models/application_model.dart';
@@ -12,6 +11,7 @@ import 'package:taf_match/providers/application_provider.dart';
 import 'package:taf_match/providers/auth_provider.dart';
 import 'package:taf_match/repositories/firestore_review_repository.dart';
 import 'package:taf_match/repositories/firestore_user_repository.dart';
+import 'package:taf_match/utils/location_utils.dart';
 import 'package:taf_match/utils/theme.dart';
 import 'package:taf_match/utils/transports_api.dart';
 import 'package:taf_match/views/about_screen.dart'; // ⬅️ pour "View profile"
@@ -478,23 +478,13 @@ class _JobDetailScreenState extends State<JobDetailScreen> {
   void retrieveTransports() async {
     isLoadingTransports = true;
 
-    final position = await findDeviceLocation();
+    final position = await LocationUtils.findDeviceLocation();
     final latitude = position.latitude;
     final longitude = position.longitude;
 
-    final raw_locations = await TransportsApi.findLocation(latitude, longitude);
-    final locations = jsonDecode(raw_locations.body) as Map<String, dynamic>;
+    String? location = await LocationUtils.getLocationName(latitude, longitude);
 
-    String location = "";
-    if (locations["stations"] != null) {
-      locations['stations'].forEach((v) {
-        if (location == "") {
-          location = v["name"];
-        }
-      });
-    }
-
-    if (location == "") {
+    if (location == null) {
       return;
     }
 
@@ -518,55 +508,14 @@ class _JobDetailScreenState extends State<JobDetailScreen> {
     return DateFormat.Hm().format(time);
   }
 
-  Future<Position> findDeviceLocation() async {
-    bool serviceEnabled;
-    LocationPermission permission;
-
-    // Test if location services are enabled.
-    serviceEnabled = await Geolocator.isLocationServiceEnabled();
-    if (!serviceEnabled) {
-      return Future.error('Location services are disabled.');
-    }
-
-    permission = await Geolocator.checkPermission();
-    if (permission == LocationPermission.denied) {
-      permission = await Geolocator.requestPermission();
-      if (permission == LocationPermission.denied) {
-        return Future.error('Location permissions are denied');
-      }
-    }
-    
-    if (permission == LocationPermission.deniedForever) {
-      // Permissions are denied forever, handle appropriately. 
-      return Future.error(
-        'Location permissions are permanently denied, we cannot request permissions.');
-    } 
-
-    return await Geolocator.getCurrentPosition();
-  }
-
 
   void updateMarkerOnMap() async {
 
-    final position = await findDeviceLocation();
+    final position = await LocationUtils.findDeviceLocation();
     final latitude = position.latitude;
     final longitude = position.longitude;
 
-    final raw_locations = await TransportsApi.findLocationByName(widget.job.address);
-    final locations = jsonDecode(raw_locations.body) as Map<String, dynamic>;
-
-    double jobLatitude = 0;
-    double jobLongitude = 0;
-    bool jobLocationFound = false;
-    if (locations["stations"] != null) {
-      locations['stations'].forEach((v) {
-        if (!jobLocationFound && v["coordinate"]["x"] != null && v["coordinate"]["y"] != null) {
-          jobLatitude = v["coordinate"]["x"];
-          jobLongitude = v["coordinate"]["y"];
-          jobLocationFound = true;
-        }
-      });
-    }
+    final coord = await LocationUtils.getLocationCoord(widget.job.address);
 
     final userMarker = MarkerIcon(
       icon: Icon(
@@ -586,8 +535,8 @@ class _JobDetailScreenState extends State<JobDetailScreen> {
 
     await _controller.addMarker(GeoPoint(latitude: latitude, longitude: longitude), markerIcon: userMarker);
 
-    if (jobLocationFound) {
-      await _controller.addMarker(GeoPoint(latitude: jobLatitude, longitude: jobLongitude), markerIcon: jobMarker);
+    if (coord != null) {
+      await _controller.addMarker(GeoPoint(latitude: coord.$1, longitude: coord.$2), markerIcon: jobMarker);
     }
 
     await _controller.currentLocation();
