@@ -98,7 +98,6 @@ class ProfileScreenState extends State<ProfileScreen> {
   Widget build(BuildContext context) {
     final colors = Theme.of(context).extension<AppColors>()!;
     final userProvider = Provider.of<UserProvider>(context);
-    final user = userProvider.profile;
     final reviewProvider = Provider.of<ReviewProvider>(context);
     final reviews = reviewProvider.reviews;
     final authorIds = reviews.map((review) => review.authorId).toSet().toList();
@@ -191,37 +190,38 @@ class ProfileScreenState extends State<ProfileScreen> {
                           ),
                           const SizedBox(height: 2),
                           Row(
-                          children: [
-                            Expanded(
-                            child : Text(
-                              user?.role ?? '',
-                              style: TextStyle(fontSize: 14, color: colors.muted),
-                            )
-                          ),
-                          if (isOwnProfile)
-                          const SizedBox(width: 12),
-                          InkWell(
-                          onTap: () => Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => const EditProfileScreen(),
+                            children: [
+                              Expanded(
+                              child : Text(
+                                user?.role ?? '',
+                                style: TextStyle(fontSize: 14, color: colors.muted),
+                              )
                             ),
-                          ),
-                          borderRadius: BorderRadius.circular(50),
-                          child: Container(
-                            width: 28,
-                            height: 28,
-                            decoration: BoxDecoration(
-                              color: colors.accent,
-                              shape: BoxShape.circle,
-                            ),
-                            child: const Icon(
-                              Icons.edit,
-                              color: Colors.white,
-                              size: 16,
+                            const SizedBox(width: 12),
+                            if (isOwnProfile)
+                              InkWell(
+                              onTap: () => Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => const EditProfileScreen(),
+                                ),
                               ),
-                            ),
-                          )]
+                              borderRadius: BorderRadius.circular(50),
+                              child: Container(
+                                width: 28,
+                                height: 28,
+                                decoration: BoxDecoration(
+                                  color: colors.accent,
+                                  shape: BoxShape.circle,
+                                ),
+                                child: const Icon(
+                                  Icons.edit,
+                                  color: Colors.white,
+                                  size: 16,
+                                  ),
+                                ),
+                              )
+                            ]
                           ),
                           const SizedBox(height: 6),
                           if (reviews.isNotEmpty)
