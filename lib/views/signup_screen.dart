@@ -155,7 +155,7 @@ class SignupScreenState extends State<SignupScreen> {
                       _field(colors, _passwordController, hint: '••••••••', obscure: true,
                           validator: (value) {
                         if (value == null || value.isEmpty) return 'Please enter a password';
-                        if (value.length < 6) return 'Password must be at least 6 characters long';
+                        if (!isValidPassword(value)) return 'Password must be at least 6 characters long and contains a least one uppercase letter, lowercase letter, number and special character'; 
                         return null;
                       }),
                       const SizedBox(height: 16),
@@ -317,4 +317,64 @@ class SignupScreenState extends State<SignupScreen> {
       if (mounted) setState(() => _isUploading = false);
     }
   }
+
+  bool isValidPassword(String value) {
+
+    if (!isLong(value)) return false;
+    if (!hasNumber(value)) return false;
+    if (!hasMaj(value)) return false;
+    if (!hasMin(value)) return false;
+    if (!hasSpecial(value)) return false;
+
+    return true;
+  }
+
+  bool isLong(String value) {
+    return value.length > 6;
+  }
+
+  bool hasNumber(String value) {
+
+    const numbers = "1234567890";
+
+    for (var i = 0; i < numbers.length; i++) {
+      if (value.contains(numbers[i])) return true;
+    }
+
+    return false;
+  }
+
+  bool hasSpecial(String value) {
+
+    const special = "!@#\$%^&*()_+€£µ§?/\\|{}[]";
+
+    for (var i = 0; i < special.length; i++) {
+      if (value.contains(special[i])) return true;
+    }
+
+    return false;
+  }
+
+  bool hasMaj(String value) {
+
+    const maj = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+
+    for (var i = 0; i < maj.length; i++) {
+      if (value.contains(maj[i])) return true;
+    }
+
+    return false;
+  }
+
+  bool hasMin(String value) {
+
+    const min = "abcdefghijklmnopqrstuvwxyz";
+
+    for (var i = 0; i < min.length; i++) {
+      if (value.contains(min[i])) return true;
+    }
+
+    return false;
+  }
+
 }

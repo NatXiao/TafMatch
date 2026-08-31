@@ -29,9 +29,14 @@ class Job {
     this.workPercentage, 
     this.endDate,
     this.pictureUrl = '',
-    this.status = 'live',
+    this.status = '',
     this.createdAt,
   });
+
+bool get isLive {
+  if (endDate == null) return status == 'live';
+  return status == 'live' && !endDate!.isBefore(DateTime.now());
+}
 
   Map<String, dynamic> toMap() {
     return {
@@ -65,8 +70,10 @@ class Job {
       workPercentage: (map['workPercentage'] as num?)?.toInt(),
       endDate: (map['endDate'] as Timestamp?)?.toDate(),
       pictureUrl: map['pictureUrl'] ?? '',
-      status: map['status'] ?? 'live',
+      status: map['status'] ?? '',
       createdAt: (map['createdAt'] as Timestamp?)?.toDate(),
     );
   }
 }
+
+

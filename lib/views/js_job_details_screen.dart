@@ -7,7 +7,7 @@ import 'package:taf_match/providers/auth_provider.dart';
 import 'package:taf_match/repositories/firestore_review_repository.dart';
 import 'package:taf_match/repositories/firestore_user_repository.dart';
 import 'package:taf_match/utils/theme.dart';
-import 'package:taf_match/views/about_screen.dart'; // ⬅️ pour "View profile"
+import 'package:taf_match/views/profile_screen.dart';
 
 String _shortDate(DateTime d) {
   const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
@@ -59,7 +59,9 @@ class _JobDetailScreenState extends State<JobDetailScreen> {
   Future<_Employer> _loadEmployer() async {
     final user = await _userRepository.getProfile(widget.job.employerId);
     final reviews = await _reviewRepository.watchForUser(widget.job.employerId).first;
-    final avg = 0.0; // TODO: calculer la note ??
+    final avg = reviews.isEmpty
+      ? 0.0
+      : reviews.map((r) => r.rating).reduce((a, b) => a + b) / reviews.length;
     return (
       name: user?.fullName ?? 'Unknown',
       photoUrl: user?.profilePictureUrl ?? '',
@@ -68,11 +70,11 @@ class _JobDetailScreenState extends State<JobDetailScreen> {
     );
   }
 
-  // Ouvre le profil de l'employeur (page About pour l'instant).
+  // Ouvre le profil de l'employeur. 
   void _openEmployerProfile() {
     Navigator.push(
       context,
-      MaterialPageRoute(builder: (_) => const AboutScreen()),
+      MaterialPageRoute(builder: (_) => ProfileScreen(userId: widget.job.employerId)),
     );
   }
 

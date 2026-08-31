@@ -2,9 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:provider/provider.dart';
+import 'package:taf_match/providers/skill_provider.dart';
 import 'package:taf_match/providers/user_provider.dart';
+import 'package:taf_match/providers/review_provider.dart';
 import 'package:taf_match/repositories/cloudinary_image_repository.dart';
+import 'package:taf_match/repositories/firestore_skill_repository.dart';
 import 'package:taf_match/repositories/firestore_user_repository.dart';
+import 'package:taf_match/repositories/firestore_review_repository.dart';
 import 'package:taf_match/repositories/image_storage_repository.dart';
 import 'package:taf_match/services/firebase_auth_service.dart';
 import 'package:taf_match/utils/cloudinary_config.dart';
@@ -54,7 +58,14 @@ class MyApp extends StatelessWidget {
           update: (_, authProvider, userProvider) =>
               userProvider!..updateAuthProvider(authProvider),
         ),
-        ChangeNotifierProvider(create: (_) => JobProvider(FirestoreJobRepository())),
+        ChangeNotifierProvider(
+            create: (_) => JobProvider(FirestoreJobRepository())),
+        ChangeNotifierProvider(
+          create: (_) => ReviewProvider(FirestoreReviewRepository()),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => SkillProvider(FirestoreSkillRepository()),
+        )
       ],
       child: Consumer2<AuthProvider, UserProvider>(
         builder: (context, auth, userProvider, _) {

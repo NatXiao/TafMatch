@@ -20,4 +20,11 @@ class SkillProvider with ChangeNotifier {
     _isLoading = false;
     notifyListeners();
   }
+  String nameForId(String id) {
+    final match = _skills.where((s) => s.id == id);
+    return match.isNotEmpty ? match.first.name : id;
+  }
+
+  List<String> namesForIds(Iterable<String> ids) =>
+      ids.map(nameForId).toList();
 }
