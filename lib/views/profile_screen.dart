@@ -4,6 +4,7 @@ import 'package:taf_match/models/review_model.dart';
 import 'package:taf_match/models/user_model.dart';
 import 'package:taf_match/providers/auth_provider.dart';
 import 'package:taf_match/providers/review_provider.dart';
+import 'package:taf_match/providers/skill_provider.dart';
 import 'package:taf_match/providers/user_provider.dart';
 import 'package:taf_match/utils/theme.dart';
 import 'package:taf_match/views/edit_profile_screen.dart';
@@ -88,6 +89,10 @@ class ProfileScreenState extends State<ProfileScreen> {
       Provider.of<ReviewProvider>(context, listen: false)
           .listenToUserReviews(_targetUserId);
     }
+    final skillProvider = context.read<SkillProvider>();
+    if (skillProvider.skills.isEmpty && !skillProvider.isLoading) {
+      skillProvider.loadSkills();
+    }
   }
 
 
@@ -118,9 +123,6 @@ class ProfileScreenState extends State<ProfileScreen> {
         ? 0.0
         : reviews.map((r) => r.rating).reduce((a, b) => a + b) /
             reviews.length;
-
-    // TODO: wire this to `user?.skills` once that field exists on UserModel.
-    final List<String> skills = <String>[];
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -157,7 +159,7 @@ class ProfileScreenState extends State<ProfileScreen> {
                 reviews,
                 avgRating,
                 isOwnProfile,
-                skills,
+                
               )
             : FutureBuilder<UserModel?>(
                 future: _viewedUserFuture,
@@ -175,8 +177,7 @@ class ProfileScreenState extends State<ProfileScreen> {
                     user,
                     reviews,
                     avgRating,
-                    isOwnProfile,
-                    skills,
+                    isOwnProfile
                   );
                 },
               ),
@@ -191,8 +192,8 @@ class ProfileScreenState extends State<ProfileScreen> {
     List<Review> reviews,
     double avgRating,
     bool isOwnProfile,
-    List<String> skills,
   ) {
+    final skills = context.watch<SkillProvider>().namesForIds(user?.skills ?? []);
     return SingleChildScrollView(
       padding: const EdgeInsets.all(20.0),
       child: Form(
