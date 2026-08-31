@@ -49,10 +49,10 @@ class ProfileScreenState extends State<ProfileScreen> {
     if (formState == null || !formState.validate()) return;
 
     setState(() => _saving = true);
-    final employerId = context.read<AuthProvider>().user?.uid ?? '';
+    final targetUserId = context.read<AuthProvider>().user?.uid ?? '';
     final review = Review(
       id: '',
-      authorId: employerId,
+      authorId: targetUserId,
       targetUserId: _targetUserId,
       rating: _userRating,
       comment: _reviewController.text.trim(),
@@ -64,7 +64,7 @@ class ProfileScreenState extends State<ProfileScreen> {
       if (mounted) {
         setState(() => _saving = false);
         ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text('Could not publish: $e')));
+            .showSnackBar(SnackBar(content: Text('Could not publish review: $e')));
       }
     }
   }
