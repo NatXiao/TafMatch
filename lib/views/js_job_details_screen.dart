@@ -1,12 +1,18 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:taf_match/models/application_model.dart';
 import 'package:taf_match/models/job_model.dart';
+import 'package:taf_match/models/transport_model.dart';
 import 'package:taf_match/providers/application_provider.dart';
 import 'package:taf_match/providers/auth_provider.dart';
 import 'package:taf_match/repositories/firestore_review_repository.dart';
 import 'package:taf_match/repositories/firestore_user_repository.dart';
 import 'package:taf_match/utils/theme.dart';
+import 'package:taf_match/utils/transports_api.dart';
 import 'package:taf_match/views/about_screen.dart'; // ⬅️ pour "View profile"
 
 String _shortDate(DateTime d) {
@@ -33,6 +39,9 @@ class _JobDetailScreenState extends State<JobDetailScreen> {
   bool _applying = false;
   bool _cancelling = false;
 
+  List<TransportModel> transports = [];
+  bool isLoadingTransports = false;
+
   @override
   void initState() {
     super.initState();
@@ -40,6 +49,7 @@ class _JobDetailScreenState extends State<JobDetailScreen> {
       final uid = context.read<AuthProvider>().user?.uid ?? '';
       context.read<ApplicationProvider>().listenToStudentApplications(uid);
     });
+    retrieveTransports();
   }
 
   // Charge les infos de l'employeur (nom, photo, note, nb reviews)
@@ -127,7 +137,7 @@ class _JobDetailScreenState extends State<JobDetailScreen> {
       if (a.jobId == job.id) { myApp = a; break; }
     }
 
-  // --- Sous-titre (adresse + date) ---
+    // --- Sous-titre (adresse + date) ---
     final subtitle = [
       if (job.address.isNotEmpty) job.address,
       if (job.endDate != null) _shortDate(job.endDate!),
@@ -289,7 +299,7 @@ class _JobDetailScreenState extends State<JobDetailScreen> {
                           children: [
                             Text('AI estimate', style: TextStyle(fontSize: 13, color: colors.muted)),
                             const SizedBox(height: 4),
-                            // TODO: brancher la valeur du modèle de prediciton
+                            // TODO: brancher la valeur du modèle de prediction
                             Text('—',
                                 style: TextStyle(fontSize: 22, fontWeight: FontWeight.w700, color: colors.accent)),
                           ],
@@ -297,9 +307,64 @@ class _JobDetailScreenState extends State<JobDetailScreen> {
                       ],
                     ),
                   ),
+
+                  
+                  // Liste des transports disponibles
+                  const SizedBox(height: 20),
+                  Text('Routes · Next connections', style: TextStyle(fontSize: 18, color: colors.muted, fontWeight: FontWeight.w700)),
+                  const SizedBox(height: 20),
+
+                  Visibility(
+                    visible: isLoadingTransports,
+                    child: Text("Loading...", style: TextStyle(color: colors.muted)),
+                  ),
+
+                  Visibility(
+                    visible: !isLoadingTransports && transports.isEmpty,
+                    child: Text("No connections found.", style: TextStyle(color: colors.muted)),
+                  ),  
+
+                  Row(
+                    children: [
+                      Expanded(
+                        child: ListView.builder(
+                            shrinkWrap: true,
+                            itemCount: transports.length,
+                            itemBuilder: (_, int index) {
+
+                              return Container(
+                                padding: EdgeInsets.fromLTRB(0, 0, 0, 10),
+                                child: Row(
+                                  spacing: 10,
+                                  children: [
+                                    Container(
+                                      padding: const EdgeInsets.fromLTRB(10, 5, 10, 5),
+                                      width: 100,
+                                      decoration: BoxDecoration(
+                                        color: colors.softAccent,
+                                        borderRadius: BorderRadius.circular(18),
+                                      ),
+                                      child: Center(
+                                        child:Text(transports[index].name, style: TextStyle(color: colors.accent, fontWeight: FontWeight.w700)),
+                                      ),
+                                    ),
+                                    Text("${formatDate(transports[index].departure)} → ${formatDate(transports[index].arrival)} · ${transports[index].duration.inMinutes} min", style: TextStyle(color: colors.muted)),
+                                  ],
+                                ),
+                              );
+
+                            }
+                          ),
+
+                      ),
+                    ]
+                  ),
+
                 ],
               ),
+
             ),
+
           ],
         ),
       ),
@@ -354,4 +419,75 @@ class _JobDetailScreenState extends State<JobDetailScreen> {
           style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: colors.accent)),
     );
   }
+
+  void retrieveTransports() async {
+    isLoadingTransports = true;
+
+    final position = await findDeviceLocation();
+    final latitude = position.latitude;
+    final longitude = position.longitude;
+
+    final raw_locations = await TransportsApi.findLocation(latitude, longitude);
+    final locations = jsonDecode(raw_locations.body) as Map<String, dynamic>;
+
+    String location = "";
+    if (locations["stations"] != null) {
+      locations['stations'].forEach((v) {
+        if (location == "") {
+          location = v["name"];
+        }
+      });
+    }
+
+    if (location == "") {
+      return;
+    }
+
+    final raw = await TransportsApi.findTransport(location, widget.job.address, DateTime.now());
+    final data = jsonDecode(raw.body) as Map<String, dynamic>;
+
+    transports.clear();
+    if (data["connections"] != null) {
+      data['connections'].forEach((v) {
+        if (v["products"].length > 0) {
+          transports.add(TransportModel.fromMap(v));
+        }
+      });
+    }
+
+    isLoadingTransports = false;
+    setState(() {});
+  }
+
+  String formatDate(DateTime time) {
+    return DateFormat.Hm().format(time);
+  }
+
+  Future<Position> findDeviceLocation() async {
+    bool serviceEnabled;
+    LocationPermission permission;
+
+    // Test if location services are enabled.
+    serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) {
+      return Future.error('Location services are disabled.');
+    }
+
+    permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied) {
+        return Future.error('Location permissions are denied');
+      }
+    }
+    
+    if (permission == LocationPermission.deniedForever) {
+      // Permissions are denied forever, handle appropriately. 
+      return Future.error(
+        'Location permissions are permanently denied, we cannot request permissions.');
+    } 
+
+    return await Geolocator.getCurrentPosition();
+  }
+
 }
