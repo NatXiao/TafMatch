@@ -7,6 +7,7 @@ import 'package:taf_match/providers/review_provider.dart';
 import 'package:taf_match/providers/user_provider.dart';
 import 'package:taf_match/repositories/firestore_user_repository.dart';
 import 'package:taf_match/utils/theme.dart';
+import 'package:taf_match/views/edit_profile_screen.dart';
 import 'package:taf_match/views/login_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -154,9 +155,6 @@ class ProfileScreenState extends State<ProfileScreen> {
               return const Center(child: CircularProgressIndicator());
             }
  
-            // TODO: wire this to `user?.skills` once that field exists on UserModel.
-            final List<String> skills = <String>[];
- 
           return SingleChildScrollView(
           padding: const EdgeInsets.all(20.0),
           child: Form(
@@ -192,9 +190,38 @@ class ProfileScreenState extends State<ProfileScreen> {
                                 color: colors.text),
                           ),
                           const SizedBox(height: 2),
-                          Text(
-                            user?.role ?? '',
-                            style: TextStyle(fontSize: 14, color: colors.muted),
+                          Row(
+                          children: [
+                            Expanded(
+                            child : Text(
+                              user?.role ?? '',
+                              style: TextStyle(fontSize: 14, color: colors.muted),
+                            )
+                          ),
+                          if (isOwnProfile)
+                          const SizedBox(width: 12),
+                          InkWell(
+                          onTap: () => Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const EditProfileScreen(),
+                            ),
+                          ),
+                          borderRadius: BorderRadius.circular(50),
+                          child: Container(
+                            width: 28,
+                            height: 28,
+                            decoration: BoxDecoration(
+                              color: colors.accent,
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(
+                              Icons.edit,
+                              color: Colors.white,
+                              size: 16,
+                              ),
+                            ),
+                          )]
                           ),
                           const SizedBox(height: 6),
                           if (reviews.isNotEmpty)
