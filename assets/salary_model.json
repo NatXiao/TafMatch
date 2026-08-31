@@ -1,0 +1,633 @@
+{
+  "schema_version": "1.0",
+  "created_utc": "2026-08-31T11:39:46+00:00",
+  "notes": "Trained on 400 offers, 13 features. Feature set selected in notebook 06.",
+  "target": {
+    "name": "SalaryCHF",
+    "unit": "CHF",
+    "transform": "log1p"
+  },
+  "model": {
+    "algorithm": "LinearRegression",
+    "kind": "linear",
+    "intercept": 11.128383804882331,
+    "n_features": 61
+  },
+  "features": [
+    {
+      "kind": "categorical",
+      "source": "Diploma",
+      "category": "Apprenticeship",
+      "coef": -0.225199154311668
+    },
+    {
+      "kind": "categorical",
+      "source": "Diploma",
+      "category": "Bachelor",
+      "coef": -0.07150294433160995
+    },
+    {
+      "kind": "categorical",
+      "source": "Diploma",
+      "category": "Master",
+      "coef": 0.08677600138939612
+    },
+    {
+      "kind": "categorical",
+      "source": "Diploma",
+      "category": "PhD",
+      "coef": 0.20992609725388256
+    },
+    {
+      "kind": "categorical",
+      "source": "Role",
+      "category": "Director",
+      "coef": -0.1401620948451844
+    },
+    {
+      "kind": "categorical",
+      "source": "Role",
+      "category": "Intern",
+      "coef": -0.30984076922152937
+    },
+    {
+      "kind": "categorical",
+      "source": "Role",
+      "category": "Junior",
+      "coef": 0.06056239234251701
+    },
+    {
+      "kind": "categorical",
+      "source": "Role",
+      "category": "Lead",
+      "coef": 0.06526190649184405
+    },
+    {
+      "kind": "categorical",
+      "source": "Role",
+      "category": "Manager",
+      "coef": 0.1115899087818691
+    },
+    {
+      "kind": "categorical",
+      "source": "Role",
+      "category": "Mid-level",
+      "coef": 0.09306321520984073
+    },
+    {
+      "kind": "categorical",
+      "source": "Role",
+      "category": "Senior",
+      "coef": 0.11952544124064256
+    },
+    {
+      "kind": "categorical",
+      "source": "Industry",
+      "category": "Construction",
+      "coef": -0.1470153708473573
+    },
+    {
+      "kind": "categorical",
+      "source": "Industry",
+      "category": "Consulting",
+      "coef": 0.12605905901250136
+    },
+    {
+      "kind": "categorical",
+      "source": "Industry",
+      "category": "Education",
+      "coef": -0.11655657220996787
+    },
+    {
+      "kind": "categorical",
+      "source": "Industry",
+      "category": "Energy",
+      "coef": 0.025077995927317104
+    },
+    {
+      "kind": "categorical",
+      "source": "Industry",
+      "category": "Finance",
+      "coef": 0.23118638834451258
+    },
+    {
+      "kind": "categorical",
+      "source": "Industry",
+      "category": "Healthcare",
+      "coef": -0.023596923629015824
+    },
+    {
+      "kind": "categorical",
+      "source": "Industry",
+      "category": "Hospitality",
+      "coef": -0.21753489912706092
+    },
+    {
+      "kind": "categorical",
+      "source": "Industry",
+      "category": "IT",
+      "coef": 0.15511149110659533
+    },
+    {
+      "kind": "categorical",
+      "source": "Industry",
+      "category": "Manufacturing",
+      "coef": -0.0747370375333748
+    },
+    {
+      "kind": "categorical",
+      "source": "Industry",
+      "category": "Pharma",
+      "coef": 0.24824706260987683
+    },
+    {
+      "kind": "categorical",
+      "source": "Industry",
+      "category": "Public Sector",
+      "coef": -0.024633632411427464
+    },
+    {
+      "kind": "categorical",
+      "source": "Industry",
+      "category": "Retail",
+      "coef": -0.1816075612425989
+    },
+    {
+      "kind": "categorical",
+      "source": "Canton",
+      "category": "AG",
+      "coef": 0.05674339212026401
+    },
+    {
+      "kind": "categorical",
+      "source": "Canton",
+      "category": "AI",
+      "coef": -0.062100591179726466
+    },
+    {
+      "kind": "categorical",
+      "source": "Canton",
+      "category": "AR",
+      "coef": 0.004641180335055728
+    },
+    {
+      "kind": "categorical",
+      "source": "Canton",
+      "category": "BE",
+      "coef": 0.04053941924067577
+    },
+    {
+      "kind": "categorical",
+      "source": "Canton",
+      "category": "BL",
+      "coef": 0.06312163130334655
+    },
+    {
+      "kind": "categorical",
+      "source": "Canton",
+      "category": "BS",
+      "coef": 0.13371811614454931
+    },
+    {
+      "kind": "categorical",
+      "source": "Canton",
+      "category": "FR",
+      "coef": -0.06473027333679869
+    },
+    {
+      "kind": "categorical",
+      "source": "Canton",
+      "category": "GE",
+      "coef": 0.1158534064267258
+    },
+    {
+      "kind": "categorical",
+      "source": "Canton",
+      "category": "GL",
+      "coef": -0.04051388591729948
+    },
+    {
+      "kind": "categorical",
+      "source": "Canton",
+      "category": "GR",
+      "coef": 0.04757827173359748
+    },
+    {
+      "kind": "categorical",
+      "source": "Canton",
+      "category": "JU",
+      "coef": -0.27155765828523626
+    },
+    {
+      "kind": "categorical",
+      "source": "Canton",
+      "category": "LU",
+      "coef": 0.0044749990923916225
+    },
+    {
+      "kind": "categorical",
+      "source": "Canton",
+      "category": "NE",
+      "coef": -0.06988209423218372
+    },
+    {
+      "kind": "categorical",
+      "source": "Canton",
+      "category": "NW",
+      "coef": 0.04266781636281883
+    },
+    {
+      "kind": "categorical",
+      "source": "Canton",
+      "category": "OW",
+      "coef": 0.048021995639859566
+    },
+    {
+      "kind": "categorical",
+      "source": "Canton",
+      "category": "SG",
+      "coef": -0.002373407716940515
+    },
+    {
+      "kind": "categorical",
+      "source": "Canton",
+      "category": "SH",
+      "coef": -0.018855454220004106
+    },
+    {
+      "kind": "categorical",
+      "source": "Canton",
+      "category": "SO",
+      "coef": -0.04715721157647403
+    },
+    {
+      "kind": "categorical",
+      "source": "Canton",
+      "category": "SZ",
+      "coef": 0.015526031007340318
+    },
+    {
+      "kind": "categorical",
+      "source": "Canton",
+      "category": "TG",
+      "coef": -0.0009045228944229294
+    },
+    {
+      "kind": "categorical",
+      "source": "Canton",
+      "category": "TI",
+      "coef": -0.12215410915207597
+    },
+    {
+      "kind": "categorical",
+      "source": "Canton",
+      "category": "UR",
+      "coef": -0.1665686664459688
+    },
+    {
+      "kind": "categorical",
+      "source": "Canton",
+      "category": "VD",
+      "coef": 0.061589428240652166
+    },
+    {
+      "kind": "categorical",
+      "source": "Canton",
+      "category": "VS",
+      "coef": -0.10507157528753278
+    },
+    {
+      "kind": "categorical",
+      "source": "Canton",
+      "category": "ZG",
+      "coef": 0.1527139804996112
+    },
+    {
+      "kind": "categorical",
+      "source": "Canton",
+      "category": "ZH",
+      "coef": 0.18467978209777547
+    },
+    {
+      "kind": "categorical",
+      "source": "CompanySize",
+      "category": "Large (1000+)",
+      "coef": 0.25331521034947635
+    },
+    {
+      "kind": "categorical",
+      "source": "CompanySize",
+      "category": "Medium (200-1000)",
+      "coef": 0.10059386459863279
+    },
+    {
+      "kind": "categorical",
+      "source": "CompanySize",
+      "category": "Small (50-200)",
+      "coef": -0.07921465226759708
+    },
+    {
+      "kind": "categorical",
+      "source": "CompanySize",
+      "category": "Startup (<50)",
+      "coef": -0.27469442268051203
+    },
+    {
+      "kind": "numeric",
+      "source": "Holidays",
+      "fill_value": 0.0,
+      "mean": 25.065,
+      "scale": 2.6068707294378832,
+      "coef": -0.019920857105901205
+    },
+    {
+      "kind": "numeric",
+      "source": "WorkloadPercent",
+      "fill_value": 0.0,
+      "mean": 84.35,
+      "scale": 13.75054544372695,
+      "coef": 0.1620624271879355
+    },
+    {
+      "kind": "numeric",
+      "source": "ExperienceMin",
+      "fill_value": 0.0,
+      "mean": 2.16,
+      "scale": 2.1282387084159518,
+      "coef": 0.20453910815228007
+    },
+    {
+      "kind": "numeric",
+      "source": "ExperienceMax",
+      "fill_value": 0.0,
+      "mean": 6.42,
+      "scale": 5.162228201077515,
+      "coef": 0.17058959459138515
+    },
+    {
+      "kind": "numeric",
+      "source": "IsPermanent",
+      "fill_value": 0.0,
+      "mean": 0.57,
+      "scale": 0.4950757517794625,
+      "coef": 0.07472177713955666
+    },
+    {
+      "kind": "numeric",
+      "source": "Languages_English",
+      "fill_value": 0.0,
+      "mean": 0.4675,
+      "scale": 0.4989426319728552,
+      "coef": 0.02224328985641344
+    },
+    {
+      "kind": "numeric",
+      "source": "Languages_French",
+      "fill_value": 0.0,
+      "mean": 0.3325,
+      "scale": 0.47110906380582407,
+      "coef": 0.018783996226245714
+    },
+    {
+      "kind": "numeric",
+      "source": "Languages_Italian",
+      "fill_value": 0.0,
+      "mean": 0.0575,
+      "scale": 0.23279551112510735,
+      "coef": -0.0006559054419235585
+    }
+  ],
+  "postprocessing": {
+    "steps": [
+      "expm1",
+      "clip"
+    ],
+    "clip": {
+      "strategy": "Floor + ceiling",
+      "floor": 25000.0,
+      "ceiling": 473200.0
+    }
+  },
+  "input_schema": [
+    {
+      "name": "Diploma",
+      "kind": "categorical",
+      "options": [
+        "Apprenticeship",
+        "Bachelor",
+        "Master",
+        "PhD"
+      ],
+      "unknown_behaviour": "contributes zero"
+    },
+    {
+      "name": "Role",
+      "kind": "categorical",
+      "options": [
+        "Director",
+        "Intern",
+        "Junior",
+        "Lead",
+        "Manager",
+        "Mid-level",
+        "Senior"
+      ],
+      "unknown_behaviour": "contributes zero"
+    },
+    {
+      "name": "Industry",
+      "kind": "categorical",
+      "options": [
+        "Construction",
+        "Consulting",
+        "Education",
+        "Energy",
+        "Finance",
+        "Healthcare",
+        "Hospitality",
+        "IT",
+        "Manufacturing",
+        "Pharma",
+        "Public Sector",
+        "Retail"
+      ],
+      "unknown_behaviour": "contributes zero"
+    },
+    {
+      "name": "Canton",
+      "kind": "categorical",
+      "options": [
+        "AG",
+        "AI",
+        "AR",
+        "BE",
+        "BL",
+        "BS",
+        "FR",
+        "GE",
+        "GL",
+        "GR",
+        "JU",
+        "LU",
+        "NE",
+        "NW",
+        "OW",
+        "SG",
+        "SH",
+        "SO",
+        "SZ",
+        "TG",
+        "TI",
+        "UR",
+        "VD",
+        "VS",
+        "ZG",
+        "ZH"
+      ],
+      "unknown_behaviour": "contributes zero"
+    },
+    {
+      "name": "CompanySize",
+      "kind": "categorical",
+      "options": [
+        "Large (1000+)",
+        "Medium (200-1000)",
+        "Small (50-200)",
+        "Startup (<50)"
+      ],
+      "unknown_behaviour": "contributes zero"
+    },
+    {
+      "name": "Holidays",
+      "kind": "numeric",
+      "min": 20,
+      "max": 35,
+      "median": 25.0,
+      "missing_allowed": false
+    },
+    {
+      "name": "WorkloadPercent",
+      "kind": "numeric",
+      "min": 50,
+      "max": 100,
+      "median": 90.0,
+      "missing_allowed": false
+    },
+    {
+      "name": "ExperienceMin",
+      "kind": "numeric",
+      "min": 0,
+      "max": 10,
+      "median": 2.0,
+      "missing_allowed": false
+    },
+    {
+      "name": "ExperienceMax",
+      "kind": "numeric",
+      "min": 0,
+      "max": 30,
+      "median": 6.0,
+      "missing_allowed": false
+    },
+    {
+      "name": "IsPermanent",
+      "kind": "numeric",
+      "min": false,
+      "max": true,
+      "median": 1.0,
+      "missing_allowed": false
+    },
+    {
+      "name": "Languages_English",
+      "kind": "numeric",
+      "min": 0,
+      "max": 1,
+      "median": 0.0,
+      "missing_allowed": false
+    },
+    {
+      "name": "Languages_French",
+      "kind": "numeric",
+      "min": 0,
+      "max": 1,
+      "median": 0.0,
+      "missing_allowed": false
+    },
+    {
+      "name": "Languages_Italian",
+      "kind": "numeric",
+      "min": 0,
+      "max": 1,
+      "median": 0.0,
+      "missing_allowed": false
+    }
+  ],
+  "metrics": {
+    "cv_train": {
+      "MAE": 4271.700679641568,
+      "RMSE": 5878.027077014381,
+      "R2": 0.9929414982581437
+    },
+    "test": {
+      "MAE": 3899.889158304041,
+      "RMSE": 5159.180920728373,
+      "R2": 0.9955873444091708
+    }
+  },
+  "examples": [
+    {
+      "input": {
+        "Diploma": "Master",
+        "Role": "Mid-level",
+        "Industry": "IT",
+        "Canton": "ZG",
+        "CompanySize": "Startup (<50)",
+        "Holidays": "28",
+        "WorkloadPercent": "100",
+        "ExperienceMin": "2",
+        "ExperienceMax": "6",
+        "IsPermanent": true,
+        "Languages_English": "1",
+        "Languages_French": "0",
+        "Languages_Italian": "0"
+      },
+      "expected_chf": 103741.0075
+    },
+    {
+      "input": {
+        "Diploma": "Bachelor",
+        "Role": "Mid-level",
+        "Industry": "Retail",
+        "Canton": "TI",
+        "CompanySize": "Startup (<50)",
+        "Holidays": "26",
+        "WorkloadPercent": "90",
+        "ExperienceMin": "2",
+        "ExperienceMax": "6",
+        "IsPermanent": true,
+        "Languages_English": "1",
+        "Languages_French": "0",
+        "Languages_Italian": "1"
+      },
+      "expected_chf": 43233.8964
+    },
+    {
+      "input": {
+        "Diploma": "Master",
+        "Role": "Mid-level",
+        "Industry": "Consulting",
+        "Canton": "ZH",
+        "CompanySize": "Large (1000+)",
+        "Holidays": "25",
+        "WorkloadPercent": "90",
+        "ExperienceMin": "2",
+        "ExperienceMax": "6",
+        "IsPermanent": true,
+        "Languages_English": "0",
+        "Languages_French": "0",
+        "Languages_Italian": "0"
+      },
+      "expected_chf": 153439.8854
+    }
+  ]
+}
