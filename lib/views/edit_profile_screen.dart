@@ -1,8 +1,10 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:taf_match/providers/auth_provider.dart';
 import 'package:taf_match/providers/user_provider.dart';
+import 'package:taf_match/providers/skill_provider.dart';
 import 'package:taf_match/repositories/image_storage_repository.dart';
 import 'package:taf_match/utils/theme.dart'; // pour AppColors
 
@@ -21,8 +23,8 @@ class EditProfileScreenState extends State<EditProfileScreen> {
   final _formKey = GlobalKey<FormState>();
   final _picker = ImagePicker();
 
-  // TODO : link skills to the user model and implement skill management
-  final List<String> skills = <String>[];
+  Set<String> _selectedSkills = {};
+  Set<String> _initialSkills = {};
   
   bool _saving = false;
   bool _initialized = false;
@@ -36,6 +38,7 @@ class EditProfileScreenState extends State<EditProfileScreen> {
   String _initialEmail = '';
   String _initialAddress = '';
   String _initialImageUrl = '';
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -48,10 +51,17 @@ class EditProfileScreenState extends State<EditProfileScreen> {
     _initialAddress = user.address;
     _initialImageUrl = user.profilePictureUrl;
 
+    _initialSkills = user.skills.toSet();
+    _selectedSkills = Set<String>.from(_initialSkills);
+
     _fullnameController.text = _initialFullName;
     _emailController.text = _initialEmail;
     _addressController.text = _initialAddress;
       _initialized = true;
+    }
+    final skillProvider = context.read<SkillProvider>();
+    if (skillProvider.skills.isEmpty && !skillProvider.isLoading) {
+      skillProvider.loadSkills();
     }
   }
 
@@ -235,30 +245,56 @@ class EditProfileScreenState extends State<EditProfileScreen> {
 
                       // --- Skills ---
                       Text(
-                      "SKILLS",
+                      "SKILLS - TAP TO SELECT",
                       style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.w700,
                           letterSpacing: 0.5,
                           color: colors.muted),
-                    ),
-                    const SizedBox(height: 10),
-                    if (skills.isEmpty)
-                      Text('No skills added yet',
-                          style: TextStyle(color: colors.muted))
-                    else
-                      Wrap(
-                        spacing: 8,
-                        runSpacing: 8,
-                        children: skills
-                            .map((s) => Chip(
-                                  label: Text(s,
-                                      style: TextStyle(color: colors.text)),
-                                  backgroundColor: colors.softAccent,
-                                  side: BorderSide.none,
-                                ))
-                            .toList(),
                       ),
+                      const SizedBox(height: 10),
+                      Consumer<SkillProvider>(
+                      builder: (context, skillProvider, _) {
+                        if (skillProvider.isLoading) {
+                          return const Padding(
+                            padding: EdgeInsets.symmetric(vertical: 8),
+                            child: Center(child: CircularProgressIndicator()),
+                          );
+                        }
+                        if (skillProvider.skills.isEmpty) {
+                          return Text('No skills available', style: TextStyle(color: colors.muted));
+                        }
+                        return Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          children: skillProvider.skills.map((skill) {
+                            final selected = _selectedSkills.contains(skill.id);
+                            return GestureDetector(
+                              onTap: () => _toggleSkill(skill.id),
+                              child: AnimatedContainer(
+                                duration: const Duration(milliseconds: 150),
+                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                                decoration: BoxDecoration(
+                                  color: selected ? colors.accent : Colors.white,
+                                  borderRadius: BorderRadius.circular(999),
+                                  border: Border.all(
+                                    color: selected ? colors.accent : colors.muted.withValues(alpha: 0.3),
+                                  ),
+                                ),
+                                child: Text(
+                                  skill.name,
+                                  style: TextStyle(
+                                    color: selected ? Colors.white : colors.text,
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 14,
+                                  ),
+                                ),
+                              ),
+                            );
+                          }).toList(),
+                        );
+                      },
+                    ),
                   
                       const SizedBox(height: 28),
                         if (_saveError != null) ...[
@@ -342,6 +378,7 @@ class EditProfileScreenState extends State<EditProfileScreen> {
       fullName: fullname,
       address: address,
       profilePictureUrl: profilePictureUrl,
+      skills: _selectedSkills.toList(),
     );
 
     final success = await authProvider.updateProfile(updatedUser);
@@ -380,7 +417,18 @@ bool get _hasUnsavedChanges {
   return _fullnameController.text.trim() != _initialFullName ||
       _emailController.text.trim() != _initialEmail ||
       _addressController.text.trim() != _initialAddress ||
-      (_imageUrl != null && _imageUrl != _initialImageUrl);
+      (_imageUrl != null && _imageUrl != _initialImageUrl)||
+      !setEquals(_selectedSkills, _initialSkills);
+}
+
+void _toggleSkill(String skillId) {
+  setState(() {
+    if (_selectedSkills.contains(skillId)) {
+      _selectedSkills.remove(skillId);
+    } else {
+      _selectedSkills.add(skillId);
+    }
+  });
 }
 
 Future<String?> _showUnsavedChangesDialog() {
