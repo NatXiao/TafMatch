@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:taf_match/models/job_model.dart';
@@ -7,6 +9,7 @@ import 'package:taf_match/utils/theme.dart';
 import 'dart:typed_data';
 import 'package:image_picker/image_picker.dart';
 import 'package:taf_match/repositories/image_storage_repository.dart';
+import 'package:taf_match/services/address_lookup.dart';
 import 'package:taf_match/services/salary_estimator.dart';
 
 String _shortDate(DateTime d) {
@@ -76,6 +79,37 @@ class NewPostingScreenState extends State<NewPostingScreen> {
   /// stops overwriting a deliberate choice.
   bool _salaryEdited = false;
 
+  // ====================================================================
+  // BLOC 1 A AJOUTER - autocompletion d'adresse (swisstopo)
+  // ====================================================================
+
+  final _addressLookup = AddressLookup();
+  Timer? _addressDebounce;
+  List<AddressSuggestion> _addressSuggestions = const [];
+
+  /// 400 ms sans frappe avant d'interroger l'API: swisstopo demande
+  /// explicitement d'eviter les requetes a haute intensite.
+  void _onAddressChanged(String value) {
+    _addressDebounce?.cancel();
+    _addressDebounce = Timer(const Duration(milliseconds: 400), () async {
+      final results = await _addressLookup.search(value);
+      if (mounted) setState(() => _addressSuggestions = results);
+    });
+  }
+
+  /// Remplit l'adresse et, quand l'API l'a fourni, le canton.
+  void _pickAddress(AddressSuggestion suggestion) {
+    setState(() {
+      _address.text = suggestion.label;
+      if (suggestion.canton.isNotEmpty) _canton = suggestion.canton;
+      _addressSuggestions = const [];
+    });
+    FocusScope.of(context).unfocus();
+    _recomputeEstimate(); // le canton pese lourd dans le modele
+  }
+
+  // ==================== FIN DU BLOC 1 ====================
+
   /// The estimate brought down to an hourly rate, at the workload entered.
   ///
   /// Same conversion as the one that pre-fills the salary field, so the box
@@ -136,6 +170,8 @@ class NewPostingScreenState extends State<NewPostingScreen> {
 
   @override
   void dispose() {
+    _addressDebounce?.cancel();   // BLOC 1
+    _addressLookup.dispose();     // BLOC 1
     _title.dispose();
     _description.dispose();
     _address.dispose();
@@ -259,7 +295,7 @@ class NewPostingScreenState extends State<NewPostingScreen> {
     final predicted = _computeAnnual();
     final modelVersion = context.read<SalaryEstimator>().model.createdUtc;
 
-        final job = Job(
+    final job = Job(
       id: '',
       employerId: employerId,
       title: _title.text.trim(),
@@ -272,14 +308,25 @@ class NewPostingScreenState extends State<NewPostingScreen> {
         _salary.text.replaceAll(',', '.'),
       ),
       workPercentage: int.tryParse(
-        _workTime.text.replaceAll(RegExp(r'[^0-9]'), ''),
+        _workTime.text.replaceAll(
+          RegExp(r'[^0-9]'),
+          '',
+        ),
       ),
       pictureUrl: _pictureUrl ?? '',
       endDate: _endDate,
-      contractStartDate: _contractStartDate,                                 
-      contractEndDate: _contractEndDate,                                    
+
+      // Les deux dates sont maintenant stockees: c'est d'elles que Job deduit
+      // isPermanent, au lieu de le figer a la publication.
+      contractStartDate: _contractStartDate,
+      contractEndDate: _contractEndDate,
+
       status: 'live',
 
+      // Seules les saisies sans equivalent ailleurs sont passees ici.
+      // industry, diploma, workloadPercent, isPermanent et les trois
+      // Languages_* sont des getters de Job: ils se deduisent de domainName,
+      // degree, workPercentage, des dates de contrat et de languages.
       experienceMin: double.parse(_experienceMin.text),
       experienceMax: double.parse(_experienceMax.text),
       companySize: _companySize ?? 'Startup (<50)',
@@ -380,12 +427,50 @@ class NewPostingScreenState extends State<NewPostingScreen> {
 
                     const SizedBox(height: 18),
 
+                    // ==============================================
+                    // BLOC 2 A AJOUTER - champ adresse + suggestions
+                    // ==============================================
                     _label('Location'),
                     _input(
                       _address,
                       hint: 'Sion',
                       validator: _required,
+                      onChanged: _onAddressChanged,
                     ),
+                    if (_addressSuggestions.isNotEmpty)
+                      Container(
+                        margin: const EdgeInsets.only(top: 6),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(14),
+                          border: Border.all(color: colors.border),
+                        ),
+                        child: Column(
+                          children: [
+                            for (final suggestion in _addressSuggestions)
+                              ListTile(
+                                dense: true,
+                                title: Text(
+                                  suggestion.label,
+                                  style: TextStyle(
+                                      fontSize: 14, color: colors.text),
+                                ),
+                                trailing: suggestion.canton.isEmpty
+                                    ? null
+                                    : Text(
+                                        suggestion.canton,
+                                        style: TextStyle(
+                                          fontSize: 13,
+                                          fontWeight: FontWeight.w600,
+                                          color: colors.accent,
+                                        ),
+                                      ),
+                                onTap: () => _pickAddress(suggestion),
+                              ),
+                          ],
+                        ),
+                      ),
+                    // ==================== FIN DU BLOC 2 ====================
 
                     const SizedBox(height: 18),
 
