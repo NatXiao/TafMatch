@@ -22,4 +22,12 @@ class TransportsApi {
     return "x=$latitude&y=$longitude";
   }
 
+  static Future<http.Response> findLocationByName(String name) {
+    return http.get(Uri.parse('http://transport.opendata.ch/v1/locations?${buildLocationByNameParameters(name)}'));
+  }
+
+  static String buildLocationByNameParameters(String name) {
+    return "query=$name";
+  }
+
 }

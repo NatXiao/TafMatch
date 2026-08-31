@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_osm_plugin/flutter_osm_plugin.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -42,6 +43,16 @@ class _JobDetailScreenState extends State<JobDetailScreen> {
   List<TransportModel> transports = [];
   bool isLoadingTransports = false;
 
+  final _controller = MapController(
+    initPosition: GeoPoint(latitude: 47.4358055, longitude: 8.4737324),
+    areaLimit: const BoundingBox(
+      east: 10.4922941,
+      north: 47.8084648,
+      south: 45.817995,
+      west: 5.9559113,
+    ),
+  );
+
   @override
   void initState() {
     super.initState();
@@ -50,6 +61,7 @@ class _JobDetailScreenState extends State<JobDetailScreen> {
       context.read<ApplicationProvider>().listenToStudentApplications(uid);
     });
     retrieveTransports();
+    updateMarkerOnMap();
   }
 
   // Charge les infos de l'employeur (nom, photo, note, nb reviews)
@@ -360,6 +372,49 @@ class _JobDetailScreenState extends State<JobDetailScreen> {
                     ]
                   ),
 
+
+                  // Carte intéractive
+                  const SizedBox(height: 20),
+                  Text('Interactive map', style: TextStyle(fontSize: 18, color: colors.muted, fontWeight: FontWeight.w700)),
+                  const SizedBox(height: 20),
+
+                  SizedBox(
+                    height: 500,
+                    child: OSMFlutter(
+                      controller: _controller,
+                      osmOption: OSMOption(
+                        userTrackingOption: const UserTrackingOption(
+                          enableTracking: true,
+                          unFollowUser: false,
+                        ),
+                        zoomOption: const ZoomOption(
+                          initZoom: 8,
+                          minZoomLevel: 3,
+                          maxZoomLevel: 19,
+                          stepZoom: 1.0,
+                        ),
+                        userLocationMarker: UserLocationMaker(
+                          personMarker: const MarkerIcon(
+                            icon: Icon(
+                              Icons.location_history_rounded,
+                              color: Colors.red,
+                              size: 48,
+                            ),
+                          ),
+                          directionArrowMarker: const MarkerIcon(
+                            icon: Icon(
+                              Icons.double_arrow,
+                              size: 48,
+                            ),
+                          ),
+                        ),
+                        roadConfiguration: const RoadOption(
+                          roadColor: Colors.yellowAccent,
+                        ),
+                      ),
+                    )
+                  )
+
                 ],
               ),
 
@@ -488,6 +543,54 @@ class _JobDetailScreenState extends State<JobDetailScreen> {
     } 
 
     return await Geolocator.getCurrentPosition();
+  }
+
+
+  void updateMarkerOnMap() async {
+
+    final position = await findDeviceLocation();
+    final latitude = position.latitude;
+    final longitude = position.longitude;
+
+    final raw_locations = await TransportsApi.findLocationByName(widget.job.address);
+    final locations = jsonDecode(raw_locations.body) as Map<String, dynamic>;
+
+    double jobLatitude = 0;
+    double jobLongitude = 0;
+    bool jobLocationFound = false;
+    if (locations["stations"] != null) {
+      locations['stations'].forEach((v) {
+        if (!jobLocationFound && v["coordinate"]["x"] != null && v["coordinate"]["y"] != null) {
+          jobLatitude = v["coordinate"]["x"];
+          jobLongitude = v["coordinate"]["y"];
+          jobLocationFound = true;
+        }
+      });
+    }
+
+    final userMarker = MarkerIcon(
+      icon: Icon(
+        Icons.location_on_outlined,
+        color: Colors.blue,
+        size: 48,
+      ),
+    );
+
+    final jobMarker = MarkerIcon(
+      icon: Icon(
+        Icons.location_on,
+        color: Colors.red,
+        size: 48,
+      ),
+    );
+
+    await _controller.addMarker(GeoPoint(latitude: latitude, longitude: longitude), markerIcon: userMarker);
+
+    if (jobLocationFound) {
+      await _controller.addMarker(GeoPoint(latitude: jobLatitude, longitude: jobLongitude), markerIcon: jobMarker);
+    }
+
+    await _controller.currentLocation();
   }
 
 }
