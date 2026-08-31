@@ -118,10 +118,12 @@ class EditProfileScreenState extends State<EditProfileScreen> {
                                 backgroundImage: displayedImageUrl.isNotEmpty
                                     ? NetworkImage(displayedImageUrl)
                                     : null,
+                                onBackgroundImageError: displayedImageUrl.isNotEmpty
+                                    ? (e, s) => debugPrint('avatar load failed: $e')
+                                    : null,
                                 child: displayedImageUrl.isEmpty
                                     ? Icon(Icons.person, color: colors.muted, size: 30)
                                     : null,
-                                onBackgroundImageError: (e, s) => debugPrint('avatar load failed: $e')
                               ),
                               Positioned(
                                 right: 0,
