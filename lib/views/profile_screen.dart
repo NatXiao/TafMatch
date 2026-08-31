@@ -5,7 +5,6 @@ import 'package:taf_match/models/user_model.dart';
 import 'package:taf_match/providers/auth_provider.dart';
 import 'package:taf_match/providers/review_provider.dart';
 import 'package:taf_match/providers/user_provider.dart';
-import 'package:taf_match/repositories/firestore_user_repository.dart';
 import 'package:taf_match/utils/theme.dart';
 import 'package:taf_match/views/edit_profile_screen.dart';
 import 'package:taf_match/views/login_screen.dart';
@@ -21,7 +20,6 @@ class ProfileScreen extends StatefulWidget {
 class ProfileScreenState extends State<ProfileScreen> {
   final TextEditingController _reviewController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
-  final _userRepository = FirestoreUserRepository();
   bool _saving = false;
   int _userRating = 0;
 
@@ -82,7 +80,7 @@ class ProfileScreenState extends State<ProfileScreen> {
         _targetUserId.isNotEmpty &&
         _targetUserId != _loadedUserId) {
       _loadedUserId = _targetUserId;
-      _viewedUserFuture = _userRepository.getProfile(_targetUserId);
+      _viewedUserFuture = context.read<UserProvider>().getUserById(_targetUserId);
     }
 
     if (_targetUserId.isNotEmpty && _targetUserId != _listeningTargetUserId) {
