@@ -6,6 +6,7 @@ import 'package:taf_match/providers/application_provider.dart';
 import 'package:taf_match/repositories/firestore_review_repository.dart';
 import 'package:taf_match/repositories/firestore_user_repository.dart';
 import 'package:taf_match/utils/theme.dart';
+import 'package:taf_match/views/profile_screen.dart';
 
 typedef _Applicant = ({String name, String photoUrl, double rating, int reviews});
 
@@ -40,6 +41,12 @@ class _ApplicantsScreenState extends State<ApplicantsScreen> {
       photoUrl: user?.profilePictureUrl ?? '',
       rating: avg,
       reviews: reviews.length,
+    );
+  }
+  void _openApplicantProfile(String studentId) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => ProfileScreen(userId: studentId)),
     );
   }
 
@@ -88,23 +95,26 @@ class _ApplicantsScreenState extends State<ApplicantsScreen> {
                     itemBuilder: (_, i) => _ApplicantCard(
                       application: apps[i],
                       loadApplicant: _loadApplicant,
-                    ),
+                      onOpenProfile: () => _openApplicantProfile(apps[i].studentId),
+                        )
                   );
-                },
+                      },
+                    ),
+                  )
+          ],
               ),
             ),
-          ],
-        ),
-      ),
-    );
+        );
+        }
   }
-}
+
 
 class _ApplicantCard extends StatelessWidget {
-  const _ApplicantCard({required this.application, required this.loadApplicant});
+  const _ApplicantCard({required this.application, required this.loadApplicant, required this.onOpenProfile});
 
   final Application application;
   final Future<_Applicant> Function(String studentId) loadApplicant;
+  final VoidCallback onOpenProfile;
 
   @override
   Widget build(BuildContext context) {
@@ -120,56 +130,61 @@ class _ApplicantCard extends StatelessWidget {
       ),
       child: Column(
         children: [
-          FutureBuilder<_Applicant>(
-            future: loadApplicant(application.studentId),
-            builder: (context, snap) {
-              final a = snap.data ??
-                  (name: 'Loading…', photoUrl: '', rating: 0.0, reviews: 0);
-              return Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  CircleAvatar(
-                    radius: 22,
-                    backgroundColor: colors.avatar,
-                    backgroundImage:
-                        a.photoUrl.isNotEmpty ? NetworkImage(a.photoUrl) : null,
-                    child: a.photoUrl.isEmpty
-                        ? const Icon(Icons.person, color: Colors.white, size: 24)
-                        : null,
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Flexible(
-                              child: Text(a.name,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: TextStyle(fontSize: 16,
-                                      fontWeight: FontWeight.w600, color: colors.accent)),
-                            ),
-                            Icon(Icons.chevron_right, size: 18, color: colors.accent),
-                          ],
-                        ),
-                        const SizedBox(height: 4),
-                        Row(
-                          children: [
-                            Icon(Icons.star, size: 15, color: colors.accent),
-                            const SizedBox(width: 4),
-                            Text('${a.rating.toStringAsFixed(1)} · ${a.reviews} reviews',
-                                style: TextStyle(fontSize: 13, color: colors.muted)),
-                          ],
-                        ),
-                      ],
+          InkWell(
+            borderRadius: BorderRadius.circular(12),
+            onTap: onOpenProfile,
+            child:
+            FutureBuilder<_Applicant>(
+              future: loadApplicant(application.studentId),
+              builder: (context, snap) {
+                final a = snap.data ??
+                    (name: 'Loading…', photoUrl: '', rating: 0.0, reviews: 0);
+                return Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    CircleAvatar(
+                      radius: 22,
+                      backgroundColor: colors.avatar,
+                      backgroundImage:
+                          a.photoUrl.isNotEmpty ? NetworkImage(a.photoUrl) : null,
+                      child: a.photoUrl.isEmpty
+                          ? const Icon(Icons.person, color: Colors.white, size: 24)
+                          : null,
                     ),
-                  ),
-                  _statusBadge(context, application.status),
-                ],
-              );
-            },
+                    const SizedBox(width: 12),
+                  Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Flexible(
+                                child: Text(a.name,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(fontSize: 16,
+                                        fontWeight: FontWeight.w600, color: colors.accent)),
+                              ),
+                              Icon(Icons.chevron_right, size: 18, color: colors.accent),
+                            ],
+                          ),
+                          const SizedBox(height: 4),
+                          Row(
+                            children: [
+                              Icon(Icons.star, size: 15, color: colors.accent),
+                              const SizedBox(width: 4),
+                              Text('${a.rating.toStringAsFixed(1)} · ${a.reviews} reviews',
+                                  style: TextStyle(fontSize: 13, color: colors.muted)),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                    _statusBadge(context, application.status),
+                  ],
+                );
+              },
+            ),
           ),
           const SizedBox(height: 16),
           Row(

@@ -3,6 +3,7 @@ import 'package:taf_match/views/js_job_list_screen.dart';
 import 'package:taf_match/views/js_applications_screen.dart';
 import 'package:taf_match/views/about_screen.dart';
 import 'package:taf_match/utils/theme.dart';
+import 'package:taf_match/views/profile_screen.dart';
 
 /// Main screen for job seekers, with bottom navigation bar to switch between Jobs, Applications, and Profile.
 class JeMainScreen extends StatefulWidget {
@@ -19,7 +20,7 @@ class _JeMainScreenState extends State<JeMainScreen> {
   final _screens = const [
     JobListScreen(),
     ApplicationsScreen(),
-    AboutScreen(),
+    ProfileScreen(),
   ];
 
   @override

@@ -27,6 +27,22 @@ class FirestoreUserRepository {
         .toList();
   }
 
+  Future<List<UserModel>> getUsersByIds(Iterable<String> userIds) async {
+    final ids = userIds.where((id) => id.isNotEmpty).toSet().toList();
+    final users = <UserModel>[];
+
+  for (var index = 0; index < ids.length; index += 30) { // TODO index += 30 ??
+      final chunk = ids.sublist(index, (index + 30).clamp(0, ids.length));
+      final snapshot =
+          await _users.where(FieldPath.documentId, whereIn: chunk).get();
+      users.addAll(snapshot.docs.map(
+        (doc) => UserModel.fromMap(doc.id, doc.data()),
+      ));
+    }
+
+    return users;
+  }
+
   // ÉCOUTER un profil en temps réel (pour un StreamBuilder)
   Stream<UserModel?> watchProfile(String uid) {
     return _users.doc(uid).snapshots().map((doc) {
