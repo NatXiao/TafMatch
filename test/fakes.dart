@@ -143,9 +143,11 @@ class FakeUserRepository implements FirestoreUserRepository {
   }
 
   @override
-  Future<List<UserModel>> getUsersByIds(Iterable<String> userIds) {
-    // TODO: implement getUsersByIds
-    throw UnimplementedError();
+  Future<List<UserModel>> getUsersByIds(Iterable<String> userIds) async {
+    return userIds
+        .map((id) => _users[id])
+        .whereType<UserModel>()
+        .toList();
   }
 
 }
