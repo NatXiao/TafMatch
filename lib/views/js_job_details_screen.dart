@@ -14,7 +14,7 @@ import 'package:taf_match/repositories/firestore_user_repository.dart';
 import 'package:taf_match/utils/location_utils.dart';
 import 'package:taf_match/utils/theme.dart';
 import 'package:taf_match/utils/transports_api.dart';
-import 'package:taf_match/views/about_screen.dart'; // ⬅️ pour "View profile"
+import 'package:taf_match/views/profile_screen.dart';
 
 String _shortDate(DateTime d) {
   const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
@@ -27,16 +27,26 @@ String _shortDate(DateTime d) {
 typedef _Employer = ({String name, String photoUrl, double rating, int reviews});
 
 class JobDetailScreen extends StatefulWidget {
-  const JobDetailScreen({super.key, required this.job});
+  const JobDetailScreen({
+    super.key,
+    required this.job,
+    this.userRepository,
+    this.reviewRepository,
+  });
+
+
   final Job job;
+
+  final FirestoreUserRepository? userRepository;
+  final FirestoreReviewRepository? reviewRepository;
 
   @override
   State<JobDetailScreen> createState() => _JobDetailScreenState();
 }
 
 class _JobDetailScreenState extends State<JobDetailScreen> {
-  final _userRepository = FirestoreUserRepository();
-  final _reviewRepository = FirestoreReviewRepository();
+  late final FirestoreUserRepository _userRepository;
+  late final FirestoreReviewRepository _reviewRepository;
   bool _applying = false;
   bool _cancelling = false;
 
@@ -56,6 +66,9 @@ class _JobDetailScreenState extends State<JobDetailScreen> {
   @override
   void initState() {
     super.initState();
+    _userRepository = widget.userRepository ?? FirestoreUserRepository();
+    _reviewRepository = widget.reviewRepository ?? FirestoreReviewRepository();
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final uid = context.read<AuthProvider>().user?.uid ?? '';
       context.read<ApplicationProvider>().listenToStudentApplications(uid);
@@ -68,7 +81,9 @@ class _JobDetailScreenState extends State<JobDetailScreen> {
   Future<_Employer> _loadEmployer() async {
     final user = await _userRepository.getProfile(widget.job.employerId);
     final reviews = await _reviewRepository.watchForUser(widget.job.employerId).first;
-    final avg = 0.0; // TODO: calculer la note ??
+    final avg = reviews.isEmpty
+      ? 0.0
+      : reviews.map((r) => r.rating).reduce((a, b) => a + b) / reviews.length;
     return (
       name: user?.fullName ?? 'Unknown',
       photoUrl: user?.profilePictureUrl ?? '',
@@ -77,11 +92,11 @@ class _JobDetailScreenState extends State<JobDetailScreen> {
     );
   }
 
-  // Ouvre le profil de l'employeur (page About pour l'instant).
+  // Ouvre le profil de l'employeur. 
   void _openEmployerProfile() {
     Navigator.push(
       context,
-      MaterialPageRoute(builder: (_) => const AboutScreen()),
+      MaterialPageRoute(builder: (_) => ProfileScreen(userId: widget.job.employerId)),
     );
   }
 

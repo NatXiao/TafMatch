@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:taf_match/views/js_job_list_screen.dart';
 import 'package:taf_match/views/js_applications_screen.dart';
-import 'package:taf_match/views/about_screen.dart';
 import 'package:taf_match/utils/theme.dart';
+import 'package:taf_match/views/profile_screen.dart';
 
 /// Main screen for job seekers, with bottom navigation bar to switch between Jobs, Applications, and Profile.
 class JeMainScreen extends StatefulWidget {
-  const JeMainScreen({super.key});
+  const JeMainScreen({super.key, this.jobsScreen, this.applicationsScreen});
+  final Widget? jobsScreen;
+  final Widget? applicationsScreen;
 
   @override
   State<JeMainScreen> createState() => _JeMainScreenState();
@@ -16,10 +18,10 @@ class _JeMainScreenState extends State<JeMainScreen> {
   // Current index of the selected tab in the bottom navigation bar.
   int _currentIndex = 0;
 
-  final _screens = const [
-    JobListScreen(),
-    ApplicationsScreen(),
-    AboutScreen(),
+  late final List<Widget> _screens = [
+    widget.jobsScreen ?? const JobListScreen(),
+    widget.applicationsScreen ?? const ApplicationsScreen(),
+    ProfileScreen(),
   ];
 
   @override
@@ -49,16 +51,16 @@ class _JeMainScreenState extends State<JeMainScreen> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
-            _navItem(colors, 'Jobs', 0),
-            _navItem(colors, 'Applications', 1),
-            _navItem(colors, 'Profile', 2),
+            _navItem(colors, 'Jobs', 0, Key("jobs_tab")),
+            _navItem(colors, 'Applications', 1, Key("applications_tab")),
+            _navItem(colors, 'Profile', 2, Key("profile_tab")),
           ],
         ),
       ),
     );
   }
 
-  Widget _navItem(AppColors colors, String label, int index) {
+  Widget _navItem(AppColors colors, String label, int index, Key key) {
     final active = _currentIndex == index;
     final color = active ? colors.accent : colors.muted;
     return InkWell(
@@ -75,7 +77,8 @@ class _JeMainScreenState extends State<JeMainScreen> {
           ),
           const SizedBox(height: 6),
           Text(label,
-              style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: color)),
+              style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: color),
+              key: key,),
         ],
       ),
     );

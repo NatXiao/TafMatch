@@ -10,7 +10,10 @@ import 'package:taf_match/utils/theme.dart';
 typedef _JobInfo = ({String title, String employer});
 
 class ApplicationsScreen extends StatefulWidget {
-  const ApplicationsScreen({super.key});
+  const ApplicationsScreen({super.key, this.jobRepository, this.userRepository});
+  final FirestoreJobRepository? jobRepository;
+  final FirestoreUserRepository? userRepository;
+  
 
   @override
   State<ApplicationsScreen> createState() => _ApplicationsScreenState();
@@ -18,12 +21,14 @@ class ApplicationsScreen extends StatefulWidget {
 
 class _ApplicationsScreenState extends State<ApplicationsScreen> {
   // Récupération des repositoire uniquement (une fois)
-  final _jobRepository = FirestoreJobRepository();
-  final _userRepository = FirestoreUserRepository();
-
+  late final FirestoreJobRepository _jobRepository;
+  late final FirestoreUserRepository _userRepository;
   @override
   void initState() {
     super.initState();
+    _jobRepository = widget.jobRepository ?? FirestoreJobRepository();
+    _userRepository = widget.userRepository ?? FirestoreUserRepository();
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final uid = context.read<AuthProvider>().user?.uid ?? '';
       context.read<ApplicationProvider>().listenToStudentApplications(uid);

@@ -32,6 +32,24 @@ To run with activated print, add this to the test command :
  --reporter=expanded
 ```
 
+## Mockito
+
+Some widget tests use Mockito to mock dependencies.
+
+If generated mock files need to be created or updated, run:
+```
+dart run build_runner build
+```
+For example, a test file such as:
+
+test/views/face_login_screen_test.dart
+
+can have a generated mock file:
+```
+test/views/face_login_screen_test.mocks.dart
+```
+The .mocks.dart file is generated automatically and should not be edited manually.
+
 
 # Installation for Android compilation
 Install Android Studio on https://developer.android.com/studio/install?hl=fr
