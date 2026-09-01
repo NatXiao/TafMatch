@@ -1,0 +1,73 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:taf_match/utils/theme.dart';
+import 'package:taf_match/views/about_screen.dart';
+import 'package:taf_match/views/js_main_screen.dart';
+
+void main() {
+  testWidgets('JeMainScreen displays navigation tabs and the Jobs tab first', (
+    WidgetTester tester,
+  ) async {
+    const jobsScreen = Placeholder();
+    const applicationsScreen = Placeholder();
+
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: buildThemeData(),
+        home: const JeMainScreen(
+          jobsScreen: jobsScreen,
+          applicationsScreen: applicationsScreen,
+        ),
+      ),
+    );
+
+    expect(find.text('Jobs'), findsOneWidget);
+    expect(find.text('Applications'), findsOneWidget);
+    expect(find.text('Profile'), findsOneWidget);
+    expect(find.byWidget(jobsScreen), findsOneWidget);
+  });
+
+  testWidgets('JeMainScreen switches to the Applications tab', (
+    WidgetTester tester,
+  ) async {
+    const jobsScreen = Placeholder();
+    const applicationsScreen = Placeholder();
+
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: buildThemeData(),
+        home: const JeMainScreen(
+          jobsScreen: jobsScreen,
+          applicationsScreen: applicationsScreen,
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('Applications'));
+    await tester.pump();
+
+    expect(find.byWidget(applicationsScreen), findsOneWidget);
+  });
+
+  testWidgets('JeMainScreen switches to the Profile tab', (
+    WidgetTester tester,
+  ) async {
+    const jobsScreen = Placeholder();
+    const applicationsScreen = Placeholder();
+
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: buildThemeData(),
+        home: const JeMainScreen(
+          jobsScreen: jobsScreen,
+          applicationsScreen: applicationsScreen,
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('Profile'));
+    await tester.pump();
+
+    expect(find.byType(AboutScreen), findsOneWidget);
+  });
+}

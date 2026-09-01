@@ -5,8 +5,8 @@ import 'package:taf_match/views/profile_screen.dart';
 
 /// Main screen for job seekers, with bottom navigation bar to switch between Jobs, Applications, and Profile.
 class JpMainScreen extends StatefulWidget {
-  const JpMainScreen({super.key});
-
+  const JpMainScreen({super.key, this.postingsScreen});
+  final Widget? postingsScreen;
   @override
   State<JpMainScreen> createState() => _JpMainScreenState();
 }

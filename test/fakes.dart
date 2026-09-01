@@ -33,6 +33,8 @@ class FakeAuthService implements AuthService {
   String? registerError;
   String? signOutError;
 
+  int signOutCallCount = 0;
+
   Completer<void>? gate;
   Completer<String?>? stringGate;
 
@@ -52,9 +54,12 @@ class FakeAuthService implements AuthService {
     if (gate != null) await gate!.future;
     return signInError;
   }
-
   @override
-  Future<String?> signOut() async => signOutError;
+  Future<String?> signOut() async {
+    signOutCallCount++;
+    return signOutError;
+  }
+
 
   void dispose() => _controller.close();
 
