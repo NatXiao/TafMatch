@@ -3,10 +3,12 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:provider/provider.dart';
 import 'package:taf_match/providers/notification_provider.dart';
+import 'package:taf_match/providers/application_provider.dart';
 import 'package:taf_match/providers/skill_provider.dart';
 import 'package:taf_match/providers/user_provider.dart';
 import 'package:taf_match/providers/review_provider.dart';
 import 'package:taf_match/repositories/cloudinary_image_repository.dart';
+import 'package:taf_match/repositories/firestore_application_repository.dart';
 import 'package:taf_match/repositories/firestore_skill_repository.dart';
 import 'package:taf_match/repositories/firestore_user_repository.dart';
 import 'package:taf_match/repositories/firestore_review_repository.dart';
@@ -24,22 +26,35 @@ import 'package:taf_match/repositories/firestore_job_repository.dart';
 import 'package:taf_match/views/jp_main_screen.dart';
 import 'package:taf_match/views/js_main_screen.dart';
 
+import 'package:taf_match/services/salary_model.dart';      // 1. imports
+import 'package:taf_match/services/salary_estimator.dart';
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load(fileName: '.env');
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
-  runApp(const MyApp());
+
+  final salaryModel = await SalaryModel.loadAsset(); 
+
+  runApp(
+     MyApp(salaryModel: salaryModel));
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-
+  const MyApp({super.key, required this.salaryModel});
+  
+  final SalaryModel salaryModel;
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
+        Provider<SalaryEstimator>.value(
+          value: SalaryEstimator(salaryModel),
+        ),
+
+
         Provider<ImageStorageRepository>(
           create: (_) => CloudinaryImageRepository(
             cloudName: CloudinaryConfig.cloudName,
@@ -58,6 +73,9 @@ class MyApp extends StatelessWidget {
         ),
         ChangeNotifierProvider(
           create: (_) => SkillProvider(FirestoreSkillRepository()),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => ApplicationProvider(FirestoreApplicationRepository()),
         ),
         ChangeNotifierProvider(create: (_) => NotificationProvider()),
       ],
