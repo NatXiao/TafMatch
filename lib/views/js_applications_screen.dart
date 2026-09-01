@@ -6,6 +6,7 @@ import 'package:taf_match/providers/auth_provider.dart';
 import 'package:taf_match/repositories/firestore_job_repository.dart';
 import 'package:taf_match/repositories/firestore_user_repository.dart';
 import 'package:taf_match/utils/theme.dart';
+import 'package:taf_match/views/js_job_details_screen.dart';
 
 typedef _JobInfo = ({String title, String employer});
 
@@ -76,6 +77,22 @@ class _ApplicationsScreenState extends State<ApplicationsScreen> {
                       itemBuilder: (_, i) => _ApplicationCard(
                         application: apps[i],
                         loadJobInfo: _loadJobInfo,
+                        onTap: () async {
+                          final job = await _jobRepository.getById(apps[i].jobId);
+
+                          if (job == null) return;
+
+                          if (!context.mounted) return;
+
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => JobDetailScreen(
+                                job: job,
+                              ),
+                            ),
+                          );
+                        },
                       ),
                     );
                   },
@@ -90,47 +107,54 @@ class _ApplicationsScreenState extends State<ApplicationsScreen> {
 }
 
 class _ApplicationCard extends StatelessWidget {
-  const _ApplicationCard({required this.application, required this.loadJobInfo});
+  const _ApplicationCard({required this.application, required this.loadJobInfo, required this.onTap});
 
   final Application application;
   final Future<_JobInfo> Function(String jobId) loadJobInfo;
-
+  final VoidCallback onTap;
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).extension<AppColors>()!;
 
-    return Container(
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        color: Colors.white,
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: colors.border),
-        boxShadow: const [BoxShadow(color: Color(0x242E3D8C), offset: Offset(0, 14), blurRadius: 34)],
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: FutureBuilder<_JobInfo>(
-              future: loadJobInfo(application.jobId),
-              builder: (context, snap) {
-                final info = snap.data ?? (title: 'Loading…', employer: '');
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(info.title,
-                        style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700, color: colors.text)),
-                    const SizedBox(height: 4),
-                    Text(info.employer,
-                        style: TextStyle(fontSize: 14, color: colors.muted)),
-                  ],
-                );
-              },
+        child: Container(
+        padding: const EdgeInsets.all(18),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(color: colors.border),
+          boxShadow: const [BoxShadow(color: Color(0x242E3D8C), offset: Offset(0, 14), blurRadius: 34)],
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              child: FutureBuilder<_JobInfo>(
+                future: loadJobInfo(application.jobId),
+                builder: (context, snap) {
+                  final info = snap.data ?? (title: 'Loading…', employer: '');
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(info.title,
+                          style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700, color: colors.text)),
+                      const SizedBox(height: 4),
+                      Text(info.employer,
+                          style: TextStyle(fontSize: 14, color: colors.muted)),
+                    ],
+                  );
+                },
+              ),
             ),
-          ),
-          const SizedBox(width: 12),
-          _statusBadge(colors, application.status),
-        ],
-      ),
+            const SizedBox(width: 12),
+            _statusBadge(colors, application.status),
+          ],
+        ),
+      )
+    )
     );
   }
 
