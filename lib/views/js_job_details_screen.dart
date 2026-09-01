@@ -134,6 +134,7 @@ class _JobDetailScreenState extends State<JobDetailScreen> {
   }
 
   // Apply pour le job
+  // TODO add a push notification to the employer when a student applies
   Future<void> _apply() async {
     setState(() => _applying = true);
     final uid = context.read<AuthProvider>().user?.uid ?? '';
@@ -192,6 +193,17 @@ class _JobDetailScreenState extends State<JobDetailScreen> {
     setState(() => _cancelling = true);
     try {
       await context.read<ApplicationProvider>().cancel(app.id);
+      if (mounted) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(
+              SnackBar(
+          content: Text(
+            'Your application has been cancelled.',
+            style: TextStyle(color: Colors.white)
+          ),
+          backgroundColor: Colors.blue,
+        ));
+        }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context)
