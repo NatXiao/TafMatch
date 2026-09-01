@@ -33,7 +33,9 @@ String _shortDate(DateTime d) {
 }
 
 class NewPostingScreen extends StatefulWidget {
-  const NewPostingScreen({super.key});
+  const NewPostingScreen({super.key, this.addressLookup});
+
+  final AddressLookup? addressLookup;
 
   @override
   State<NewPostingScreen> createState() => NewPostingScreenState();
@@ -74,16 +76,11 @@ class NewPostingScreenState extends State<NewPostingScreen> {
   /// Last estimate produced by the model, in CHF per year. Null while a
   /// required dropdown is still empty.
   double? _estimate;
+  String? _autoSalary;
 
-  /// Set as soon as the employer types in the salary field, so the estimate
-  /// stops overwriting a deliberate choice.
-  bool _salaryEdited = false;
+  bool _writingSalary = false;
 
-  // ====================================================================
-  // BLOC 1 A AJOUTER - autocompletion d'adresse (swisstopo)
-  // ====================================================================
-
-  final _addressLookup = AddressLookup();
+ late  final _addressLookup = widget.addressLookup ?? AddressLookup();
   Timer? _addressDebounce;
   List<AddressSuggestion> _addressSuggestions = const [];
 
@@ -153,9 +150,12 @@ class NewPostingScreenState extends State<NewPostingScreen> {
   /// Writing into `_salary` re-triggers `Form.onChanged`; the equality guard
   /// below makes the second pass a no-op, so this does not loop.
   void _recomputeEstimate() {
+    if (_writingSalary) return;
+
     final annual = _computeAnnual();
     if (annual != _estimate) setState(() => _estimate = annual);
-    if (annual == null || _salaryEdited) return;
+    if (annual == null) return;
+    if (_salary.text.isNotEmpty && _salary.text != _autoSalary) return;
 
     final estimator = context.read<SalaryEstimator>();
     final workload = double.tryParse(
@@ -165,7 +165,15 @@ class NewPostingScreenState extends State<NewPostingScreen> {
     final hourly =
         estimator.hourlyFromAnnual(annual, workload).toStringAsFixed(2);
 
-    if (_salary.text != hourly) _salary.text = hourly;
+      if (_salary.text == hourly) return;
+
+    _writingSalary = true;
+    try {
+      _salary.text = hourly;
+      _autoSalary = hourly;
+    } finally {
+      _writingSalary = false;
+    }
   }
 
   @override
@@ -200,7 +208,7 @@ class NewPostingScreenState extends State<NewPostingScreen> {
 
     if (picked != null) {
       setState(() {
-        _endDate = picked;
+        _endDate = DateTime(picked.year, picked.month, picked.day, 23, 59, 59);
         _endDateField.text = _shortDate(picked);
       });
     }
@@ -321,7 +329,6 @@ class NewPostingScreenState extends State<NewPostingScreen> {
       contractStartDate: _contractStartDate,
       contractEndDate: _contractEndDate,
 
-      status: 'live',
 
       // Seules les saisies sans equivalent ailleurs sont passees ici.
       // industry, diploma, workloadPercent, isPermanent et les trois
@@ -481,6 +488,7 @@ class NewPostingScreenState extends State<NewPostingScreen> {
                         hint: 'Sat 14 Jun',
                         readOnly: true,
                         onTap: _pickEndDate,
+                        validator: _required,
                       ),
                     ),
 
@@ -711,7 +719,7 @@ class NewPostingScreenState extends State<NewPostingScreen> {
                               hint: '22',
                               keyboard: TextInputType.number,
                               validator: _number,
-                              onChanged: (_) => _salaryEdited = true,
+                              
                             ),
                           ),
                         ),
@@ -895,7 +903,7 @@ class NewPostingScreenState extends State<NewPostingScreen> {
             ),
           )
           .toList(),
-      onChanged: onChanged,
+      onChanged: (v) {onChanged(v); _recomputeEstimate();},
     );
   }
 

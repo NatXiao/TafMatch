@@ -15,7 +15,7 @@ class Job {
   final DateTime? contractStartDate;                                         
   final DateTime? contractEndDate;                                          
   final String pictureUrl;
-  final String status;
+
   final DateTime? createdAt;
 
   // Saisies du formulaire sans équivalent ailleurs : elles restent stockées.
@@ -48,7 +48,7 @@ class Job {
     this.contractStartDate,                                                 
     this.contractEndDate,                                                   
     this.pictureUrl = '',
-    this.status = '',
+
     this.createdAt,
 
     this.experienceMin = 0,
@@ -88,10 +88,7 @@ class Job {
   double get languagesFrench => languageSet.contains('French') ? 1 : 0;      
   double get languagesItalian => languageSet.contains('Italian') ? 1 : 0;   
 
-  bool get isLive {
-    if (endDate == null) return status == 'live';
-    return status == 'live' && !endDate!.isBefore(DateTime.now());
-  }
+  bool get isLive => endDate == null || !endDate!.isBefore(DateTime.now());
 
   Map<String, dynamic> toMap() {
     return {
@@ -112,7 +109,7 @@ class Job {
           ? Timestamp.fromDate(contractEndDate!)                            
           : null,                                                           
       'pictureUrl': pictureUrl,
-      'status': status,
+
       'createdAt': FieldValue.serverTimestamp(),
 
       'ExperienceMin': experienceMin,
@@ -144,7 +141,7 @@ class Job {
       contractStartDate: (map['contractStartDate'] as Timestamp?)?.toDate(),
       contractEndDate: (map['contractEndDate'] as Timestamp?)?.toDate(),    
       pictureUrl: map['pictureUrl'] ?? '',
-      status: map['status'] ?? '',
+
       createdAt: (map['createdAt'] as Timestamp?)?.toDate(),
 
       experienceMin: (map['ExperienceMin'] as num?)?.toDouble() ?? 0,
