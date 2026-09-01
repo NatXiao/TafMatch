@@ -73,10 +73,27 @@ class _JobDetailScreenState extends State<JobDetailScreen> {
       await context.read<ApplicationProvider>().apply(
             Application(id: '', jobId: widget.job.id, studentId: uid),
           );
+        if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Your application has successfully been sent!', style: TextStyle(color: Colors.white)
+          ),
+          backgroundColor: Colors.blue,
+        ),
+      );
+    }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text('Could not apply: $e')));
+            .showSnackBar(
+              SnackBar(
+          content: Text(
+            'Could not apply: $e',
+            style: TextStyle(color: Colors.white)
+          ),
+          backgroundColor: Colors.blue,
+        ));
       }
     } finally {
       if (mounted) setState(() => _applying = false);

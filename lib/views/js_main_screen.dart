@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:taf_match/providers/auth_provider.dart';
+import 'package:taf_match/providers/notification_provider.dart';
 import 'package:taf_match/views/js_job_list_screen.dart';
 import 'package:taf_match/views/js_applications_screen.dart';
-import 'package:taf_match/views/about_screen.dart';
 import 'package:taf_match/utils/theme.dart';
 import 'package:taf_match/views/profile_screen.dart';
 
@@ -22,7 +24,20 @@ class _JeMainScreenState extends State<JeMainScreen> {
     ApplicationsScreen(),
     ProfileScreen(),
   ];
+  @override
+  void initState() {
+    super.initState();
 
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final user = context.read<AuthProvider>().user;
+
+      if (user != null) {
+        context
+            .read<NotificationProvider>()
+            .listenToNotifications(user.uid);
+      }
+    });
+  }
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).extension<AppColors>()!;

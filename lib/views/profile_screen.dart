@@ -8,7 +8,8 @@ import 'package:taf_match/providers/skill_provider.dart';
 import 'package:taf_match/providers/user_provider.dart';
 import 'package:taf_match/utils/theme.dart';
 import 'package:taf_match/views/edit_profile_screen.dart';
-import 'package:taf_match/views/login_screen.dart';
+
+import '../providers/notification_provider.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key, this.userId});
@@ -137,15 +138,17 @@ class ProfileScreenState extends State<ProfileScreen> {
         ),
         actions: [
           if (isOwnProfile)
-          IconButton(
-            icon: const Icon(Icons.logout),
-            onPressed: () {
-              Provider.of<AuthProvider>(context, listen: false).signOut();
-              Navigator.of(context).pushReplacement(
-                MaterialPageRoute(builder: (context) => const LoginScreen()),
-              );
-            },
-          ),
+          const NotificationBell(),
+          InkWell(
+            onTap: () =>
+              Provider.of<AuthProvider>(context, listen: false).signOut(),
+              borderRadius: BorderRadius.circular(999),
+                child: Container(
+                  width: 40, height: 40,
+                  decoration: BoxDecoration(color: colors.softAccent, shape: BoxShape.circle),
+                  child: Icon(Icons.logout, size: 18, color: colors.accent),
+                ),
+            )
         ],
       ),
       body: SafeArea(
@@ -471,6 +474,137 @@ Widget _input(BuildContext context, TextEditingController c,
           borderSide: BorderSide(color: colors.accent, width: 1.5)),
     ),
   );
+}
+class NotificationBell extends StatelessWidget {
+  const NotificationBell({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Consumer<NotificationProvider>(
+      builder: (context, provider, _) {
+        final unreadCount = provider.unreadCount;
+
+        return Stack(
+          clipBehavior: Clip.none,
+          children: [
+            IconButton(
+              icon: const Icon(Icons.notifications_outlined),
+              onPressed: () {
+                showModalBottomSheet(
+                  context: context,
+                  showDragHandle: true,
+                  builder: (_) => const NotificationsDropdown(),
+                );
+              },
+            ),
+
+            if (unreadCount > 0)
+              Positioned(
+                right: 6,
+                top: 6,
+                child: Container(
+                  padding: const EdgeInsets.all(4),
+                  constraints: const BoxConstraints(
+                    minWidth: 18,
+                    minHeight: 18,
+                  ),
+                  decoration: const BoxDecoration(
+                    color: Colors.red,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Text(
+                    unreadCount > 9 ? '9+' : '$unreadCount',
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ),
+          ],
+        );
+      },
+    );
+  }
+}
+
+class NotificationsDropdown extends StatelessWidget {
+  const NotificationsDropdown({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final notifications =
+        context.watch<NotificationProvider>().notifications;
+
+    return SizedBox(
+      height: 500,
+      child: Column(
+        children: [
+          const Padding(
+            padding: EdgeInsets.all(20),
+            child: Row(
+              children: [
+                Icon(Icons.notifications),
+                SizedBox(width: 10),
+                Text(
+                  'Notifications',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          const Divider(),
+
+          Expanded(
+            child: notifications.isEmpty
+                ? const Center(
+                    child: Text('No notifications yet'),
+                  )
+                : ListView.builder(
+                    itemCount: notifications.length,
+                    itemBuilder: (context, index) {
+                      final notification = notifications[index];
+
+                      return ListTile(
+                        leading: Icon(
+                          notification.type ==
+                                  'application_accepted'
+                              ? Icons.check_circle
+                              : notification.type ==
+                                      'application_rejected'
+                                  ? Icons.cancel
+                                  : Icons.notifications,
+                        ),
+                        title: Text(notification.title),
+                        subtitle: Text(notification.message),
+                        trailing: !notification.isRead
+                            ? const Icon(
+                                Icons.circle,
+                                size: 10,
+                                color: Colors.blue,
+                              )
+                            : null,
+                        onTap: () {
+                          context
+                              .read<NotificationProvider>()
+                              .markAsRead(notification.id);
+
+                          // Optional navigation based on notification.jobId
+                        },
+                      );
+                    },
+                  ),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 Widget _buildUserCard(AppColors colors, Review review, UserModel? reviewer) {
