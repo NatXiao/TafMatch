@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:taf_match/views/js_job_list_screen.dart';
 import 'package:taf_match/views/js_applications_screen.dart';
-import 'package:taf_match/views/about_screen.dart';
 import 'package:taf_match/utils/theme.dart';
 import 'package:taf_match/views/profile_screen.dart';
 
