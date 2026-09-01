@@ -488,6 +488,7 @@ class NotificationBell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).extension<AppColors>()!;
     return Consumer<NotificationProvider>(
       builder: (context, provider, _) {
         final unreadCount = provider.unreadCount;
@@ -496,7 +497,11 @@ class NotificationBell extends StatelessWidget {
           clipBehavior: Clip.none,
           children: [
             IconButton(
-              icon: const Icon(Icons.notifications_outlined),
+              style: IconButton.styleFrom(
+                backgroundColor: colors.softAccent,
+                shape: const CircleBorder(),
+              ),
+              icon: Icon(Icons.notifications_outlined, size: 18, color: colors.accent),
               onPressed: () {
                 showModalBottomSheet(
                   context: context,
