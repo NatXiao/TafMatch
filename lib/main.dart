@@ -7,7 +7,6 @@ import 'package:taf_match/providers/skill_provider.dart';
 import 'package:taf_match/providers/user_provider.dart';
 import 'package:taf_match/providers/review_provider.dart';
 import 'package:taf_match/repositories/cloudinary_image_repository.dart';
-import 'package:taf_match/repositories/firestore_notification_repository.dart';
 import 'package:taf_match/repositories/firestore_skill_repository.dart';
 import 'package:taf_match/repositories/firestore_user_repository.dart';
 import 'package:taf_match/repositories/firestore_review_repository.dart';
