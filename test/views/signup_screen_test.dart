@@ -120,7 +120,7 @@ void main() {
     await tester.pump();
 
     expect(
-      find.text('Password must be at least 6 characters long'),
+      find.text('Password must be at least 6 characters long and contains a least one uppercase letter, lowercase letter, number and special character'),
       findsOneWidget,
     );
   });
@@ -172,8 +172,8 @@ void main() {
         find.byType(TextFormField).at(2),
         'Rue du Rhône 1',
       );
-      await tester.enterText(find.byType(TextFormField).at(3), 'secret1');
-      await tester.enterText(find.byType(TextFormField).at(4), 'secret1');
+      await tester.enterText(find.byType(TextFormField).at(3), 'Secret123@');
+      await tester.enterText(find.byType(TextFormField).at(4), 'Secret123@');
 
       // Switch role to Employer before submitting.
       await tester.ensureVisible(find.text('Employer'));
@@ -208,8 +208,8 @@ void main() {
     await tester.enterText(find.byType(TextFormField).at(0), 'John Doe');
     await tester.enterText(find.byType(TextFormField).at(1), 'john@edu.ch');
     await tester.enterText(find.byType(TextFormField).at(2), 'Rue 2');
-    await tester.enterText(find.byType(TextFormField).at(3), 'secret1');
-    await tester.enterText(find.byType(TextFormField).at(4), 'secret1');
+    await tester.enterText(find.byType(TextFormField).at(3), 'Secret123@');
+    await tester.enterText(find.byType(TextFormField).at(4), 'Secret123@');
 
     await tester.ensureVisible(find.widgetWithText(ElevatedButton, 'Create account'));
     await tester.tap(find.widgetWithText(ElevatedButton, 'Create account'));

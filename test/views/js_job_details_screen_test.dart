@@ -6,8 +6,8 @@ import 'package:taf_match/models/job_model.dart';
 import 'package:taf_match/providers/application_provider.dart';
 import 'package:taf_match/providers/auth_provider.dart';
 import 'package:taf_match/utils/theme.dart';
-import 'package:taf_match/views/about_screen.dart';
 import 'package:taf_match/views/js_job_details_screen.dart';
+import 'package:taf_match/views/profile_screen.dart';
 
 import '../fakes.dart';
 
@@ -204,6 +204,6 @@ void main() {
     await tester.tap(find.text('View profile'));
     await tester.pumpAndSettle();
 
-    expect(find.byType(AboutScreen), findsOneWidget);
+    expect(find.byType(ProfileScreen), findsOneWidget);
   });
 }
