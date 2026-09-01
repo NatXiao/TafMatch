@@ -24,7 +24,6 @@ void main() {
       expect(job.workPercentage, isNull);
       expect(job.endDate, isNull);
       expect(job.pictureUrl, '');
-      expect(job.status, 'live');
       expect(job.createdAt, isNull);
     });
 
@@ -41,7 +40,6 @@ void main() {
       expect(job.degree, '');
       expect(job.languages, '');
       expect(job.pictureUrl, '');
-      expect(job.status, 'live');
     });
 
     test('accepts all optional fields', () {
@@ -77,7 +75,6 @@ void main() {
       expect(job.workPercentage, 80);
       expect(job.endDate, endDate);
       expect(job.pictureUrl, 'https://example.com/job.jpg');
-      expect(job.status, 'closed');
       expect(job.createdAt, createdAt);
     });
 
@@ -97,7 +94,6 @@ void main() {
         workPercentage: 80,
         endDate: endDate,
         pictureUrl: 'https://example.com/job.jpg',
-        status: 'live',
       );
 
       final map = job.toMap();
@@ -113,7 +109,6 @@ void main() {
       expect(map['workPercentage'], 80);
       expect(map['endDate'], Timestamp.fromDate(endDate));
       expect(map['pictureUrl'], 'https://example.com/job.jpg');
-      expect(map['status'], 'live');
       expect(map['createdAt'], isA<FieldValue>());
     });
 
@@ -163,7 +158,6 @@ void main() {
       expect(job.workPercentage, 80);
       expect(job.endDate, endDate);
       expect(job.pictureUrl, 'https://example.com/job.jpg');
-      expect(job.status, 'closed');
       expect(job.createdAt, createdAt);
     });
 
@@ -185,7 +179,6 @@ void main() {
       expect(job.workPercentage, isNull);
       expect(job.endDate, isNull);
       expect(job.pictureUrl, '');
-      expect(job.status, 'live');
       expect(job.createdAt, isNull);
     });
 

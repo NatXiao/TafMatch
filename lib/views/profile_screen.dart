@@ -49,10 +49,10 @@ class ProfileScreenState extends State<ProfileScreen> {
     if (formState == null || !formState.validate()) return;
 
     setState(() => _saving = true);
-    final targetUserId = context.read<AuthProvider>().user?.uid ?? '';
+    final authorId = context.read<AuthProvider>().user?.uid ?? '';
     final review = Review(
       id: '',
-      authorId: targetUserId,
+      authorId: authorId,
       targetUserId: _targetUserId,
       rating: _userRating,
       comment: _reviewController.text.trim(),
@@ -91,8 +91,16 @@ class ProfileScreenState extends State<ProfileScreen> {
           .listenToUserReviews(_targetUserId);
     }
     final skillProvider = context.read<SkillProvider>();
-    if (skillProvider.skills.isEmpty && !skillProvider.isLoading) {
-      skillProvider.loadSkills();
+  if (skillProvider.skills.isEmpty && !skillProvider.isLoading) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+
+        final provider = context.read<SkillProvider>();
+
+        if (provider.skills.isEmpty && !provider.isLoading) {
+          provider.loadSkills();
+        }
+      });
     }
   }
 

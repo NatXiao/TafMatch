@@ -39,6 +39,20 @@ class EditProfileScreenState extends State<EditProfileScreen> {
   String _initialAddress = '';
   String _initialImageUrl = '';
 
+@override
+void initState() {
+  super.initState();
+
+  WidgetsBinding.instance.addPostFrameCallback((_) {
+    if (!mounted) return;
+
+    final skillProvider = context.read<SkillProvider>();
+
+    if (skillProvider.skills.isEmpty && !skillProvider.isLoading) {
+      skillProvider.loadSkills();
+    }
+  });
+}
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -58,10 +72,6 @@ class EditProfileScreenState extends State<EditProfileScreen> {
     _emailController.text = _initialEmail;
     _addressController.text = _initialAddress;
       _initialized = true;
-    }
-    final skillProvider = context.read<SkillProvider>();
-    if (skillProvider.skills.isEmpty && !skillProvider.isLoading) {
-      skillProvider.loadSkills();
     }
   }
 
@@ -226,11 +236,11 @@ class EditProfileScreenState extends State<EditProfileScreen> {
                     ),
                       // --- Field ---
                       _label(colors, 'Full name'),
-                      _field(colors, _fullnameController, hint: user?.fullName ?? 'Marie Rossier'),
+                      _field(colors, _fullnameController,  key: const Key('fullNameField'), hint: user?.fullName ?? 'Marie Rossier'),
                       const SizedBox(height: 16),
 
                       _label(colors, 'Email'),
-                      _field(colors, _emailController, hint: user?.email ?? 'name@edu.hes-so.ch',
+                      _field(colors, _emailController, key: const Key('emailField'), hint: user?.email ?? 'name@edu.hes-so.ch',
                           validator: (value) {
                         if (value == null || value.isEmpty) return null;
                         final regex = RegExp(r'^[^@]+@[^@]+\.[^@]+');
@@ -240,7 +250,7 @@ class EditProfileScreenState extends State<EditProfileScreen> {
                       const SizedBox(height: 16),
 
                       _label(colors, 'Address'),
-                      _field(colors, _addressController, hint: user?.address ?? 'Street, city'),
+                      _field(colors, _addressController, key: const Key('addressField'),  hint: user?.address ?? 'Street, city'),
                       const SizedBox(height: 16),
 
                       // --- Skills ---
@@ -336,8 +346,9 @@ class EditProfileScreenState extends State<EditProfileScreen> {
       );
 
   Widget _field(AppColors colors, TextEditingController c,
-      {String? hint, bool obscure = false, String? Function(String?)? validator}) {
+      {String? hint, bool obscure = false, String? Function(String?)? validator, required Key key}) {
     return TextFormField(
+      key: key,
       controller: c,
       obscureText: obscure,
       validator: validator,

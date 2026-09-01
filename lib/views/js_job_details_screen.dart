@@ -20,22 +20,35 @@ String _shortDate(DateTime d) {
 typedef _Employer = ({String name, String photoUrl, double rating, int reviews});
 
 class JobDetailScreen extends StatefulWidget {
-  const JobDetailScreen({super.key, required this.job});
+  const JobDetailScreen({
+    super.key,
+    required this.job,
+    this.userRepository,
+    this.reviewRepository,
+  });
+
+
   final Job job;
+
+  final FirestoreUserRepository? userRepository;
+  final FirestoreReviewRepository? reviewRepository;
 
   @override
   State<JobDetailScreen> createState() => _JobDetailScreenState();
 }
 
 class _JobDetailScreenState extends State<JobDetailScreen> {
-  final _userRepository = FirestoreUserRepository();
-  final _reviewRepository = FirestoreReviewRepository();
+  late final FirestoreUserRepository _userRepository;
+  late final FirestoreReviewRepository _reviewRepository;
   bool _applying = false;
   bool _cancelling = false;
 
   @override
   void initState() {
     super.initState();
+    _userRepository = widget.userRepository ?? FirestoreUserRepository();
+    _reviewRepository = widget.reviewRepository ?? FirestoreReviewRepository();
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final uid = context.read<AuthProvider>().user?.uid ?? '';
       context.read<ApplicationProvider>().listenToStudentApplications(uid);
