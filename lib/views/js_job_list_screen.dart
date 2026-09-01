@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:taf_match/models/job_model.dart';
 import 'package:taf_match/providers/auth_provider.dart';
 import 'package:taf_match/providers/job_provider.dart';
+import 'package:taf_match/services/salary_estimator.dart';
 import 'package:taf_match/views/js_job_details_screen.dart';
 import 'package:taf_match/utils/theme.dart';
 
@@ -344,6 +345,21 @@ class _JobCard extends StatelessWidget {
   const _JobCard({required this.job});
   final Job job;
 
+  /// Estimation du modèle, ramenée à l'heure au taux d'activité de l'offre.
+  ///
+  /// La valeur figée à la publication fait foi ; pour les annonces antérieures
+  /// au modèle, elle est recalculée à la volée — les 13 colonnes sont déjà
+  /// dans le document Firestore.
+  double? _estimatedHourly(BuildContext context) {
+    try {
+      final estimator = context.read<SalaryEstimator>();
+      final annual = job.predictedSalaryChf ?? estimator.annualForJob(job);
+      return estimator.hourlyFromAnnual(annual, job.workloadPercent);
+    } catch (_) {
+      return null;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).extension<AppColors>()!;
@@ -351,6 +367,8 @@ class _JobCard extends StatelessWidget {
       if (job.address.isNotEmpty) job.address,
       if (job.endDate != null) _shortDate(job.endDate!),
     ].join(' · ');
+
+    final estimate = _estimatedHourly(context);
 
     return InkWell(
       borderRadius: BorderRadius.circular(18),
@@ -398,12 +416,15 @@ class _JobCard extends StatelessWidget {
                   Text('${job.salaryChfPerHour!.toStringAsFixed(0)} CHF/h',
                       style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: colors.accent)),
                 const Spacer(),
-                if (job.salaryChfPerHour != null)
+                // Le badge affiche l'estimation du modèle, pas le salaire
+                // proposé : il apparaît donc aussi quand aucun salaire n'est
+                // affiché, cas où il sert le plus.
+                if (estimate != null)
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
                     decoration: BoxDecoration(
                         color: colors.softAccent, borderRadius: BorderRadius.circular(999)),
-                    child: Text('≈ est. ${job.salaryChfPerHour!.toStringAsFixed(0)}',
+                    child: Text('≈ est. ${estimate.toStringAsFixed(0)}',
                         style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: colors.accent)),
                   ),
               ],

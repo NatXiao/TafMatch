@@ -4,6 +4,7 @@ import 'package:taf_match/models/job_model.dart';
 import 'package:taf_match/providers/auth_provider.dart';
 import 'package:taf_match/providers/job_provider.dart';
 import 'package:taf_match/repositories/firestore_application_repository.dart';
+import 'package:taf_match/services/salary_estimator.dart';
 import 'package:taf_match/views/jp_new_posting_screen.dart';
 import 'package:taf_match/views/jp_applicants_screen.dart';
 import 'package:taf_match/utils/theme.dart';
@@ -125,6 +126,8 @@ class _JobCard extends StatelessWidget {
       if (job.salaryChfPerHour != null) '${job.salaryChfPerHour!.toStringAsFixed(0)} CHF/h',
     ];
 
+    final estimate = _estimateLine(context);
+
     return InkWell(
       borderRadius: BorderRadius.circular(18),
       onTap: () => Navigator.push(
@@ -163,6 +166,15 @@ class _JobCard extends StatelessWidget {
             ),
             const SizedBox(height: 14),
             Text(parts.join(' · '), style: TextStyle(fontSize: 13, color: colors.muted)),
+
+            // Postings created before the model was integrated have no
+            // prediction stored, so this line simply does not appear.
+            if (estimate != null) ...[
+              const SizedBox(height: 6),
+              Text(estimate,
+                  style: TextStyle(fontSize: 13, color: colors.accent)),
+            ],
+
             const SizedBox(height: 16),
             Row(
               children: [
@@ -188,6 +200,36 @@ class _JobCard extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  /// "AI estimate 47.50 CHF/h · offer 8% below" — or null when the posting
+  /// carries no prediction.
+  ///
+  /// The stored value is a yearly salary, because that is what the model
+  /// predicts; the hourly figure is derived here with the app's own
+  /// convention, so old postings stay correct if that convention changes.
+  String? _estimateLine(BuildContext context) {
+    final predicted = job.predictedSalaryChf;
+    if (predicted == null) return null;
+
+    final hourly = context
+        .read<SalaryEstimator>()
+        .hourlyFromAnnual(predicted, job.workloadPercent);
+
+    final buffer = StringBuffer('AI estimate ${hourly.toStringAsFixed(2)} CHF/h');
+
+    final actual = job.salaryChfPerHour;
+    if (actual != null && hourly > 0) {
+      final gap = (actual - hourly) / hourly * 100;
+      if (gap.abs() >= 1) {
+        buffer.write(' · offer ${gap.abs().toStringAsFixed(0)}% '
+            '${gap > 0 ? 'above' : 'below'}');
+      } else {
+        buffer.write(' · offer matches');
+      }
+    }
+
+    return buffer.toString();
   }
 
   Future<void> _confirmDelete(BuildContext context) async {

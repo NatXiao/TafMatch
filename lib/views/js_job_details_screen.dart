@@ -11,6 +11,7 @@ import 'package:taf_match/providers/application_provider.dart';
 import 'package:taf_match/providers/auth_provider.dart';
 import 'package:taf_match/repositories/firestore_review_repository.dart';
 import 'package:taf_match/repositories/firestore_user_repository.dart';
+import 'package:taf_match/services/salary_estimator.dart';
 import 'package:taf_match/utils/location_utils.dart';
 import 'package:taf_match/utils/theme.dart';
 import 'package:taf_match/utils/transports_api.dart';
@@ -98,6 +99,38 @@ class _JobDetailScreenState extends State<JobDetailScreen> {
       context,
       MaterialPageRoute(builder: (_) => ProfileScreen(userId: widget.job.employerId)),
     );
+  }
+
+  /// Salaire annuel estimé, en CHF.
+  ///
+  /// La valeur enregistrée à la publication fait foi. Les annonces créées
+  /// avant l'intégration du modèle n'en ont pas : on la recalcule alors à la
+  /// volée, ce qui est possible puisque les 13 colonnes sont dans le document.
+  double? get _estimatedAnnual {
+    final stored = widget.job.predictedSalaryChf;
+    if (stored != null) return stored;
+    try {
+      return context.read<SalaryEstimator>().annualForJob(widget.job);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  /// La même estimation ramenée à l'heure, au taux d'activité de l'offre.
+  double? get _estimatedHourly {
+    final annual = _estimatedAnnual;
+    if (annual == null) return null;
+    return context
+        .read<SalaryEstimator>()
+        .hourlyFromAnnual(annual, widget.job.workloadPercent);
+  }
+
+  /// Écart entre le salaire proposé et l'estimation, en pourcentage.
+  double? get _salaryGapPercent {
+    final offered = widget.job.salaryChfPerHour;
+    final estimate = _estimatedHourly;
+    if (offered == null || estimate == null || estimate <= 0) return null;
+    return (offered - estimate) / estimate * 100;
   }
 
   // Apply pour le job
@@ -298,6 +331,20 @@ class _JobDetailScreenState extends State<JobDetailScreen> {
                   const SizedBox(height: 24),
 
                   // --- Salaire + estimation ---
+                  _salaryBox(colors),
+                  const SizedBox(height: 24),
+
+                  // --- Le détail de l'offre ---
+                  _jobFacts(colors),
+
+                  if (job.description.isNotEmpty) ...[
+                    const SizedBox(height: 24),
+                    Text('Description',
+                        style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: colors.text)),
+                    const SizedBox(height: 8),
+                    Text(job.description,
+                        style: TextStyle(fontSize: 14, height: 1.5, color: colors.text)),
+                  ],
                   Container(
                     padding: const EdgeInsets.all(20),
                     decoration: BoxDecoration(
@@ -438,6 +485,146 @@ class _JobDetailScreenState extends State<JobDetailScreen> {
           ],
         ),
       ),
+    );
+  }
+
+  /// Salaire proposé à gauche, estimation du modèle à droite, écart en dessous.
+  Widget _salaryBox(AppColors colors) {
+    final job = widget.job;
+    final hourly = _estimatedHourly;
+    final gap = _salaryGapPercent;
+
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: colors.softAccent,
+        borderRadius: BorderRadius.circular(18),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Offered salary', style: TextStyle(fontSize: 13, color: colors.muted)),
+                  const SizedBox(height: 4),
+                  Text(
+                    job.salaryChfPerHour != null
+                        ? '${job.salaryChfPerHour!.toStringAsFixed(0)} CHF/h'
+                        : '—',
+                    style: TextStyle(fontSize: 22, fontWeight: FontWeight.w700, color: colors.text),
+                  ),
+                ],
+              ),
+              const Spacer(),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text('AI estimate', style: TextStyle(fontSize: 13, color: colors.muted)),
+                  const SizedBox(height: 4),
+                  Text(
+                    hourly != null ? '${hourly.toStringAsFixed(2)} CHF/h' : '—',
+                    style: TextStyle(fontSize: 22, fontWeight: FontWeight.w700, color: colors.accent),
+                  ),
+                ],
+              ),
+            ],
+          ),
+
+          // L'écart est l'information utile : le chiffre du modèle seul ne dit
+          // rien de plus que ce que l'étudiant lit déjà à gauche.
+          if (gap != null) ...[
+            const SizedBox(height: 12),
+            Text(
+              gap.abs() < 1
+                  ? 'The offer matches the estimate'
+                  : 'The offer is ${gap.abs().toStringAsFixed(0)}% '
+                      '${gap > 0 ? 'above' : 'below'} the estimate',
+              style: TextStyle(fontSize: 13, color: colors.text),
+            ),
+          ],
+
+          if (hourly != null) ...[
+            const SizedBox(height: 4),
+            Text(
+              'Estimated from similar postings — typically off by a few '
+              'thousand CHF a year. Not a benchmark.',
+              style: TextStyle(fontSize: 12, color: colors.muted),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  /// Les champs de l'offre qui alimentent le modèle, tels quels.
+  Widget _jobFacts(AppColors colors) {
+    final job = widget.job;
+
+    final experience = job.experienceMax > job.experienceMin
+        ? '${job.experienceMin.toStringAsFixed(0)}–'
+            '${job.experienceMax.toStringAsFixed(0)} years'
+        : '${job.experienceMin.toStringAsFixed(0)}+ years';
+
+    final languages = [
+      if (job.languagesEnglish > 0) 'English',
+      if (job.languagesFrench > 0) 'French',
+      if (job.languagesItalian > 0) 'Italian',
+    ].join(', ');
+
+    final facts = <String, String>{
+      if (job.role.isNotEmpty) 'Role': job.role,
+      if (job.diploma.isNotEmpty) 'Degree': job.diploma,
+      if (job.industry.isNotEmpty) 'Industry': job.industry,
+      if (job.canton.isNotEmpty) 'Canton': job.canton,
+      if (job.companySize.isNotEmpty) 'Company size': job.companySize,
+      'Experience': experience,
+      'Workload': '${job.workloadPercent.toStringAsFixed(0)}%',
+      'Holidays': '${job.holidays.toStringAsFixed(0)} days/year',
+      'Contract': job.isPermanent ? 'Permanent' : 'Fixed term',
+      if (languages.isNotEmpty) 'Languages': languages,
+    };
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('The offer',
+            style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: colors.text)),
+        const SizedBox(height: 12),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: colors.border),
+          ),
+          child: Column(
+            children: [
+              for (final entry in facts.entries)
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 9),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      SizedBox(
+                        width: 120,
+                        child: Text(entry.key,
+                            style: TextStyle(fontSize: 14, color: colors.muted)),
+                      ),
+                      Expanded(
+                        child: Text(entry.value,
+                            style: TextStyle(fontSize: 14, color: colors.text)),
+                      ),
+                    ],
+                  ),
+                ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 
