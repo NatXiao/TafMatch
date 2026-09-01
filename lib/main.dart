@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:provider/provider.dart';
+import 'package:taf_match/providers/application_provider.dart';
 import 'package:taf_match/providers/skill_provider.dart';
 import 'package:taf_match/providers/user_provider.dart';
 import 'package:taf_match/providers/review_provider.dart';
 import 'package:taf_match/repositories/cloudinary_image_repository.dart';
+import 'package:taf_match/repositories/firestore_application_repository.dart';
 import 'package:taf_match/repositories/firestore_skill_repository.dart';
 import 'package:taf_match/repositories/firestore_user_repository.dart';
 import 'package:taf_match/repositories/firestore_review_repository.dart';
@@ -70,6 +72,9 @@ class MyApp extends StatelessWidget {
         ),
         ChangeNotifierProvider(
           create: (_) => SkillProvider(FirestoreSkillRepository()),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => ApplicationProvider(FirestoreApplicationRepository()),
         )
       ],
       child: Consumer2<AuthProvider, UserProvider>(

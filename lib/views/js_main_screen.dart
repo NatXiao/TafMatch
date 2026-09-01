@@ -18,9 +18,9 @@ class _JeMainScreenState extends State<JeMainScreen> {
   // Current index of the selected tab in the bottom navigation bar.
   int _currentIndex = 0;
 
-  final _screens = const [
-    JobListScreen(),
-    ApplicationsScreen(),
+  late final List<Widget> _screens = [
+    widget.jobsScreen ?? const JobListScreen(),
+    widget.applicationsScreen ?? const ApplicationsScreen(),
     ProfileScreen(),
   ];
 
@@ -51,16 +51,16 @@ class _JeMainScreenState extends State<JeMainScreen> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
-            _navItem(colors, 'Jobs', 0),
-            _navItem(colors, 'Applications', 1),
-            _navItem(colors, 'Profile', 2),
+            _navItem(colors, 'Jobs', 0, Key("jobs_tab")),
+            _navItem(colors, 'Applications', 1, Key("applications_tab")),
+            _navItem(colors, 'Profile', 2, Key("profile_tab")),
           ],
         ),
       ),
     );
   }
 
-  Widget _navItem(AppColors colors, String label, int index) {
+  Widget _navItem(AppColors colors, String label, int index, Key key) {
     final active = _currentIndex == index;
     final color = active ? colors.accent : colors.muted;
     return InkWell(
@@ -77,7 +77,8 @@ class _JeMainScreenState extends State<JeMainScreen> {
           ),
           const SizedBox(height: 6),
           Text(label,
-              style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: color)),
+              style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: color),
+              key: key,),
         ],
       ),
     );
