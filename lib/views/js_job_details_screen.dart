@@ -1,12 +1,19 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_osm_plugin/flutter_osm_plugin.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:taf_match/models/application_model.dart';
 import 'package:taf_match/models/job_model.dart';
+import 'package:taf_match/models/transport_model.dart';
 import 'package:taf_match/providers/application_provider.dart';
 import 'package:taf_match/providers/auth_provider.dart';
 import 'package:taf_match/repositories/firestore_review_repository.dart';
 import 'package:taf_match/repositories/firestore_user_repository.dart';
+import 'package:taf_match/utils/location_utils.dart';
 import 'package:taf_match/utils/theme.dart';
+import 'package:taf_match/utils/transports_api.dart';
 import 'package:taf_match/views/profile_screen.dart';
 
 String _shortDate(DateTime d) {
@@ -43,6 +50,19 @@ class _JobDetailScreenState extends State<JobDetailScreen> {
   bool _applying = false;
   bool _cancelling = false;
 
+  List<TransportModel> transports = [];
+  bool isLoadingTransports = false;
+
+  final _controller = MapController(
+    initPosition: GeoPoint(latitude: 47.4358055, longitude: 8.4737324),
+    areaLimit: const BoundingBox(
+      east: 10.4922941,
+      north: 47.8084648,
+      south: 45.817995,
+      west: 5.9559113,
+    ),
+  );
+
   @override
   void initState() {
     super.initState();
@@ -53,6 +73,8 @@ class _JobDetailScreenState extends State<JobDetailScreen> {
       final uid = context.read<AuthProvider>().user?.uid ?? '';
       context.read<ApplicationProvider>().listenToStudentApplications(uid);
     });
+    retrieveTransports();
+    updateMarkerOnMap();
   }
 
   // Charge les infos de l'employeur (nom, photo, note, nb reviews)
@@ -142,7 +164,7 @@ class _JobDetailScreenState extends State<JobDetailScreen> {
       if (a.jobId == job.id) { myApp = a; break; }
     }
 
-  // --- Sous-titre (adresse + date) ---
+    // --- Sous-titre (adresse + date) ---
     final subtitle = [
       if (job.address.isNotEmpty) job.address,
       if (job.endDate != null) _shortDate(job.endDate!),
@@ -304,7 +326,7 @@ class _JobDetailScreenState extends State<JobDetailScreen> {
                           children: [
                             Text('AI estimate', style: TextStyle(fontSize: 13, color: colors.muted)),
                             const SizedBox(height: 4),
-                            // TODO: brancher la valeur du modèle de prediciton
+                            // TODO: brancher la valeur du modèle de prediction
                             Text('—',
                                 style: TextStyle(fontSize: 22, fontWeight: FontWeight.w700, color: colors.accent)),
                           ],
@@ -312,9 +334,107 @@ class _JobDetailScreenState extends State<JobDetailScreen> {
                       ],
                     ),
                   ),
+
+                  
+                  // Liste des transports disponibles
+                  const SizedBox(height: 20),
+                  Text('Routes · Next connections', style: TextStyle(fontSize: 18, color: colors.muted, fontWeight: FontWeight.w700)),
+                  const SizedBox(height: 20),
+
+                  Visibility(
+                    visible: isLoadingTransports,
+                    child: Text("Loading...", style: TextStyle(color: colors.muted)),
+                  ),
+
+                  Visibility(
+                    visible: !isLoadingTransports && transports.isEmpty,
+                    child: Text("No connections found.", style: TextStyle(color: colors.muted)),
+                  ),  
+
+                  Row(
+                    children: [
+                      Expanded(
+                        child: ListView.builder(
+                            shrinkWrap: true,
+                            itemCount: transports.length,
+                            itemBuilder: (_, int index) {
+
+                              return Container(
+                                padding: EdgeInsets.fromLTRB(0, 0, 0, 10),
+                                child: Row(
+                                  spacing: 10,
+                                  children: [
+                                    Container(
+                                      padding: const EdgeInsets.fromLTRB(10, 5, 10, 5),
+                                      width: 100,
+                                      decoration: BoxDecoration(
+                                        color: colors.softAccent,
+                                        borderRadius: BorderRadius.circular(18),
+                                      ),
+                                      child: Center(
+                                        child:Text(transports[index].name, style: TextStyle(color: colors.accent, fontWeight: FontWeight.w700)),
+                                      ),
+                                    ),
+                                    Text("${formatDate(transports[index].departure)} → ${formatDate(transports[index].arrival)} · ${transports[index].duration.inMinutes} min", style: TextStyle(color: colors.muted)),
+                                  ],
+                                ),
+                              );
+
+                            }
+                          ),
+
+                      ),
+                    ]
+                  ),
+
+
+                  // Carte intéractive
+                  const SizedBox(height: 20),
+                  Text('Interactive map', style: TextStyle(fontSize: 18, color: colors.muted, fontWeight: FontWeight.w700)),
+                  const SizedBox(height: 20),
+
+                  SizedBox(
+                    height: 500,
+                    child: OSMFlutter(
+                      controller: _controller,
+                      osmOption: OSMOption(
+                        userTrackingOption: const UserTrackingOption(
+                          enableTracking: true,
+                          unFollowUser: false,
+                        ),
+                        zoomOption: const ZoomOption(
+                          initZoom: 8,
+                          minZoomLevel: 3,
+                          maxZoomLevel: 19,
+                          stepZoom: 1.0,
+                        ),
+                        userLocationMarker: UserLocationMaker(
+                          personMarker: const MarkerIcon(
+                            icon: Icon(
+                              Icons.location_history_rounded,
+                              color: Colors.red,
+                              size: 48,
+                            ),
+                          ),
+                          directionArrowMarker: const MarkerIcon(
+                            icon: Icon(
+                              Icons.double_arrow,
+                              size: 48,
+                            ),
+                          ),
+                        ),
+                        roadConfiguration: const RoadOption(
+                          roadColor: Colors.yellowAccent,
+                        ),
+                      ),
+                    )
+                  )
+
                 ],
               ),
+
             ),
+
           ],
         ),
       ),
@@ -369,4 +489,72 @@ class _JobDetailScreenState extends State<JobDetailScreen> {
           style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: colors.accent)),
     );
   }
+
+  void retrieveTransports() async {
+    isLoadingTransports = true;
+
+    final position = await LocationUtils.findDeviceLocation();
+    final latitude = position.latitude;
+    final longitude = position.longitude;
+
+    String? location = await LocationUtils.getLocationName(latitude, longitude);
+
+    if (location == null) {
+      return;
+    }
+
+    final raw = await TransportsApi.findTransport(location, widget.job.address, DateTime.now());
+    final data = jsonDecode(raw.body) as Map<String, dynamic>;
+
+    transports.clear();
+    if (data["connections"] != null) {
+      data['connections'].forEach((v) {
+        if (v["products"].length > 0) {
+          transports.add(TransportModel.fromMap(v));
+        }
+      });
+    }
+
+    isLoadingTransports = false;
+    setState(() {});
+  }
+
+  String formatDate(DateTime time) {
+    return DateFormat.Hm().format(time);
+  }
+
+
+  void updateMarkerOnMap() async {
+
+    final position = await LocationUtils.findDeviceLocation();
+    final latitude = position.latitude;
+    final longitude = position.longitude;
+
+    final coord = await LocationUtils.getLocationCoord(widget.job.address);
+
+    final userMarker = MarkerIcon(
+      icon: Icon(
+        Icons.location_on_outlined,
+        color: Colors.blue,
+        size: 48,
+      ),
+    );
+
+    final jobMarker = MarkerIcon(
+      icon: Icon(
+        Icons.location_on,
+        color: Colors.red,
+        size: 48,
+      ),
+    );
+
+    await _controller.addMarker(GeoPoint(latitude: latitude, longitude: longitude), markerIcon: userMarker);
+
+    if (coord != null) {
+      await _controller.addMarker(GeoPoint(latitude: coord.$1, longitude: coord.$2), markerIcon: jobMarker);
+    }
+
+    await _controller.currentLocation();
+  }
+
 }
