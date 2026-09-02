@@ -42,6 +42,30 @@ class AppNotification {
     );
   }
 
+  AppNotification copyWith({
+    String? id,
+    String? userId,
+    String? title,
+    String? message,
+    String? type,
+    String? jobId,
+    String? applicationId,
+    bool? isRead,
+    DateTime? createdAt,
+  }) {
+    return AppNotification(
+      id: id ?? this.id,
+      userId: userId ?? this.userId,
+      title: title ?? this.title,
+      message: message ?? this.message,
+      type: type ?? this.type,
+      jobId: jobId ?? this.jobId,
+      applicationId: applicationId ?? this.applicationId,
+      isRead: isRead ?? this.isRead,
+      createdAt: createdAt ?? this.createdAt,
+    );
+  }
+
   Map<String, dynamic> toMap() {
     return {
       'userId': userId,

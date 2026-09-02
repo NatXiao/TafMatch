@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:taf_match/models/notification_model.dart';
 
+
 class FirestoreNotificationRepository {
   final CollectionReference<Map<String, dynamic>> _collection =
       FirebaseFirestore.instance.collection('notifications');

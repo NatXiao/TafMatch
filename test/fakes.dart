@@ -172,6 +172,8 @@ class FakeApplicationRepository implements FirestoreApplicationRepository {
   // Optional simulated errors
   Object? applyError;
   Object? cancelError;
+  Completer<String?>? stringGate;
+  String? registerError;
 
   @override
   Future<void> apply(Application application) async {
@@ -204,6 +206,10 @@ class FakeApplicationRepository implements FirestoreApplicationRepository {
 
   void dispose() => _controller.close();
 
+  Future<String?> register(String email, String password) async {
+    if (stringGate != null) return await stringGate!.future;
+    return registerError;
+  }
 }
 
 class FakeJobRepository implements FirestoreJobRepository {

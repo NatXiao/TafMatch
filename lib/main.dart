@@ -27,7 +27,7 @@ import 'package:taf_match/repositories/firestore_job_repository.dart';
 import 'package:taf_match/views/jp_main_screen.dart';
 import 'package:taf_match/views/js_main_screen.dart';
 
-import 'package:taf_match/services/salary_model.dart';      // 1. imports
+import 'package:taf_match/services/salary_model.dart';
 import 'package:taf_match/services/salary_estimator.dart';
 
 void main() async {
@@ -37,9 +37,7 @@ void main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
 
-  // Must run before runApp() so terminated/background pushes are handled
-  // and foreground pushes get displayed.
-  await NotificationUtils.setupBackgroundHandler();
+  NotificationProvider.navigatorKey = GlobalKey<NavigatorState>();
 
   final salaryModel = await SalaryModel.loadAsset(); 
 
@@ -114,6 +112,7 @@ class MyApp extends StatelessWidget {
             }
 
           return MaterialApp(
+            navigatorKey: NotificationProvider.navigatorKey,
             title: 'Taf Match',
             theme: buildThemeData(),
             home: home,

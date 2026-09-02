@@ -220,11 +220,25 @@ class LoginScreenState extends State<LoginScreen> {
     final user = context.read<AuthProvider>().user;
 
     if (user != null) {
-      await NotificationUtils.initialize(user.uid);
+      final notificationProvider = context.read<NotificationProvider>();
+      notificationProvider.listenToNotifications(user.uid);
 
-      context
-          .read<NotificationProvider>()
-          .listenToNotifications(user.uid);
+      await Future.delayed(const Duration(milliseconds: 300));
+      if (!mounted) return;
+
+      final unreadCount = notificationProvider.unreadCount;
+      if (unreadCount > 0) {
+        final notificationLabel = unreadCount == 1 ? 'notification' : 'notifications';
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            behavior: SnackBarBehavior.floating,
+            content: Text(
+              'You have $unreadCount new $notificationLabel in your profile.',
+            ),
+          ),
+        );
+      }
     }
   }
+  
 }
