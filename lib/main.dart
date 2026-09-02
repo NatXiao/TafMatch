@@ -83,7 +83,10 @@ class MyApp extends StatelessWidget {
           create: (_) => ApplicationProvider(FirestoreApplicationRepository()),
         ),
         ChangeNotifierProvider(create: (_) => NotificationProvider()),
-        ChangeNotifierProvider(create: (_) => ChatProvider()),
+        ChangeNotifierProxyProvider<AuthProvider, ChatProvider>(
+          create: (_) => ChatProvider(),
+          update: (_, auth, chat) => chat!..syncUser(auth.user?.uid ?? ''),
+        ),
       ],
       child: Consumer2<AuthProvider, UserProvider>(
         builder: (context, auth, userProvider, _) {

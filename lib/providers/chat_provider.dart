@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
 import 'package:taf_match/models/conversation_model.dart';
 import 'package:taf_match/models/message_model.dart';
 import 'package:taf_match/repositories/firestore_chat_repository.dart';
@@ -39,15 +39,22 @@ class ChatProvider extends ChangeNotifier {
 
     if (userId.isEmpty) {
       _conversations = [];
+      for (final c in conversations) {
+        debugPrint('>>> conv ${c.id} unread=${c.unreadCount}');
+      }
       notifyListeners();
       return;
     }
 
-    _conversationsSubscription =
-        _repository.watchForUser(userId).listen((conversations) {
-      _conversations = conversations;
-      notifyListeners();
-    });
+    _conversationsSubscription = _repository.watchForUser(userId).listen(
+      (conversations) {
+        _conversations = conversations;
+        notifyListeners();
+      },
+      onError: (Object e) {
+        debugPrint('ChatProvider.watchForUser error: $e');
+      },
+    );
   }
 
   /// Called by the employer from the applicants screen. Creates the thread if
@@ -80,11 +87,16 @@ class ChatProvider extends ChangeNotifier {
     notifyListeners();
 
     _messagesSubscription =
-        _repository.watchMessages(conversationId).listen((messages) {
-      _messages = messages;
-      _loadingMessages = false;
-      notifyListeners();
-    });
+        _repository.watchMessages(conversationId).listen(
+      (messages) {
+        _messages = messages;
+        _loadingMessages = false;
+        notifyListeners();
+      },
+      onError: (Object e) {
+        debugPrint('ChatProvider.watchMessages error: $e');
+      },
+    );
   }
 
   /// Stops the message stream when leaving the chat screen.
@@ -96,6 +108,8 @@ class ChatProvider extends ChangeNotifier {
     _loadingMessages = false;
     notifyListeners();
   }
+
+  
 
   Future<void> sendMessage({
     required String conversationId,
@@ -114,12 +128,19 @@ class ChatProvider extends ChangeNotifier {
     );
   }
 
-  Future<void> markRead(String conversationId) async {
-    if (_currentUserId.isEmpty) return;
-    await _repository.markRead(
-      conversationId: conversationId,
-      userId: _currentUserId,
-    );
+  Future<void> markRead(String conversationId, [String? userId]) async {
+    final uid = userId ?? _currentUserId;
+    debugPrint('>>> markRead called: conv=$conversationId uid=$uid');
+    if (uid.isEmpty) {
+      debugPrint('>>> markRead ABORTED: empty uid');
+      return;
+    }
+    try {
+      await _repository.markRead(conversationId: conversationId, userId: uid);
+      debugPrint('>>> markRead OK');
+    } catch (e) {
+      debugPrint('>>> markRead FAILED: $e');
+    }
   }
 
   void clear() {
@@ -130,6 +151,15 @@ class ChatProvider extends ChangeNotifier {
     _activeConversationId = null;
     _currentUserId = '';
     notifyListeners();
+  }
+
+    /// Called by the proxy provider whenever the signed-in user changes.
+  void syncUser(String userId) {
+    if (userId == _currentUserId) return;
+    _currentUserId = userId;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      listenToConversations(userId);
+    });
   }
 
   @override

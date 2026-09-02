@@ -37,9 +37,10 @@ class _ChatScreenState extends State<ChatScreen> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
+      final uid = context.read<AuthProvider>().user?.uid ?? '';
       final chat = context.read<ChatProvider>();
       chat.openConversation(widget.conversationId);
-      chat.markRead(widget.conversationId);
+      chat.markRead(widget.conversationId, uid);
     });
   }
 
@@ -106,7 +107,7 @@ class _ChatScreenState extends State<ChatScreen> {
     if (messages.isNotEmpty && messages.first.senderId != currentUserId) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
-          context.read<ChatProvider>().markRead(widget.conversationId);
+          context.read<ChatProvider>().markRead(widget.conversationId, currentUserId);
         }
       });
     }
