@@ -9,9 +9,19 @@ import 'package:taf_match/repositories/firestore_chat_repository.dart';
 import 'package:taf_match/utils/theme.dart';
 import 'package:taf_match/views/js_main_screen.dart';
 
-/// AuthProvider needs a real Firestore repository to be built, so the screen
-/// gets a stand-in instead. A null user keeps initState from starting any
-/// stream, which is all this navigation test needs.
+/// Quatre substituts distincts, chacun avec sa cle.
+///
+/// `const Placeholder()` etait canonicalise par Dart: les onglets partageaient
+/// la meme instance, et `find.byWidget` en trouvait plusieurs au lieu d'un.
+/// Des cles differentes suffisent a les distinguer.
+const _jobsScreen = SizedBox(key: Key('jobs_screen'));
+const _applicationsScreen = SizedBox(key: Key('applications_screen'));
+const _chatScreen = SizedBox(key: Key('chat_screen'));
+const _profileScreen = SizedBox(key: Key('profile_screen'));
+
+/// AuthProvider a besoin d'un vrai repository Firestore pour etre construit,
+/// donc l'ecran recoit un substitut. Un user null empeche initState de lancer
+/// le moindre stream, ce qui suffit a un test de navigation.
 class _FakeAuthProvider extends ChangeNotifier implements AuthProvider {
   @override
   User? get user => null;
@@ -31,9 +41,7 @@ void main() {
 
   tearDown(() => chatProvider.dispose());
 
-  /// Mounts JeMainScreen with all four tabs stubbed out, so no tab reaches
-  /// Firebase on its own.
-  Future<void> pumpScreen(WidgetTester tester) {
+  Future<void> pumpMainScreen(WidgetTester tester) {
     return tester.pumpWidget(
       MultiProvider(
         providers: [
@@ -45,60 +53,110 @@ void main() {
         child: MaterialApp(
           theme: buildThemeData(),
           home: const JeMainScreen(
-            jobsScreen: Placeholder(key: Key('jobs')),
-            applicationsScreen: Placeholder(key: Key('applications')),
-            chatScreen: Placeholder(key: Key('chat')),
-            profileScreen: Placeholder(key: Key('profile')),
+            jobsScreen: _jobsScreen,
+            applicationsScreen: _applicationsScreen,
+            chatScreen: _chatScreen,
+            // Substitut aussi pour le profil: le vrai ProfileScreen reclame
+            // plusieurs providers, et IndexedStack construit tous ses enfants
+            // des le premier build, meme ceux qu'il ne peint pas.
+            profileScreen: _profileScreen,
           ),
         ),
       ),
     );
   }
 
-  int? visibleTab(WidgetTester tester) =>
-      tester.widget<IndexedStack>(find.byType(IndexedStack)).index;
+  /// L'onglet reellement affiche.
+  ///
+  /// On ne peut pas s'appuyer sur la presence des enfants: IndexedStack les
+  /// monte tous et se contente de n'en peindre qu'un.
+  int visibleTab(WidgetTester tester) =>
+      tester.widget<IndexedStack>(find.byType(IndexedStack)).index!;
 
-  testWidgets('JeMainScreen displays navigation tabs and the Jobs tab first',
-      (tester) async {
-    await pumpScreen(tester);
+  testWidgets('displays the four navigation tabs and opens on Jobs', (
+    tester,
+  ) async {
+    await pumpMainScreen(tester);
 
     expect(find.byKey(const Key('jobs_tab')), findsOneWidget);
     expect(find.byKey(const Key('applications_tab')), findsOneWidget);
     expect(find.byKey(const Key('messages_tab')), findsOneWidget);
     expect(find.byKey(const Key('profile_tab')), findsOneWidget);
+
     expect(visibleTab(tester), 0);
   });
 
-  testWidgets('JeMainScreen switches to the Applications tab', (tester) async {
-    await pumpScreen(tester);
+  testWidgets('switches to the Applications tab', (tester) async {
+    await pumpMainScreen(tester);
 
-    await tester.tap(find.text('Applications'));
+    await tester.tap(find.byKey(const Key('applications_tab')));
     await tester.pump();
 
     expect(visibleTab(tester), 1);
   });
 
-  testWidgets('JeMainScreen switches to the Messages tab', (tester) async {
-    await pumpScreen(tester);
+  testWidgets('switches to the Messages tab', (tester) async {
+    await pumpMainScreen(tester);
 
-    await tester.tap(find.text('Messages'));
+    await tester.tap(find.byKey(const Key('messages_tab')));
     await tester.pump();
 
     expect(visibleTab(tester), 2);
   });
 
-  testWidgets('JeMainScreen switches to the Profile tab', (tester) async {
-    await pumpScreen(tester);
+  testWidgets('switches to the Profile tab', (tester) async {
+    await pumpMainScreen(tester);
 
-    await tester.tap(find.text('Profile'));
+    await tester.tap(find.byKey(const Key('profile_tab')));
     await tester.pump();
 
     expect(visibleTab(tester), 3);
   });
 
-  testWidgets('the Messages tab shows no badge when nothing is unread',
-      (tester) async {
-    await pumpScreen(tester);
+  testWidgets('goes back to the Jobs tab', (tester) async {
+    await pumpMainScreen(tester);
+
+    await tester.tap(find.byKey(const Key('profile_tab')));
+    await tester.pump();
+    await tester.tap(find.byKey(const Key('jobs_tab')));
+    await tester.pump();
+
+    expect(visibleTab(tester), 0);
+  });
+
+  testWidgets('keeps every tab mounted so their state survives a switch', (
+    tester,
+  ) async {
+    await pumpMainScreen(tester);
+
+    // C'est l'interet d'IndexedStack par rapport a un simple switch: les
+    // ecrans restent montes, donc leur scroll et leurs abonnements survivent.
+    //
+    // skipOffstage: false est indispensable — IndexedStack enveloppe dans un
+    // Offstage les enfants qu'il ne peint pas, et les finders les ignorent par
+    // defaut. C'est justement ce qu'on veut verifier ici: montes, mais caches.
+    expect(
+      find.byKey(const Key('jobs_screen'), skipOffstage: false),
+      findsOneWidget,
+    );
+    expect(
+      find.byKey(const Key('applications_screen'), skipOffstage: false),
+      findsOneWidget,
+    );
+    expect(
+      find.byKey(const Key('chat_screen'), skipOffstage: false),
+      findsOneWidget,
+    );
+    expect(
+      find.byKey(const Key('profile_screen'), skipOffstage: false),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('the Messages tab shows no badge when nothing is unread', (
+    tester,
+  ) async {
+    await pumpMainScreen(tester);
 
     expect(chatProvider.totalUnread, 0);
     expect(find.text('1'), findsNothing);

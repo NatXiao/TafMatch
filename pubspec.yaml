@@ -48,6 +48,8 @@ dependencies:
   flutter_osm_plugin: ^2.0.1+1
   flutter_local_notifications: ^22.3.0
   firebase_messaging: ^16.6.0
+  flutter_map: ^8.3.2
+  latlong2: ^0.10.1
   
 dev_dependencies:
   flutter_test:

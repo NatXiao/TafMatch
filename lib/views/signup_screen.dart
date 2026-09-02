@@ -286,38 +286,6 @@ class SignupScreenState extends State<SignupScreen> {
     }
   }
 
-  void _swapRoleState(BuildContext context, String state) {
-    roleState = state;
-    setState(() {});
-  }
-
-  bool _confirmationIsValid(String value) {
-    return _passwordController.text == value;
-  }
-
-  void _pickImage() async {
-    final imageRepository = context.read<ImageStorageRepository>();
-    final picked = await _picker.pickImage(source: ImageSource.gallery);
-    if (picked == null) return;
-
-    setState(() {
-      _isUploading = true;
-      _uploadError = null;
-    });
-
-    try {
-      final bytes = await picked.readAsBytes();
-      final url = await imageRepository.uploadImage(bytes, picked.name);
-      if (!mounted) return;
-      setState(() => _imageUrl = url);
-    } catch (e) {
-      if (!mounted) return;
-      setState(() => _uploadError = 'Image upload failed. Please try again.');
-    } finally {
-      if (mounted) setState(() => _isUploading = false);
-    }
-  }
-
   bool isValidPassword(String value) {
 
     if (!isLong(value)) return false;
@@ -377,4 +345,35 @@ class SignupScreenState extends State<SignupScreen> {
     return false;
   }
 
+  void _swapRoleState(BuildContext context, String state) {
+    roleState = state;
+    setState(() {});
+  }
+
+  bool _confirmationIsValid(String value) {
+    return _passwordController.text == value;
+  }
+
+  void _pickImage() async {
+    final imageRepository = context.read<ImageStorageRepository>();
+    final picked = await _picker.pickImage(source: ImageSource.gallery);
+    if (picked == null) return;
+
+    setState(() {
+      _isUploading = true;
+      _uploadError = null;
+    });
+
+    try {
+      final bytes = await picked.readAsBytes();
+      final url = await imageRepository.uploadImage(bytes, picked.name);
+      if (!mounted) return;
+      setState(() => _imageUrl = url);
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _uploadError = 'Image upload failed. Please try again.');
+    } finally {
+      if (mounted) setState(() => _isUploading = false);
+    }
+  }
 }

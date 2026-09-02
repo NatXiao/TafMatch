@@ -41,9 +41,7 @@ class LocationUtils {
     String? location;
     if (locations["stations"] != null) {
       locations['stations'].forEach((v) {
-        if (location == "") {
-          location = v["name"];
-        }
+        location ??= v["name"];
       });
     }
 
@@ -58,11 +56,11 @@ class LocationUtils {
     double jobLatitude = 0;
     double jobLongitude = 0;
     bool jobLocationFound = false;
-    if (locations["stations"] != null) {
-      locations['stations'].forEach((v) {
-        if (!jobLocationFound && v["coordinate"]["x"] != null && v["coordinate"]["y"] != null) {
-          jobLatitude = v["coordinate"]["x"];
-          jobLongitude = v["coordinate"]["y"];
+    if (locations["results"] != null) {
+      locations['results'].forEach((v) {
+        if (!jobLocationFound && v["attrs"]["lat"] != null && v["attrs"]["lon"] != null) {
+          jobLatitude = v["attrs"]["lat"];
+          jobLongitude = v["attrs"]["lon"];
           jobLocationFound = true;
         }
       });

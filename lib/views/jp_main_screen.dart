@@ -8,7 +8,8 @@ import 'package:taf_match/views/profile_screen.dart';
 import 'package:taf_match/providers/chat_provider.dart';
 import 'package:taf_match/views/chat_list_screen.dart';
 
-/// Main screen for job seekers, with bottom navigation bar to switch between Jobs, Applications, and Profile.
+/// Main screen for employers, with a bottom navigation bar to switch between
+/// Postings, Messages and Profile.
 class JpMainScreen extends StatefulWidget {
   const JpMainScreen({
     super.key,
@@ -19,6 +20,7 @@ class JpMainScreen extends StatefulWidget {
   final Widget? postingsScreen;
   final Widget? chatScreen;
   final Widget? profileScreen;
+
   @override
   State<JpMainScreen> createState() => _JpMainScreenState();
 }
@@ -27,6 +29,7 @@ class _JpMainScreenState extends State<JpMainScreen> {
   // Current index of the selected tab in the bottom navigation bar.
   int _currentIndex = 0;
 
+  // `late final` : build after state initialisation.
   late final List<Widget> _screens = [
     widget.postingsScreen ?? const MyPostingsScreen(),
     widget.chatScreen ?? const ChatListScreen(),
@@ -61,7 +64,8 @@ class _JpMainScreenState extends State<JpMainScreen> {
     );
   }
 
-  // Builds the bottom navigation bar with three tabs: Jobs, Applications, and Profile.
+  // Builds the bottom navigation bar with three tabs: Postings, Messages and
+  // Profile.
   Widget _bottomNav(AppColors colors) {
     return Container(
       decoration: BoxDecoration(
@@ -74,23 +78,24 @@ class _JpMainScreenState extends State<JpMainScreen> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
-            _navItem(colors, 'Postings', 0),
-            _messagesNavItem(colors, 1),
-            _navItem(colors, 'Profile', 2),
+            _navItem(colors, 'Postings', 0, const Key('postings_tab')),
+            _messagesNavItem(colors, 1, const Key('messages_tab')),
+            _navItem(colors, 'Profile', 2, const Key('profile_tab')),
           ],
         ),
       ),
     );
   }
 
-  Widget _messagesNavItem(AppColors colors, int index) {
+  /// Same as [_navItem], with an unread badge fed by ChatProvider.
+  Widget _messagesNavItem(AppColors colors, int index, Key key) {
     return Consumer<ChatProvider>(
       builder: (context, chat, _) {
         final unread = chat.totalUnread;
         return Stack(
           clipBehavior: Clip.none,
           children: [
-            _navItem(colors, 'Messages', index),
+            _navItem(colors, 'Messages', index, key),
             if (unread > 0)
               Positioned(
                 right: -6,
@@ -117,7 +122,7 @@ class _JpMainScreenState extends State<JpMainScreen> {
     );
   }
 
-  Widget _navItem(AppColors colors, String label, int index) {
+  Widget _navItem(AppColors colors, String label, int index, Key key) {
     final active = _currentIndex == index;
     final color = active ? colors.accent : colors.muted;
     return InkWell(
@@ -135,6 +140,7 @@ class _JpMainScreenState extends State<JpMainScreen> {
           ),
           const SizedBox(height: 6),
           Text(label,
+              key: key,
               style: TextStyle(
                   fontSize: 13, fontWeight: FontWeight.w600, color: color)),
         ],
