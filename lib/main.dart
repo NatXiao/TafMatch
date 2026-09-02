@@ -60,10 +60,16 @@ class MyApp extends StatelessWidget {
             uploadPreset: CloudinaryConfig.uploadPreset,
           ),
         ),
-        ChangeNotifierProvider(create: (_) => AuthProvider(FirebaseAuthService(), FirestoreUserRepository())),
+        ChangeNotifierProvider(
+          create: (_) => ApplicationProvider(FirestoreApplicationRepository()),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => AuthProvider(FirebaseAuthService(), FirestoreUserRepository()),
+        ),
         ChangeNotifierProxyProvider<AuthProvider, UserProvider>(
           create: (_) => UserProvider(FirestoreUserRepository()),
-          update: (_, authProvider, userProvider) => userProvider!..updateAuthProvider(authProvider),
+          update: (_, authProvider, userProvider) =>
+              userProvider!..updateAuthProvider(authProvider),
         ),
         ChangeNotifierProvider(
             create: (_) => JobProvider(FirestoreJobRepository())),
