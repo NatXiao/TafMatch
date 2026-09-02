@@ -382,44 +382,7 @@ class _JobDetailScreenState extends State<JobDetailScreen> {
                     Text(job.description,
                         style: TextStyle(fontSize: 14, height: 1.5, color: colors.text)),
                   ],
-                  Container(
-                    padding: const EdgeInsets.all(20),
-                    decoration: BoxDecoration(
-                      color: colors.softAccent,
-                      borderRadius: BorderRadius.circular(18),
-                    ),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text('Offered salary', style: TextStyle(fontSize: 13, color: colors.muted)),
-                            const SizedBox(height: 4),
-                            Text(
-                              job.salaryChfPerHour != null
-                                  ? '${job.salaryChfPerHour!.toStringAsFixed(0)} CHF/h'
-                                  : '—',
-                              style: TextStyle(fontSize: 22, fontWeight: FontWeight.w700, color: colors.text),
-                            ),
-                          ],
-                        ),
-                        const Spacer(),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          children: [
-                            Text('AI estimate', style: TextStyle(fontSize: 13, color: colors.muted)),
-                            const SizedBox(height: 4),
-                            // TODO: brancher la valeur du modèle de prediction
-                            Text('—',
-                                style: TextStyle(fontSize: 22, fontWeight: FontWeight.w700, color: colors.accent)),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
 
-                  
                   // Liste des transports disponibles
                   const SizedBox(height: 20),
                   Text('Routes · Next connections', style: TextStyle(fontSize: 18, color: colors.muted, fontWeight: FontWeight.w700)),
