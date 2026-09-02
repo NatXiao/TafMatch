@@ -734,9 +734,17 @@ class _JobDetailScreenState extends State<JobDetailScreen> {
       }
     });
 
-    final bounds = LatLngBounds.fromPoints([_userPosition!, _jobPosition!]);
-
-    _mapController.fitCamera(CameraFit.bounds(bounds: bounds, padding: EdgeInsets.all(50)));
+    if (_userPosition == null && _jobPosition != null) {
+      _mapController.move(_jobPosition!, 8);
+    }
+    else if (_userPosition != null && _jobPosition == null) {
+      _mapController.move(_userPosition!, 8);
+    }
+    else {
+      final bounds = LatLngBounds.fromPoints([_userPosition!, _jobPosition!]);
+      _mapController.fitCamera(CameraFit.bounds(bounds: bounds, padding: EdgeInsets.all(50)));
+    }
+    
   }
 
 }
