@@ -7,6 +7,82 @@ service cloud.firestore {
       allow read, write: if request.auth != null && request.auth.uid == userId;
     }
 
+    
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function userRole() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role;
+    }
+
+    function isEmployer() {
+      return isSignedIn() && userRole() == 'employer';
+    }
+
+    function isParticipant(conversationId) {
+      return isSignedIn()
+        && request.auth.uid in get(/databases/$(database)/documents/conversations/$(conversationId)).data.participants;
+    }
+
+    // ---------------------------------------------------------------------
+    // Messaging
+    // ---------------------------------------------------------------------
+    match /conversations/{conversationId} {
+
+      allow read: if isSignedIn()
+                  && request.auth.uid in resource.data.participants;
+
+      // Only an employer opens a thread, only with themselves as employer,
+      // and only under the deterministic id. This is the rule that enforces
+      // "the student can never message first".
+      allow create: if isEmployer()
+        && request.resource.data.employerId == request.auth.uid
+        && request.resource.data.studentId is string
+        && request.resource.data.studentId != request.auth.uid
+        && request.resource.data.jobId is string
+        && request.resource.data.jobId != ''
+        && conversationId == request.resource.data.employerId + '_'
+             + request.resource.data.studentId + '_'
+             + request.resource.data.jobId
+        && request.resource.data.participants.hasOnly([
+             request.resource.data.employerId,
+             request.resource.data.studentId
+           ])
+        && request.resource.data.participants.size() == 2
+        && request.resource.data.lastMessage == ''
+        && request.resource.data.lastSenderId == '';
+
+      // Both sides may update the preview / unread counters, but never
+      // rewrite who the thread belongs to.
+      allow update: if isSignedIn()
+        && request.auth.uid in resource.data.participants
+        && request.resource.data.employerId == resource.data.employerId
+        && request.resource.data.studentId == resource.data.studentId
+        && request.resource.data.participants == resource.data.participants
+        && request.resource.data.jobId == resource.data.jobId
+        && (request.resource.data.get('deletedAt', null) == resource.data.get('deletedAt', null)
+            || request.auth.uid == resource.data.employerId);
+
+      allow delete: if false;
+
+      match /messages/{messageId} {
+        allow read: if isParticipant(conversationId);
+
+        allow create: if isParticipant(conversationId)
+          && request.resource.data.senderId == request.auth.uid
+          && request.resource.data.text is string
+          && request.resource.data.text.size() > 0
+          && request.resource.data.text.size() <= 2000;
+
+        // Messages are immutable, but the employer may purge the whole thread.
+        allow update: if false;
+        allow delete: if isSignedIn()
+          && request.auth.uid == get(/databases/$(database)/documents/conversations/$(conversationId)).data.employerId;
+      }
+    }
+
+
     // Deny everything else by default.
     match /{document=**} {
       allow read, write: if false;

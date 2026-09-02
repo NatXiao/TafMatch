@@ -23,11 +23,11 @@ class TransportsApi {
   }
 
   static Future<http.Response> findLocationByName(String name) {
-    return http.get(Uri.parse('http://transport.opendata.ch/v1/locations?${buildLocationByNameParameters(name)}'));
+    return http.get(Uri.parse('https://api3.geo.admin.ch/rest/services/ech/SearchServer?${buildLocationByNameParameters(name)}'));
   }
 
   static String buildLocationByNameParameters(String name) {
-    return "query=$name";
+    return "origins=address&type=locations&searchText=$name";
   }
 
 }

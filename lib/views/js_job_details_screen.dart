@@ -10,6 +10,7 @@ import 'package:taf_match/models/job_model.dart';
 import 'package:taf_match/models/transport_model.dart';
 import 'package:taf_match/providers/application_provider.dart';
 import 'package:taf_match/providers/auth_provider.dart';
+import 'package:taf_match/providers/notification_provider.dart';
 import 'package:taf_match/repositories/firestore_review_repository.dart';
 import 'package:taf_match/repositories/firestore_user_repository.dart';
 import 'package:taf_match/services/salary_estimator.dart';
@@ -129,6 +130,7 @@ class _JobDetailScreenState extends State<JobDetailScreen> {
   }
 
   // Apply pour le job
+  // TODO add a push notification to the employer when a student applies
   Future<void> _apply() async {
     setState(() => _applying = true);
     final uid = context.read<AuthProvider>().user?.uid ?? '';
@@ -136,10 +138,34 @@ class _JobDetailScreenState extends State<JobDetailScreen> {
       await context.read<ApplicationProvider>().apply(
             Application(id: '', jobId: widget.job.id, studentId: uid),
           );
+        if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Your application has successfully been sent!', style: TextStyle(color: Colors.white)
+          ),
+          backgroundColor: Colors.blue,
+        ),
+      );
+    }
+    await context.read<NotificationProvider>().notify(
+      userId: widget.job.employerId,
+      title: 'New applicant',
+      message: 'Someone applied to "${widget.job.title}"',
+      type: 'application_received',
+      jobId: widget.job.id,
+    );
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text('Could not apply: $e')));
+            .showSnackBar(
+              SnackBar(
+          content: Text(
+            'Could not apply: $e',
+            style: TextStyle(color: Colors.white)
+          ),
+          backgroundColor: Colors.blue,
+        ));
       }
     } finally {
       if (mounted) setState(() => _applying = false);
@@ -170,6 +196,17 @@ class _JobDetailScreenState extends State<JobDetailScreen> {
     setState(() => _cancelling = true);
     try {
       await context.read<ApplicationProvider>().cancel(app.id);
+      if (mounted) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(
+              SnackBar(
+          content: Text(
+            'Your application has been cancelled.',
+            style: TextStyle(color: Colors.white)
+          ),
+          backgroundColor: Colors.blue,
+        ));
+        }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context)
@@ -734,9 +771,17 @@ class _JobDetailScreenState extends State<JobDetailScreen> {
       }
     });
 
-    final bounds = LatLngBounds.fromPoints([_userPosition!, _jobPosition!]);
-
-    _mapController.fitCamera(CameraFit.bounds(bounds: bounds, padding: EdgeInsets.all(50)));
+    if (_userPosition == null && _jobPosition != null) {
+      _mapController.move(_jobPosition!, 8);
+    }
+    else if (_userPosition != null && _jobPosition == null) {
+      _mapController.move(_userPosition!, 8);
+    }
+    else {
+      final bounds = LatLngBounds.fromPoints([_userPosition!, _jobPosition!]);
+      _mapController.fitCamera(CameraFit.bounds(bounds: bounds, padding: EdgeInsets.all(50)));
+    }
+    
   }
 
 }

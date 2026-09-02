@@ -203,6 +203,7 @@ class FakeApplicationRepository implements FirestoreApplicationRepository {
   void emit(List<Application> apps) => _controller.add(apps);
 
   void dispose() => _controller.close();
+
 }
 
 class FakeJobRepository implements FirestoreJobRepository {

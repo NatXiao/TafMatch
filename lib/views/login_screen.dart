@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:taf_match/providers/notification_provider.dart';
+import 'package:taf_match/utils/notification_utils.dart';
 import 'package:taf_match/views/about_screen.dart';
 import 'package:taf_match/views/face_login_screen.dart';
 
@@ -215,5 +217,14 @@ class LoginScreenState extends State<LoginScreen> {
     final password = _passwordController.text;
 
     await authProvider.signInWithEmailAndPassword(email, password);
+    final user = context.read<AuthProvider>().user;
+
+    if (user != null) {
+      await NotificationUtils.initialize(user.uid);
+
+      context
+          .read<NotificationProvider>()
+          .listenToNotifications(user.uid);
+    }
   }
 }
