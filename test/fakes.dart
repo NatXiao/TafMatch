@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:taf_match/models/notification_model.dart';
 import 'package:taf_match/models/user_model.dart';
+import 'package:taf_match/repositories/firestore_notification_repository.dart';
 import 'package:taf_match/repositories/firestore_user_repository.dart';
 import 'package:taf_match/services/auth_service.dart';
 import 'package:taf_match/models/application_model.dart';
@@ -319,7 +321,98 @@ class FakeSkillRepository implements FirestoreSkillRepository {
   }
 }
 
+class FakeNotificationRepository implements FirestoreNotificationRepository {
+  final StreamController<List<AppNotification>> _controller =
+    StreamController<List<AppNotification>>.broadcast(sync: true);
 
+  List<AppNotification> notifications = [];
+  int markAsReadCallCount = 0;
+  int markAllAsReadCallCount = 0;
+  int createCallCount = 0;
+
+  @override
+  Stream<List<AppNotification>> watchForUser(String userId) => _controller.stream;
+
+  @override
+  Future<void> create({
+    required String userId,
+    required String title,
+    required String message,
+    required String type,
+    String? jobId,
+    String? applicationId,
+    String? conversationId,
+    int? unreadCount,
+  }) async {
+    createCallCount++;
+    notifications.add(
+      AppNotification(
+        id: 'new-${notifications.length}',
+        userId: userId,
+        title: title,
+        message: message,
+        type: type,
+        jobId: jobId,
+        applicationId: applicationId,
+        isRead: false,
+        createdAt: DateTime.now(),
+      ),
+    );
+    _controller.add(notifications);
+  }
+
+  @override
+  Future<void> upsertMessageNotification({
+    required String userId,
+    required String conversationId,
+    required String jobId,
+    required String jobTitle,
+    required int unreadCount,
+  }) async {
+    if (unreadCount <= 0) return;
+
+    final notificationId = '${conversationId}_$userId';
+    notifications.removeWhere((n) => n.id == notificationId);
+    notifications.add(
+      AppNotification(
+        id: notificationId,
+        userId: userId,
+        title: 'New messages',
+        message: unreadCount == 1
+            ? '1 unread message in "$jobTitle"'
+            : '$unreadCount unread messages in "$jobTitle"',
+        type: 'new_message',
+        jobId: jobId,
+        isRead: false,
+        createdAt: DateTime.now(),
+      ),
+    );
+    _controller.add(notifications);
+  }
+
+  @override
+  Future<void> markAsRead(String notificationId) async {
+    markAsReadCallCount++;
+    notifications = notifications
+        .map((n) => n.id == notificationId ? n.copyWith(isRead: true) : n)
+        .toList();
+    _controller.add(notifications);
+  }
+
+  @override
+  Future<void> markAllAsRead(String userId) async {
+    markAllAsReadCallCount++;
+    notifications = notifications.map((n) => n.copyWith(isRead: true)).toList();
+    _controller.add(notifications);
+  }
+
+  void emit(List<AppNotification> items) {
+    notifications = items;
+    _controller.add(items);
+  }
+
+  void dispose() => _controller.close();
+}
 class FakeWorkExperienceRepository implements FirestoreWorkExperienceRepository {
   final StreamController<List<WorkExperience>> _controller =
       StreamController<List<WorkExperience>>.broadcast();
