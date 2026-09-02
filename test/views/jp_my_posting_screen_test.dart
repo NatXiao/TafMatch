@@ -58,12 +58,14 @@ void main() {
     );
   }
 
+  /// Une annonce vivante par defaut: sans date de fin, `isLive` est vrai.
+  /// Passer une `endDate` passee pour obtenir une annonce fermee.
   Job makeJob({
     required String id,
     required String title,
     String address = '',
     double? salary,
-    String status = 'live',
+    DateTime? endDate,
   }) {
     return Job(
       id: id,
@@ -71,9 +73,11 @@ void main() {
       title: title,
       address: address,
       salaryChfPerHour: salary,
-      status: status,
+      endDate: endDate,
     );
   }
+
+  DateTime yesterday() => DateTime.now().subtract(const Duration(days: 1));
 
   testWidgets('shows the empty state when there are no postings', (
     tester,
@@ -95,7 +99,7 @@ void main() {
 
     jobRepository.emit([
       makeJob(id: '1', title: 'Barista', address: 'Sion', salary: 24),
-      makeJob(id: '2', title: 'Waiter', address: 'Sierre', status: 'closed'),
+      makeJob(id: '2', title: 'Waiter', address: 'Sierre', endDate: yesterday()),
     ]);
     // A stream event needs more than a single pump to be delivered and
     // rebuild the widget: pumpAndSettle waits until the tree is stable.
@@ -103,9 +107,27 @@ void main() {
 
     expect(find.text('Barista'), findsOneWidget);
     expect(find.text('Waiter'), findsOneWidget);
-    // Only the "live" posting shows the Live badge.
-    expect(find.text('Live'), findsOneWidget);
     expect(find.text('No postings yet.'), findsNothing);
+  });
+
+  testWidgets('the badge follows the deadline, not a stored status', (
+    tester,
+  ) async {
+    await signInAsEmployer(tester);
+    await tester.pumpWidget(buildTestWidget());
+    await tester.pump();
+
+    jobRepository.emit([
+      // Pas de date de fin: l'annonce reste ouverte.
+      makeJob(id: '1', title: 'Barista'),
+      // Deadline depassee: l'annonce est fermee, meme si l'employeur n'a rien
+      // fait pour la retirer.
+      makeJob(id: '2', title: 'Waiter', endDate: yesterday()),
+    ]);
+    await tester.pumpAndSettle();
+
+    expect(find.text('Live'), findsOneWidget);
+    expect(find.text('Closed'), findsOneWidget);
   });
 
   testWidgets('tapping New posting opens the new posting screen', (

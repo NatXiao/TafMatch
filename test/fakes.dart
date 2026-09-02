@@ -203,6 +203,12 @@ class FakeApplicationRepository implements FirestoreApplicationRepository {
   void emit(List<Application> apps) => _controller.add(apps);
 
   void dispose() => _controller.close();
+
+  @override
+  Future<String?> register(String email, String password) async {
+    if (stringGate != null) return await stringGate!.future;
+    return registerError;
+  }
 }
 
 class FakeJobRepository implements FirestoreJobRepository {

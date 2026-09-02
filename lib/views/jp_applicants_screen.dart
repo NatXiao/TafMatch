@@ -103,17 +103,17 @@ class _ApplicantsScreenState extends State<ApplicantsScreen> {
                       job: widget.job,
                       loadApplicant: _loadApplicant,
                       onOpenProfile: () => _openApplicantProfile(apps[i].studentId),
-                        )
+                    )
                   );
-                      },
-                    ),
-                  )
-          ],
+                },
               ),
-            ),
-        );
-        }
+            )
+          ],
+        ),
+      ),
+    );
   }
+}
 
 
 class _ApplicantCard extends StatelessWidget {

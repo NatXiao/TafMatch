@@ -1,12 +1,11 @@
-import 'dart:async';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:taf_match/models/job_model.dart';
 import 'package:taf_match/providers/job_provider.dart';
 
 import '../fakes.dart';
 
-Job _job(String id, {String employerId = 'emp1', String status = 'live'}) =>
-    Job(id: id, employerId: employerId, title: 'Job $id', status: status);
+Job _job(String id, {String employerId = 'emp1', DateTime? endDate}) =>
+    Job(id: id, employerId: employerId, title: 'Job $id', endDate: endDate);
 
 void main() {
   late FakeJobRepository repository;
@@ -53,6 +52,21 @@ void main() {
     expect(provider.jobs, jobs);
   });
 
+  // A second emission replaces the list rather than adding to it.
+  test('a later emission replaces the previous list', () async {
+    provider.listenToLiveJobs();
+
+    repository.emit([_job('j1'), _job('j2')]);
+    await Future<void>.delayed(Duration.zero);
+    expect(provider.jobs, hasLength(2));
+
+    repository.emit([_job('j3')]);
+    await Future<void>.delayed(Duration.zero);
+
+    expect(provider.jobs, hasLength(1));
+    expect(provider.jobs.single.id, 'j3');
+  });
+
   // Starting a new listen cancels the previous subscription without errors.
   test('a new listen cancels the previous subscription', () async {
     provider.listenToLiveJobs();
@@ -64,8 +78,24 @@ void main() {
     expect(provider.jobs, hasLength(1));
   });
 
+  // Nothing is emitted to a disposed provider, so no notifyListeners() fires
+  // after dispose() — which would throw.
+  test('no longer listens after dispose', () async {
+    provider.listenToLiveJobs();
+    provider.dispose();
+
+    repository.emit([_job('j1')]);
+    await Future<void>.delayed(Duration.zero);
+
+    expect(provider.jobs, isEmpty);
+
+    // dispose() est deja fait: le tearDown ne doit pas le refaire.
+    provider = JobProvider(repository);
+  });
+
   // createJob forwards the job to the repository and returns the generated id.
-  test('createJob delegates to the repository and returns the new id', () async {
+  test('createJob delegates to the repository and returns the new id',
+      () async {
     repository.createIdToReturn = 'job-42';
     final job = _job('');
 
