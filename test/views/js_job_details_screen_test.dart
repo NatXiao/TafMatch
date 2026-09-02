@@ -5,6 +5,9 @@ import 'package:taf_match/models/application_model.dart';
 import 'package:taf_match/models/job_model.dart';
 import 'package:taf_match/providers/application_provider.dart';
 import 'package:taf_match/providers/auth_provider.dart';
+import 'package:taf_match/providers/review_provider.dart';
+import 'package:taf_match/providers/skill_provider.dart';
+import 'package:taf_match/providers/user_provider.dart';
 import 'package:taf_match/utils/theme.dart';
 import 'package:taf_match/views/js_job_details_screen.dart';
 import 'package:taf_match/views/profile_screen.dart';
@@ -18,6 +21,10 @@ void main() {
   late FakeReviewRepository reviewRepository;
   late ApplicationProvider applicationProvider;
   late AuthProvider authProvider;
+  late UserProvider userProvider;
+  late ReviewProvider reviewProvider;
+  late SkillProvider skillProvider;
+  late FakeSkillRepository skillRepository;
 
   final job = Job(
     id: 'job-1',
@@ -32,14 +39,22 @@ void main() {
     authService = FakeAuthService();
     userRepository = FakeUserRepository();
     reviewRepository = FakeReviewRepository();
+    skillRepository = FakeSkillRepository();
 
     applicationProvider = ApplicationProvider(applicationRepository);
     authProvider = AuthProvider(authService, userRepository);
+    userProvider = UserProvider(userRepository);
+    reviewProvider = ReviewProvider(reviewRepository);
+
+    skillProvider = SkillProvider(skillRepository);
   });
 
   tearDown(() {
     applicationProvider.dispose();
     authProvider.dispose();
+    userProvider.dispose();
+    reviewProvider.dispose();
+    skillProvider.dispose();
     applicationRepository.dispose();
     authService.dispose();
     userRepository.dispose();
@@ -58,6 +73,11 @@ void main() {
           value: applicationProvider,
         ),
         ChangeNotifierProvider<AuthProvider>.value(value: authProvider),
+        // Les trois suivants ne servent pas a JobDetailScreen lui-meme, mais a
+        // ProfileScreen, ouvert depuis la carte employeur.
+        ChangeNotifierProvider<UserProvider>.value(value: userProvider),
+        ChangeNotifierProvider<ReviewProvider>.value(value: reviewProvider),
+        ChangeNotifierProvider<SkillProvider>.value(value: skillProvider),
       ],
       child: MaterialApp(
         theme: buildThemeData(),
