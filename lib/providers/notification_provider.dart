@@ -106,6 +106,8 @@ class NotificationProvider extends ChangeNotifier {
     required String type,
     String? jobId,
     String? applicationId,
+    String? conversationId,
+    int? unreadCount,
   }) {
     return _repository.create(
       userId: userId,
@@ -114,6 +116,8 @@ class NotificationProvider extends ChangeNotifier {
       type: type,
       jobId: jobId,
       applicationId: applicationId,
+      conversationId: conversationId,
+      unreadCount: unreadCount,
     );
   }
 

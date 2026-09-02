@@ -30,6 +30,10 @@ class ChatProvider extends ChangeNotifier {
         0,
         (sum, conversation) => sum + conversation.unreadFor(_currentUserId),
       );
+  int gettotalUnreadForId(String userId) => _conversations.fold<int>(
+        0,
+        (sum, conversation) => sum + conversation.unreadFor(userId),
+      );
 
   /// Start listening to every thread [userId] takes part in. Call once, after
   /// login (same place you call `listenToNotifications`).

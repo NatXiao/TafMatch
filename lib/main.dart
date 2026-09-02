@@ -61,6 +61,9 @@ class MyApp extends StatelessWidget {
           ),
         ),
         ChangeNotifierProvider(
+          create: (_) => ApplicationProvider(FirestoreApplicationRepository()),
+        ),
+        ChangeNotifierProvider(
             create: (_) =>
                 AuthProvider(FirebaseAuthService(), FirestoreUserRepository())),
         ChangeNotifierProxyProvider<AuthProvider, UserProvider>(
@@ -77,6 +80,10 @@ class MyApp extends StatelessWidget {
           create: (_) => SkillProvider(FirestoreSkillRepository()),
         ),
         ChangeNotifierProvider(create: (_) => NotificationProvider()),
+        ChangeNotifierProxyProvider<AuthProvider, ChatProvider>(
+          create: (_) => ChatProvider(),
+          update: (_, auth, chat) => chat!..syncUser(auth.user?.uid ?? ''),
+        ),
       ],
       child: Consumer2<AuthProvider, UserProvider>(
         builder: (context, auth, userProvider, _) {
