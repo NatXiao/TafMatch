@@ -26,6 +26,10 @@ class Conversation {
 
   final DateTime? createdAt;
 
+    /// Set when the employer deletes the thread. The document stays so the
+  /// deterministic id keeps working, but both sides stop seeing it.
+  final DateTime? deletedAt;
+
   const Conversation({
     required this.id,
     required this.employerId,
@@ -38,6 +42,8 @@ class Conversation {
     this.lastMessageAt,
     this.unreadCount = const {},
     this.createdAt,
+    this.deletedAt,
+    
   });
 
   /// Deterministic document id. The employer always comes first because only
@@ -66,6 +72,7 @@ class Conversation {
           lastMessageAt == null ? null : Timestamp.fromDate(lastMessageAt!),
       'unreadCount': unreadCount,
       'createdAt': createdAt == null ? null : Timestamp.fromDate(createdAt!),
+      'deletedAt': deletedAt == null ? null : Timestamp.fromDate(deletedAt!),
     };
   }
 
@@ -87,6 +94,7 @@ class Conversation {
       unreadCount: (data['unreadCount'] as Map<String, dynamic>? ?? {})
           .map((key, value) => MapEntry(key, (value as num?)?.toInt() ?? 0)),
       createdAt: (data['createdAt'] as Timestamp?)?.toDate(),
+      deletedAt: (data['deletedAt'] as Timestamp?)?.toDate(),
     );
   }
 }

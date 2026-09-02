@@ -98,6 +98,47 @@ void main() {
 
       expect(notifications, greaterThan(0));
     });
+
+    test('hides threads the employer deleted', () async {
+      provider.listenToConversations(studentId);
+      await openDefaultThread();
+      await employerSays('Hello');
+      await settle();
+      expect(provider.conversations.length, 1);
+
+      await repository.deleteConversation(conversationId);
+      await settle();
+
+      // The document is still in Firestore; the provider filters it out.
+      expect(provider.conversations, isEmpty);
+    });
+
+    test('hides deleted threads from the employer too', () async {
+      provider.listenToConversations(employerId);
+      await openDefaultThread();
+      await settle();
+
+      await provider.deleteConversation(conversationId);
+      await settle();
+
+      expect(provider.conversations, isEmpty);
+    });
+
+    test('a revived thread comes back into the list', () async {
+      provider.listenToConversations(studentId);
+      await openDefaultThread();
+      await settle();
+
+      await repository.deleteConversation(conversationId);
+      await settle();
+      expect(provider.conversations, isEmpty);
+
+      await openDefaultThread();
+      await settle();
+
+      expect(provider.conversations.length, 1);
+      expect(provider.conversations.first.hasMessages, isFalse);
+    });
   });
 
   group('totalUnread', () {
@@ -146,6 +187,53 @@ void main() {
       await provider.markRead(barista.id, studentId);
       await settle();
       expect(provider.totalUnread, 1);
+    });
+
+    test('drops the count of a deleted thread', () async {
+      provider.listenToConversations(studentId);
+
+      final barista = await repository.openConversation(
+        employerId: employerId,
+        studentId: studentId,
+        jobId: 'job_1',
+        jobTitle: 'Barista',
+      );
+      final waiter = await repository.openConversation(
+        employerId: employerId,
+        studentId: studentId,
+        jobId: 'job_2',
+        jobTitle: 'Waiter',
+      );
+
+      await employerSays('One', conversation: barista.id);
+      await employerSays('Two', conversation: waiter.id);
+      await settle();
+      expect(provider.totalUnread, 2);
+
+      await repository.deleteConversation(barista.id);
+      await settle();
+
+      // The badge must not keep counting a thread nobody can open.
+      expect(provider.totalUnread, 1);
+    });
+  });
+
+  group('deleteConversation', () {
+    test('removes the thread and its messages', () async {
+      await openDefaultThread();
+      await employerSays('Hello');
+
+      await provider.deleteConversation(conversationId);
+
+      final thread = await repository.findById(conversationId);
+      expect(thread!.deletedAt, isNotNull);
+
+      final messages = await firestore
+          .collection('conversations')
+          .doc(conversationId)
+          .collection('messages')
+          .get();
+      expect(messages.docs, isEmpty);
     });
   });
 
@@ -237,6 +325,19 @@ void main() {
       // No reload flicker: the messages are still there.
       expect(provider.isLoadingMessages, isFalse);
       expect(provider.messages, isNotEmpty);
+    });
+
+    test('the message list empties when the thread is deleted', () async {
+      await openDefaultThread();
+      await employerSays('Hello');
+      provider.openConversation(conversationId);
+      await settle();
+      expect(provider.messages, isNotEmpty);
+
+      await provider.deleteConversation(conversationId);
+      await settle();
+
+      expect(provider.messages, isEmpty);
     });
   });
 

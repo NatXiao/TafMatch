@@ -26,6 +26,23 @@ void main() {
         jobTitle: jobTitle,
       );
 
+  Future<void> employerSays(String text, {String? conversation}) =>
+      repository.sendMessage(
+        conversationId: conversation ?? conversationId,
+        senderId: employerId,
+        recipientId: studentId,
+        text: text,
+      );
+
+  Future<int> messageCount(String conversation) async {
+    final snapshot = await firestore
+        .collection('conversations')
+        .doc(conversation)
+        .collection('messages')
+        .get();
+    return snapshot.docs.length;
+  }
+
   group('openConversation', () {
     test('creates the thread with a deterministic id and both participants',
         () async {
@@ -39,17 +56,12 @@ void main() {
       expect(conversation.jobTitle, jobTitle);
       expect(conversation.unreadFor(employerId), 0);
       expect(conversation.unreadFor(studentId), 0);
+      expect(conversation.deletedAt, isNull);
     });
 
     test('reusing the same posting reuses the same thread', () async {
       final first = await openDefaultThread();
-
-      await repository.sendMessage(
-        conversationId: first.id,
-        senderId: employerId,
-        recipientId: studentId,
-        text: 'Hello',
-      );
+      await employerSays('Hello');
 
       final second = await openDefaultThread();
 
@@ -98,12 +110,7 @@ void main() {
         jobTitle: 'Waiter',
       );
 
-      await repository.sendMessage(
-        conversationId: barista.id,
-        senderId: employerId,
-        recipientId: studentId,
-        text: 'About the barista role',
-      );
+      await employerSays('About the barista role', conversation: barista.id);
 
       final baristaThread = await repository.findById(barista.id);
       final waiterThread = await repository.findById(waiter.id);
@@ -124,13 +131,7 @@ void main() {
   group('sendMessage', () {
     test('stores the message and updates the thread preview', () async {
       await openDefaultThread();
-
-      await repository.sendMessage(
-        conversationId: conversationId,
-        senderId: employerId,
-        recipientId: studentId,
-        text: 'Are you available Monday?',
-      );
+      await employerSays('Are you available Monday?');
 
       final messages = await firestore
           .collection('conversations')
@@ -150,19 +151,8 @@ void main() {
 
     test('increments the recipient unread counter only', () async {
       await openDefaultThread();
-
-      await repository.sendMessage(
-        conversationId: conversationId,
-        senderId: employerId,
-        recipientId: studentId,
-        text: 'First',
-      );
-      await repository.sendMessage(
-        conversationId: conversationId,
-        senderId: employerId,
-        recipientId: studentId,
-        text: 'Second',
-      );
+      await employerSays('First');
+      await employerSays('Second');
 
       final thread = await repository.findById(conversationId);
       expect(thread!.unreadFor(studentId), 2);
@@ -188,12 +178,7 @@ void main() {
   group('markRead', () {
     test('resets the counter for that user only', () async {
       await openDefaultThread();
-      await repository.sendMessage(
-        conversationId: conversationId,
-        senderId: employerId,
-        recipientId: studentId,
-        text: 'Hello',
-      );
+      await employerSays('Hello');
       await repository.sendMessage(
         conversationId: conversationId,
         senderId: studentId,
@@ -210,23 +195,115 @@ void main() {
     });
   });
 
+  group('deleteConversation', () {
+    test('wipes the messages subcollection', () async {
+      await openDefaultThread();
+      await employerSays('One');
+      await employerSays('Two');
+      expect(await messageCount(conversationId), 2);
+
+      await repository.deleteConversation(conversationId);
+
+      // Firestore has no cascade delete: this is the part that would leak
+      // orphaned documents if the repository forgot to do it.
+      expect(await messageCount(conversationId), 0);
+    });
+
+    test('marks the thread deleted and clears its preview', () async {
+      await openDefaultThread();
+      await employerSays('Hello');
+
+      await repository.deleteConversation(conversationId);
+
+      final thread = await repository.findById(conversationId);
+      expect(thread, isNotNull);
+      expect(thread!.deletedAt, isNotNull);
+      expect(thread.lastMessage, '');
+      expect(thread.lastSenderId, '');
+      expect(thread.unreadFor(studentId), 0);
+      expect(thread.unreadFor(employerId), 0);
+    });
+
+    test('keeps the document so the deterministic id stays usable', () async {
+      await openDefaultThread();
+      await repository.deleteConversation(conversationId);
+
+      final all = await firestore.collection('conversations').get();
+      expect(all.docs.length, 1);
+      expect(all.docs.first.id, conversationId);
+    });
+
+    test('leaves the other postings untouched', () async {
+      final barista = await repository.openConversation(
+        employerId: employerId,
+        studentId: studentId,
+        jobId: 'job_1',
+        jobTitle: 'Barista',
+      );
+      final waiter = await repository.openConversation(
+        employerId: employerId,
+        studentId: studentId,
+        jobId: 'job_2',
+        jobTitle: 'Waiter',
+      );
+      await employerSays('Still relevant', conversation: waiter.id);
+
+      await repository.deleteConversation(barista.id);
+
+      final waiterThread = await repository.findById(waiter.id);
+      expect(waiterThread!.deletedAt, isNull);
+      expect(waiterThread.lastMessage, 'Still relevant');
+      expect(await messageCount(waiter.id), 1);
+    });
+  });
+
+  group('reopening a deleted thread', () {
+    test('revives it empty instead of resurrecting the old messages',
+        () async {
+      await openDefaultThread();
+      await employerSays('Old conversation');
+      await repository.deleteConversation(conversationId);
+
+      final revived = await openDefaultThread();
+
+      expect(revived.id, conversationId);
+      expect(revived.deletedAt, isNull);
+      expect(revived.lastMessage, '');
+      expect(revived.unreadFor(studentId), 0);
+      expect(await messageCount(conversationId), 0);
+    });
+
+    test('picks up the current job title', () async {
+      await openDefaultThread();
+      await repository.deleteConversation(conversationId);
+
+      final revived = await repository.openConversation(
+        employerId: employerId,
+        studentId: studentId,
+        jobId: jobId,
+        jobTitle: 'Barista (renamed)',
+      );
+
+      expect(revived.jobTitle, 'Barista (renamed)');
+    });
+
+    test('does not create a duplicate document', () async {
+      await openDefaultThread();
+      await repository.deleteConversation(conversationId);
+      await openDefaultThread();
+
+      final all = await firestore.collection('conversations').get();
+      expect(all.docs.length, 1);
+    });
+  });
+
   group('watchMessages', () {
     test('emits newest first so the chat can render in reverse', () async {
       await openDefaultThread();
 
-      await repository.sendMessage(
-        conversationId: conversationId,
-        senderId: employerId,
-        recipientId: studentId,
-        text: 'First',
-      );
+      await employerSays('First');
       await Future<void>.delayed(const Duration(milliseconds: 10));
-      await repository.sendMessage(
-        conversationId: conversationId,
-        senderId: employerId,
-        recipientId: studentId,
-        text: 'Second',
-      );
+      await employerSays('Second');
 
       final messages = await repository
           .watchMessages(conversationId)
@@ -273,6 +350,18 @@ void main() {
 
       expect(
           threads.map((t) => t.jobTitle), containsAll(['Barista', 'Waiter']));
+    });
+
+    test('still emits deleted threads — the provider is what filters them',
+        () async {
+      await openDefaultThread();
+      await repository.deleteConversation(conversationId);
+
+      final threads = await repository
+          .watchForUser(studentId)
+          .firstWhere((list) => list.isNotEmpty);
+
+      expect(threads.single.deletedAt, isNotNull);
     });
 
     test('does not emit threads the user is not part of', () async {

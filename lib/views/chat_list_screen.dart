@@ -204,7 +204,45 @@ class _ConversationTile extends StatelessWidget {
           ),
         ),
       ),
+      onLongPress: conversation.employerId == currentUserId
+        ? () => _confirmDelete(context)
+        : null,
     );
+  }
+
+  Future<void> _confirmDelete(BuildContext context) async {
+    final chat = context.read<ChatProvider>();
+    final messenger = ScaffoldMessenger.of(context);
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Delete conversation?'),
+        content: const Text(
+          'This removes the thread and every message for both of you. '
+          'It cannot be undone.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Keep'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+
+    try {
+      await chat.deleteConversation(conversation.id);
+    } catch (e) {
+      messenger.showSnackBar(
+        SnackBar(content: Text('Could not delete conversation: $e')),
+      );
+    }
   }
 
   String _shortTime(DateTime? date) {

@@ -40,7 +40,11 @@ service cloud.firestore {
         && request.resource.data.employerId == request.auth.uid
         && request.resource.data.studentId is string
         && request.resource.data.studentId != request.auth.uid
-        && conversationId == request.resource.data.employerId + '_' + request.resource.data.studentId
+        && request.resource.data.jobId is string
+        && request.resource.data.jobId != ''
+        && conversationId == request.resource.data.employerId + '_'
+             + request.resource.data.studentId + '_'
+             + request.resource.data.jobId
         && request.resource.data.participants.hasOnly([
              request.resource.data.employerId,
              request.resource.data.studentId
@@ -55,7 +59,10 @@ service cloud.firestore {
         && request.auth.uid in resource.data.participants
         && request.resource.data.employerId == resource.data.employerId
         && request.resource.data.studentId == resource.data.studentId
-        && request.resource.data.participants == resource.data.participants;
+        && request.resource.data.participants == resource.data.participants
+        && request.resource.data.jobId == resource.data.jobId
+        && (request.resource.data.get('deletedAt', null) == resource.data.get('deletedAt', null)
+            || request.auth.uid == resource.data.employerId);
 
       allow delete: if false;
 
@@ -68,8 +75,10 @@ service cloud.firestore {
           && request.resource.data.text.size() > 0
           && request.resource.data.text.size() <= 2000;
 
-        // Messages are immutable once sent.
-        allow update, delete: if false;
+        // Messages are immutable, but the employer may purge the whole thread.
+        allow update: if false;
+        allow delete: if isSignedIn()
+          && request.auth.uid == get(/databases/$(database)/documents/conversations/$(conversationId)).data.employerId;
       }
     }
 

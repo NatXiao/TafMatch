@@ -59,7 +59,20 @@ class FirestoreChatRepository {
     final ref = _conversations.doc(id);
 
     final existing = await ref.get();
-    if (existing.exists) return Conversation.fromFirestore(existing);
+    if (existing.exists) {
+      final conversation = Conversation.fromFirestore(existing);
+      if (conversation.deletedAt == null) return conversation;
+
+      // The employer had deleted this thread: revive it empty rather than
+      // resurrecting a stale one.
+      await ref.update({
+        'deletedAt': null,
+        'jobTitle': jobTitle,
+        'lastMessageAt': Timestamp.now(),
+        'unreadCount': {employerId: 0, studentId: 0},
+      });
+      return Conversation.fromFirestore(await ref.get());
+    }
 
     final now = Timestamp.now();
     await ref.set({
@@ -115,4 +128,35 @@ class FirestoreChatRepository {
       'unreadCount.$userId': 0,
     });
   }
+
+  /// Deletes the thread for both sides. Firestore has no cascade delete, so
+  /// the messages subcollection has to go explicitly, in batches of 500 —
+  /// the write limit per batch.
+  Future<void> deleteConversation(String conversationId) async {
+    final messages = await _messages(conversationId).get();
+
+    for (var i = 0; i < messages.docs.length; i += 500) {
+      final batch = _firestore.batch();
+      for (final doc in messages.docs.skip(i).take(500)) {
+        batch.delete(doc.reference);
+      }
+      await batch.commit();
+    }
+
+    final ref = _conversations.doc(conversationId);
+    final snapshot = await ref.get();
+    final participants =
+        List<String>.from(snapshot.data()?['participants'] ?? const []);
+
+    await ref.update({
+      'deletedAt': Timestamp.now(),
+      'lastMessage': '',
+      'lastSenderId': '',
+      // Reset each counter by name: a whole-map write is merged rather than
+      // replaced by some Firestore implementations.
+      for (final uid in participants) 'unreadCount.$uid': 0,
+    });
+  }
+
+
 }

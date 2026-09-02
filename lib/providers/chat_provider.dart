@@ -45,7 +45,8 @@ class ChatProvider extends ChangeNotifier {
 
     _conversationsSubscription = _repository.watchForUser(userId).listen(
       (conversations) {
-        _conversations = conversations;
+        _conversations =
+            conversations.where((c) => c.deletedAt == null).toList();
         notifyListeners();
       },
       onError: (Object e) {
@@ -122,6 +123,10 @@ class ChatProvider extends ChangeNotifier {
     );
   }
 
+  /// Employer-only: removes the thread and its messages for both sides.
+  Future<void> deleteConversation(String conversationId) =>
+      _repository.deleteConversation(conversationId);
+      
   Future<void> markRead(String conversationId, [String? userId]) async {
     final uid = userId ?? _currentUserId;
     if (uid.isEmpty) return;
