@@ -82,9 +82,6 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(
           create: (_) => SkillProvider(FirestoreSkillRepository()),
         ),
-        ChangeNotifierProvider(
-          create: (_) => ApplicationProvider(FirestoreApplicationRepository()),
-        ),
         ChangeNotifierProvider(create: (_) => NotificationProvider()),
       ],
       child: Consumer2<AuthProvider, UserProvider>(
@@ -100,6 +97,13 @@ class MyApp extends StatelessWidget {
               body: Center(child: CircularProgressIndicator()),
             );
           } else {
+              final uid = auth.user!.uid;
+
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                if (auth.user != null) {
+                  context.read<NotificationProvider>().listenToNotifications(uid);
+                }
+              });
               final role = userProvider.profile!.role.trim().toLowerCase();
               if (role == 'employer') {
                 home = const JpMainScreen();
