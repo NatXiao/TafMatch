@@ -555,18 +555,25 @@ class NotificationsDropdown extends StatelessWidget {
       height: 500,
       child: Column(
         children: [
-          const Padding(
-            padding: EdgeInsets.all(20),
+          Padding(
+            padding: const EdgeInsets.all(20),
             child: Row(
               children: [
-                Icon(Icons.notifications),
-                SizedBox(width: 10),
-                Text(
+                const Icon(Icons.notifications),
+                const SizedBox(width: 10),
+                const Text(
                   'Notifications',
                   style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
                   ),
+                ),
+                const SizedBox(height: 16),
+                ElevatedButton(
+                  onPressed: () {
+                    context.read<NotificationProvider>().markAllAsRead(context.read<AuthProvider>().user?.uid ?? '');
+                  },
+                  child: const Text('Mark all as read'),
                 ),
               ],
             ),

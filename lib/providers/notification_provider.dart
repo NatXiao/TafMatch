@@ -5,7 +5,10 @@ import 'package:taf_match/models/notification_model.dart';
 import 'package:taf_match/repositories/firestore_notification_repository.dart';
 
 class NotificationProvider extends ChangeNotifier {
-  final FirestoreNotificationRepository _repository = FirestoreNotificationRepository();
+  NotificationProvider({FirestoreNotificationRepository? repository})
+      : _repository = repository ?? FirestoreNotificationRepository();
+
+  final FirestoreNotificationRepository _repository;
 
   StreamSubscription<List<AppNotification>>? _subscription;
 
@@ -29,6 +32,29 @@ class NotificationProvider extends ChangeNotifier {
       _notifications = notifications;
       notifyListeners();
     });
+  }
+
+  /// Creates a notification for [userId]. This is what screens should call
+  /// instead of touching FirestoreNotificationRepository directly — e.g.
+  /// after a student applies, or an employer accepts/rejects an applicant.
+  /// Writing the document is also what triggers the actual push, via the
+  /// Cloud Function listening on the notifications collection.
+  Future<void> notify({
+    required String userId,
+    required String title,
+    required String message,
+    required String type,
+    String? jobId,
+    String? applicationId,
+  }) {
+    return _repository.create(
+      userId: userId,
+      title: title,
+      message: message,
+      type: type,
+      jobId: jobId,
+      applicationId: applicationId,
+    );
   }
 
   Future<void> markAsRead(String notificationId) async {

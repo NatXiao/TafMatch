@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:taf_match/models/application_model.dart';
 import 'package:taf_match/models/job_model.dart';
 import 'package:taf_match/providers/application_provider.dart';
+import 'package:taf_match/providers/notification_provider.dart';
 import 'package:taf_match/repositories/firestore_review_repository.dart';
 import 'package:taf_match/repositories/firestore_user_repository.dart';
 import 'package:taf_match/utils/theme.dart';
@@ -99,6 +100,7 @@ class _ApplicantsScreenState extends State<ApplicantsScreen> {
                     separatorBuilder: (_, __) => const SizedBox(height: 14),
                     itemBuilder: (_, i) => _ApplicantCard(
                       application: apps[i],
+                      job: widget.job,
                       loadApplicant: _loadApplicant,
                       onOpenProfile: () => _openApplicantProfile(apps[i].studentId),
                         )
@@ -115,9 +117,10 @@ class _ApplicantsScreenState extends State<ApplicantsScreen> {
 
 
 class _ApplicantCard extends StatelessWidget {
-  const _ApplicantCard({required this.application, required this.loadApplicant, required this.onOpenProfile});
+  const _ApplicantCard({required this.application, required this.job, required this.loadApplicant, required this.onOpenProfile});
 
   final Application application;
+  final Job job;
   final Future<_Applicant> Function(String studentId) loadApplicant;
   final VoidCallback onOpenProfile;
 
@@ -199,8 +202,8 @@ class _ApplicantCard extends StatelessWidget {
                 child: ElevatedButton(
                   onPressed: application.status == 'accepted'
                       ? null
-                      : () => context.read<ApplicationProvider>()
-                          .updateStatus(application.id, 'accepted'),
+                      : () { _updateStatus(context, 'accepted');
+                      },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: colors.accent, foregroundColor: Colors.white,
                     elevation: 0, padding: const EdgeInsets.symmetric(vertical: 14),
@@ -215,8 +218,8 @@ class _ApplicantCard extends StatelessWidget {
                 child: OutlinedButton(
                   onPressed: application.status == 'rejected'
                       ? null
-                      : () => context.read<ApplicationProvider>()
-                          .updateStatus(application.id, 'rejected'),
+                      : () { _updateStatus(context, 'rejected');
+                      },
                   style: OutlinedButton.styleFrom(
                     foregroundColor: colors.accent,
                     side: BorderSide(color: colors.accent, width: 1.5),
@@ -232,6 +235,40 @@ class _ApplicantCard extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  Future<void> _updateStatus(
+    BuildContext context,
+    String status,
+  ) async {
+    try {
+      // update the application
+      await context
+          .read<ApplicationProvider>()
+          .updateStatus(application.id, status);
+
+      // create the notification only if successful
+      await context.read<NotificationProvider>().notify(
+        userId: application.studentId,
+        title: status == 'accepted'
+            ? 'Application accepted'
+            : 'Application rejected',
+        message: status == 'accepted'
+            ? 'Your application for "${job.title}" was accepted!'
+            : 'Your application for "${job.title}" was rejected.',
+        type: 'application_$status',
+        jobId: job.id,
+        applicationId: application.id,
+      );
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Could not update application: $e'),
+          ),
+        );
+      }
+    }
   }
 
   Widget _statusBadge(BuildContext context, String status) {

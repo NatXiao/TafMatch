@@ -9,6 +9,7 @@ import 'package:taf_match/models/job_model.dart';
 import 'package:taf_match/models/transport_model.dart';
 import 'package:taf_match/providers/application_provider.dart';
 import 'package:taf_match/providers/auth_provider.dart';
+import 'package:taf_match/providers/notification_provider.dart';
 import 'package:taf_match/repositories/firestore_review_repository.dart';
 import 'package:taf_match/repositories/firestore_user_repository.dart';
 import 'package:taf_match/services/salary_estimator.dart';
@@ -152,6 +153,13 @@ class _JobDetailScreenState extends State<JobDetailScreen> {
         ),
       );
     }
+    await context.read<NotificationProvider>().notify(
+      userId: widget.job.employerId,
+      title: 'New applicant',
+      message: 'Someone applied to "${widget.job.title}"',
+      type: 'application_received',
+      jobId: widget.job.id,
+    );
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context)
