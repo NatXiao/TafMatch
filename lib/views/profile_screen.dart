@@ -145,19 +145,20 @@ class ProfileScreenState extends State<ProfileScreen> {
               fontSize: 22, fontWeight: FontWeight.w700, color: colors.text),
         ),
         actions: [
-          if (isOwnProfile)
-          const NotificationBell(),
-          InkWell(
-            onTap: () =>
-              Provider.of<AuthProvider>(context, listen: false).signOut(),
-              borderRadius: BorderRadius.circular(999),
+            if (isOwnProfile) ...[
+              const NotificationBell(),
+              InkWell(
+                onTap: () =>
+                  Provider.of<AuthProvider>(context, listen: false).signOut(),
+                borderRadius: BorderRadius.circular(999),
                 child: Container(
                   width: 40, height: 40,
                   decoration: BoxDecoration(color: colors.softAccent, shape: BoxShape.circle),
                   child: Icon(Icons.logout, size: 18, color: colors.accent),
                 ),
-            )
-        ],
+              ),
+            ],
+          ],
       ),
       body: SafeArea(
         child: isOwnProfile

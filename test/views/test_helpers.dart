@@ -3,30 +3,24 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
 
 import 'package:taf_match/providers/auth_provider.dart';
+import 'package:taf_match/providers/notification_provider.dart';
 import 'package:taf_match/providers/review_provider.dart';
 import 'package:taf_match/providers/skill_provider.dart';
 import 'package:taf_match/providers/user_provider.dart';
 import 'package:taf_match/utils/theme.dart';
 
-import '../fakes.dart'; // FakeAuthService, FakeUserRepository, FakeReviewRepository, FakeSkillRepository, ...
+import '../fakes.dart'; 
 
-/// Wraps [child] with MaterialApp + the real AppColors theme extension +
-/// all providers the two screens under test depend on.
-///
-/// IMPORTANT: UserProvider does not listen to auth changes on its own —
-/// something in main.dart must be calling `userProvider.updateAuthProvider(authProvider)`
-/// whenever the logged-in user changes (that's the only thing that triggers
-/// `loadProfile()`). We reproduce that wiring here with a
-/// ChangeNotifierProxyProvider; without it, UserProvider.profile stays null
-/// forever in tests, which is what caused the pre-fill / selected-skill /
-/// unsaved-changes failures.
 Widget buildHarness({
   required Widget child,
   required FakeAuthService authService,
   required FakeUserRepository userRepository,
   required FakeReviewRepository reviewRepository,
   required FakeSkillRepository skillRepository,
+  FakeNotificationRepository? notificationRepository,
 }) {
+
+  final notifRepo = notificationRepository ?? FakeNotificationRepository();
   return MultiProvider(
     providers: [
       ChangeNotifierProvider<AuthProvider>(
@@ -47,6 +41,9 @@ Widget buildHarness({
         create: (_) => SkillProvider(skillRepository),
       ),
       Provider<FakeUserRepository>.value(value: userRepository),
+      ChangeNotifierProvider(
+        create: (_) => NotificationProvider(repository: notifRepo),
+      ),
     ],
     child: MaterialApp(
       theme: ThemeData(

@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:taf_match/models/notification_model.dart';
 
+
 class FirestoreNotificationRepository {
   final CollectionReference<Map<String, dynamic>> _collection =
       FirebaseFirestore.instance.collection('notifications');
@@ -24,7 +25,20 @@ class FirestoreNotificationRepository {
     required String type,
     String? jobId,
     String? applicationId,
+    String? conversationId,
+    int? unreadCount,
   }) async {
+    if(conversationId != null && unreadCount != null) {
+      await upsertMessageNotification(
+        userId: userId,
+        conversationId: conversationId,
+        jobId: jobId ?? '',
+        jobTitle: title,
+        unreadCount: unreadCount,
+
+      );
+      return;
+    }else {
     await _collection.add({
       'userId': userId,
       'title': title,
@@ -34,7 +48,36 @@ class FirestoreNotificationRepository {
       'applicationId': applicationId,
       'isRead': false,
       'createdAt': Timestamp.now(),
+      'conversationId': conversationId,
+      'unreadCount': unreadCount,
     });
+    }
+  }
+
+  Future<void> upsertMessageNotification({
+    required String userId,
+    required String conversationId,
+    required String jobId,
+    required String jobTitle,
+    required int unreadCount,
+  }) async {
+    if (unreadCount <= 0) return;
+
+    final notificationId = '${conversationId}_$userId';
+
+    await _collection.doc(notificationId).set({
+      'userId': userId,
+      'title': 'New messages',
+      'message': unreadCount == 1
+          ? '1 unread message in "$jobTitle"'
+          : '$unreadCount unread messages in "$jobTitle"',
+      'type': 'new_message',
+      'jobId': jobId,
+      'conversationId': conversationId,
+      'unreadCount': unreadCount,
+      'isRead': false,
+      'createdAt': Timestamp.now(),
+    }, SetOptions(merge: true));
   }
 
   Future<void> markAsRead(String notificationId) async {

@@ -16,7 +16,6 @@ import 'package:taf_match/repositories/image_storage_repository.dart';
 import 'package:taf_match/services/firebase_auth_service.dart';
 import 'package:taf_match/utils/cloudinary_config.dart';
 import 'package:taf_match/utils/firebase_options.dart';
-import 'package:taf_match/utils/notification_utils.dart';
 import 'package:taf_match/utils/theme.dart';
 import 'package:taf_match/views/admin_dashboard.dart';
 import 'providers/auth_provider.dart';
@@ -37,9 +36,7 @@ void main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
 
-  // Must run before runApp() so terminated/background pushes are handled
-  // and foreground pushes get displayed.
-  await NotificationUtils.setupBackgroundHandler();
+  NotificationProvider.navigatorKey = GlobalKey<NavigatorState>();
 
   final salaryModel = await SalaryModel.loadAsset();
 
@@ -64,6 +61,9 @@ class MyApp extends StatelessWidget {
           ),
         ),
         ChangeNotifierProvider(
+          create: (_) => ApplicationProvider(FirestoreApplicationRepository()),
+        ),
+        ChangeNotifierProvider(
             create: (_) =>
                 AuthProvider(FirebaseAuthService(), FirestoreUserRepository())),
         ChangeNotifierProxyProvider<AuthProvider, UserProvider>(
@@ -78,9 +78,6 @@ class MyApp extends StatelessWidget {
         ),
         ChangeNotifierProvider(
           create: (_) => SkillProvider(FirestoreSkillRepository()),
-        ),
-        ChangeNotifierProvider(
-          create: (_) => ApplicationProvider(FirestoreApplicationRepository()),
         ),
         ChangeNotifierProvider(create: (_) => NotificationProvider()),
         ChangeNotifierProxyProvider<AuthProvider, ChatProvider>(
@@ -101,17 +98,25 @@ class MyApp extends StatelessWidget {
               body: Center(child: CircularProgressIndicator()),
             );
           } else {
-            final role = userProvider.profile!.role.trim().toLowerCase();
-            if (role == 'employer') {
-              home = const JpMainScreen();
-            } else if (role == 'admin') {
-              home = const AdminDashboardScreen();
-            } else {
-              home = const JeMainScreen();
+              final uid = auth.user!.uid;
+
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                if (auth.user != null) {
+                  context.read<NotificationProvider>().listenToNotifications(uid);
+                }
+              });
+              final role = userProvider.profile!.role.trim().toLowerCase();
+              if (role == 'employer') {
+                home = const JpMainScreen();
+              } else if (role == 'admin') {
+                home = const AdminDashboardScreen();
+              } else {
+                home = const JeMainScreen();
+              }
             }
-          }
 
           return MaterialApp(
+            navigatorKey: NotificationProvider.navigatorKey,
             title: 'Taf Match',
             theme: buildThemeData(),
             home: home,

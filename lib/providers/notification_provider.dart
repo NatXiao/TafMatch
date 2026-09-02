@@ -1,12 +1,15 @@
 import 'dart:async';
 
-import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:taf_match/models/notification_model.dart';
 import 'package:taf_match/repositories/firestore_notification_repository.dart';
 
 class NotificationProvider extends ChangeNotifier {
-  NotificationProvider({FirestoreNotificationRepository? repository})
-      : _repository = repository ?? FirestoreNotificationRepository();
+  NotificationProvider({
+    FirestoreNotificationRepository? repository,
+  }) : _repository = repository ?? FirestoreNotificationRepository();
+
+  static GlobalKey<NavigatorState>? navigatorKey;
 
   final FirestoreNotificationRepository _repository;
 
@@ -14,31 +17,88 @@ class NotificationProvider extends ChangeNotifier {
 
   List<AppNotification> _notifications = [];
 
+  String? _listeningUserId;
+
   List<AppNotification> get notifications => _notifications;
 
-  int get unreadCount =>
-      _notifications.where((notification) => !notification.isRead).length;
+  int get unreadCount {
+    return _notifications
+        .where((notification) => !notification.isRead)
+        .length;
+  }
 
   void listenToNotifications(String userId) {
-    _subscription?.cancel();
-
     if (userId.isEmpty) {
-      _notifications = [];
-      notifyListeners();
+      clear();
       return;
     }
 
-    _subscription = _repository.watchForUser(userId).listen((notifications) {
-      _notifications = notifications;
-      notifyListeners();
+    if (_listeningUserId == userId && _subscription != null) {
+      return;
+    }
+
+    _subscription?.cancel();
+    _listeningUserId = userId;
+    _notifications = [];
+    notifyListeners();
+
+    _subscription = _repository.watchForUser(userId).listen(
+      (notifications) {
+        final previousIds = _notifications
+            .map((notification) => notification.id)
+            .toSet();
+
+        final newUnreadCount = notifications
+            .where(
+              (notification) =>
+                  !notification.isRead && !previousIds.contains(notification.id),
+            )
+            .length;
+
+        _notifications = notifications;
+        notifyListeners();
+
+        if (_notifications.isNotEmpty && previousIds.isNotEmpty && newUnreadCount > 0) {
+          _showNewNotificationPopup(newUnreadCount);
+        }
+      },
+      onError: (error, stackTrace) {
+        debugPrint('Notification stream error for user $userId: $error');
+        debugPrintStack(stackTrace: stackTrace);
+      },
+      onDone: () {
+        debugPrint('Notification stream closed for user $userId');
+      },
+    );
+  }
+
+  void _showNewNotificationPopup(int count) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final context = navigatorKey?.currentContext;
+
+      if (context == null) {
+        debugPrint(
+          'Cannot show notification popup: navigator context is null',
+        );
+        return;
+      }
+
+      final message = count == 1
+          ? 'You have a new notification!'
+          : 'You have $count new notifications!';
+
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          SnackBar(
+            behavior: SnackBarBehavior.floating,
+            content: Text(message),
+            duration: const Duration(seconds: 4),
+          ),
+        );
     });
   }
 
-  /// Creates a notification for [userId]. This is what screens should call
-  /// instead of touching FirestoreNotificationRepository directly — e.g.
-  /// after a student applies, or an employer accepts/rejects an applicant.
-  /// Writing the document is also what triggers the actual push, via the
-  /// Cloud Function listening on the notifications collection.
   Future<void> notify({
     required String userId,
     required String title,
@@ -46,6 +106,8 @@ class NotificationProvider extends ChangeNotifier {
     required String type,
     String? jobId,
     String? applicationId,
+    String? conversationId,
+    int? unreadCount,
   }) {
     return _repository.create(
       userId: userId,
@@ -54,20 +116,51 @@ class NotificationProvider extends ChangeNotifier {
       type: type,
       jobId: jobId,
       applicationId: applicationId,
+      conversationId: conversationId,
+      unreadCount: unreadCount,
     );
   }
 
   Future<void> markAsRead(String notificationId) async {
+    final index = _notifications.indexWhere(
+      (notification) => notification.id == notificationId,
+    );
+
+    if (index != -1) {
+      final updated = List<AppNotification>.from(_notifications);
+
+      updated[index] = updated[index].copyWith(
+        isRead: true,
+      );
+
+      _notifications = updated;
+
+      notifyListeners();
+    }
+
     await _repository.markAsRead(notificationId);
   }
 
   Future<void> markAllAsRead(String userId) async {
+    _notifications = _notifications
+        .map(
+          (notification) =>
+              notification.copyWith(isRead: true),
+        )
+        .toList();
+
+    notifyListeners();
+
     await _repository.markAllAsRead(userId);
   }
 
   void clear() {
     _subscription?.cancel();
+    _subscription = null;
+
+    _listeningUserId = null;
     _notifications = [];
+
     notifyListeners();
   }
 

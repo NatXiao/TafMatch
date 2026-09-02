@@ -74,13 +74,14 @@ class _ChatScreenState extends State<ChatScreen> {
         recipientId: widget.otherUserId,
         text: text,
       );
-
       // Reuse the existing notification pipeline so the recipient gets a push.
       await notifications.notify(
         userId: widget.otherUserId,
         title: 'New message',
-        message: text.length > 80 ? '${text.substring(0, 80)}…' : text,
+        message: 'You have a ${chat.gettotalUnreadForId(widget.otherUserId)} message from ${widget.otherUserName}',
         type: 'new_message',
+        conversationId: widget.conversationId,
+        unreadCount: chat.gettotalUnreadForId(widget.otherUserId)
       );
     } catch (e) {
       if (mounted) {

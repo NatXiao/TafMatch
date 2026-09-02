@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:taf_match/providers/notification_provider.dart';
-import 'package:taf_match/utils/notification_utils.dart';
 import 'package:taf_match/views/about_screen.dart';
 import 'package:taf_match/views/face_login_screen.dart';
 
@@ -220,11 +219,23 @@ class LoginScreenState extends State<LoginScreen> {
     final user = context.read<AuthProvider>().user;
 
     if (user != null) {
-      await NotificationUtils.initialize(user.uid);
 
-      context
-          .read<NotificationProvider>()
-          .listenToNotifications(user.uid);
+      await Future.delayed(const Duration(milliseconds: 300)); // TODO : remove this delay and find a better way to ensure the notification count is updated before showing the snackbar
+      if (!mounted) return;
+
+      final unreadCount = context.read<NotificationProvider>().unreadCount;
+      if (unreadCount > 0) {
+        final notificationLabel = unreadCount == 1 ? 'notification' : 'notifications';
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            behavior: SnackBarBehavior.floating,
+            content: Text(
+              'You have $unreadCount new $notificationLabel in your profile.', 
+            ),
+          ),
+        );
+      }
     }
   }
+  
 }
