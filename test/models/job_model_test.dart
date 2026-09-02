@@ -59,7 +59,6 @@ void main() {
         workPercentage: 80,
         endDate: endDate,
         pictureUrl: 'https://example.com/job.jpg',
-        status: 'closed',
         createdAt: createdAt,
       );
 
@@ -140,7 +139,6 @@ void main() {
         'workPercentage': 80,
         'endDate': Timestamp.fromDate(endDate),
         'pictureUrl': 'https://example.com/job.jpg',
-        'status': 'closed',
         'createdAt': Timestamp.fromDate(createdAt),
       };
 
@@ -217,6 +215,31 @@ void main() {
       expect(job.createdAt, createdAt);
       expect(job.endDate, isA<DateTime>());
       expect(job.createdAt, isA<DateTime>());
+    });
+  });
+
+  group('Job.isLive', () {
+    Job jobWithEndDate(DateTime? endDate) => Job(
+          id: 'job-1',
+          employerId: 'employer-1',
+          title: 'Software Developer',
+          endDate: endDate,
+        );
+
+    test('is live when no end date is set', () {
+      expect(jobWithEndDate(null).isLive, isTrue);
+    });
+
+    test('is live when the end date is in the future', () {
+      final future = DateTime.now().add(const Duration(days: 7));
+
+      expect(jobWithEndDate(future).isLive, isTrue);
+    });
+
+    test('is not live when the end date has passed', () {
+      final past = DateTime.now().subtract(const Duration(days: 1));
+
+      expect(jobWithEndDate(past).isLive, isFalse);
     });
   });
 }

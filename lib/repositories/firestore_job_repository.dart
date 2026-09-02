@@ -21,7 +21,7 @@ class FirestoreJobRepository {
   // Toutes les offres ouvertes (pour les étudiants)
   Stream<List<Job>> watchLiveJobs() {
     return _jobs
-        .where('status', isEqualTo: 'live')
+        .where('endDate', isGreaterThanOrEqualTo: Timestamp.now())
         .snapshots()
         .map((snap) => snap.docs
             .map((doc) => Job.fromMap(doc.id, doc.data()))
