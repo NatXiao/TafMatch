@@ -6,23 +6,18 @@ import 'package:taf_match/repositories/firestore_notification_repository.dart';
 
 class NotificationProvider extends ChangeNotifier {
   NotificationProvider({
-    NotificationRepository? repository,
+    FirestoreNotificationRepository? repository,
   }) : _repository = repository ?? FirestoreNotificationRepository();
 
   static GlobalKey<NavigatorState>? navigatorKey;
 
-  final NotificationRepository _repository;
+  final FirestoreNotificationRepository _repository;
 
   StreamSubscription<List<AppNotification>>? _subscription;
 
   List<AppNotification> _notifications = [];
 
   String? _listeningUserId;
-
-  // Used to determine whether a notification is genuinely new.
-  Set<String> _knownNotificationIds = {};
-
-  bool _hasReceivedInitialSnapshot = false;
 
   List<AppNotification> get notifications => _notifications;
 
@@ -38,65 +33,41 @@ class NotificationProvider extends ChangeNotifier {
       return;
     }
 
-    // Don't create a second listener for the same user.
-    if (_listeningUserId == userId &&
-        _subscription != null) {
+    if (_listeningUserId == userId && _subscription != null) {
       return;
     }
 
     _subscription?.cancel();
-
     _listeningUserId = userId;
-    _hasReceivedInitialSnapshot = false;
-    _knownNotificationIds = {};
+    _notifications = [];
+    notifyListeners();
 
     _subscription = _repository.watchForUser(userId).listen(
       (notifications) {
-        final previousNotifications = _notifications;
-
-        final previousIds = previousNotifications
+        final previousIds = _notifications
             .map((notification) => notification.id)
             .toSet();
 
-        final newNotifications = notifications.where(
-          (notification) =>
-              !previousIds.contains(notification.id),
-        ).toList();
+        final newUnreadCount = notifications
+            .where(
+              (notification) =>
+                  !notification.isRead && !previousIds.contains(notification.id),
+            )
+            .length;
 
         _notifications = notifications;
-
         notifyListeners();
 
-        // Do NOT show "new notification" for all existing
-        // notifications when the app first starts.
-        if (!_hasReceivedInitialSnapshot) {
-          _hasReceivedInitialSnapshot = true;
-
-          _knownNotificationIds =
-              notifications.map((notification) => notification.id).toSet();
-
-          return;
+        if (_notifications.isNotEmpty && previousIds.isNotEmpty && newUnreadCount > 0) {
+          _showNewNotificationPopup(newUnreadCount);
         }
-
-        // Only show the popup when a genuinely new document
-        // has appeared in Firestore.
-        if (newNotifications.isNotEmpty) {
-          _showNewNotificationPopup(newNotifications.length);
-        }
-
-        _knownNotificationIds =
-            notifications.map((notification) => notification.id).toSet();
       },
       onError: (error, stackTrace) {
-        debugPrint(
-          'Notification stream error for user $userId: $error',
-        );
+        debugPrint('Notification stream error for user $userId: $error');
         debugPrintStack(stackTrace: stackTrace);
       },
       onDone: () {
-        debugPrint(
-          'Notification stream closed for user $userId',
-        );
+        debugPrint('Notification stream closed for user $userId');
       },
     );
   }
@@ -185,8 +156,6 @@ class NotificationProvider extends ChangeNotifier {
 
     _listeningUserId = null;
     _notifications = [];
-    _knownNotificationIds = {};
-    _hasReceivedInitialSnapshot = false;
 
     notifyListeners();
   }

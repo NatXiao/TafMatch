@@ -130,7 +130,6 @@ class _JobDetailScreenState extends State<JobDetailScreen> {
   }
 
   // Apply pour le job
-  // TODO add a push notification to the employer when a student applies
   Future<void> _apply() async {
     setState(() => _applying = true);
     final uid = context.read<AuthProvider>().user?.uid ?? '';
