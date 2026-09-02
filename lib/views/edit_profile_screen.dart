@@ -1,3 +1,6 @@
+import 'dart:core';
+
+import 'package:camera/camera.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
@@ -6,6 +9,7 @@ import 'package:taf_match/providers/auth_provider.dart';
 import 'package:taf_match/providers/user_provider.dart';
 import 'package:taf_match/providers/skill_provider.dart';
 import 'package:taf_match/repositories/image_storage_repository.dart';
+import 'package:taf_match/services/camera_service.dart';
 import 'package:taf_match/utils/theme.dart'; // pour AppColors
 
 class EditProfileScreen extends StatefulWidget {
@@ -22,9 +26,12 @@ class EditProfileScreenState extends State<EditProfileScreen> {
   final TextEditingController _addressController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
   final _picker = ImagePicker();
+  final _cameraService = CameraService();
 
   Set<String> _selectedSkills = {};
   Set<String> _initialSkills = {};
+
+  List<double> _vector = [];
   
   bool _saving = false;
   bool _initialized = false;
@@ -39,20 +46,29 @@ class EditProfileScreenState extends State<EditProfileScreen> {
   String _initialAddress = '';
   String _initialImageUrl = '';
 
-@override
-void initState() {
-  super.initState();
+  List<double> _initialVector = [];
 
-  WidgetsBinding.instance.addPostFrameCallback((_) {
-    if (!mounted) return;
+  @override
+  void initState() {
+    super.initState();
 
-    final skillProvider = context.read<SkillProvider>();
+    _cameraService.initCameraAndDetector(applyVectorCallback, updateCallback).then((_) {
+      if (!mounted) return;
+      setState(() {});
+    });
 
-    if (skillProvider.skills.isEmpty && !skillProvider.isLoading) {
-      skillProvider.loadSkills();
-    }
-  });
-}
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+
+      final skillProvider = context.read<SkillProvider>();
+
+      if (skillProvider.skills.isEmpty && !skillProvider.isLoading) {
+        skillProvider.loadSkills();
+      }
+
+      context.read<UserProvider>().loadUsers();
+    });
+  }
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -64,6 +80,7 @@ void initState() {
     _initialEmail = user.email;
     _initialAddress = user.address;
     _initialImageUrl = user.profilePictureUrl;
+    _initialVector = user.vector;
 
     _initialSkills = user.skills.toSet();
     _selectedSkills = Set<String>.from(_initialSkills);
@@ -71,7 +88,8 @@ void initState() {
     _fullnameController.text = _initialFullName;
     _emailController.text = _initialEmail;
     _addressController.text = _initialAddress;
-      _initialized = true;
+    _vector = _initialVector;
+    _initialized = true;
     }
   }
 
@@ -80,6 +98,7 @@ void initState() {
     _emailController.dispose();
     _fullnameController.dispose();
     _addressController.dispose();
+    _cameraService.dispose();
     super.dispose();
   }
 
@@ -179,61 +198,74 @@ void initState() {
                         ),
                       ],
                       const SizedBox(height: 16),
-                    // TODO : --- Face login photo ---
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: colors.softAccent,
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            "Face login photo",
-                            style: TextStyle(
-                                fontSize: 15,
-                                fontWeight: FontWeight.w700,
-                                color: colors.text),
-                          ),
-                          const SizedBox(height: 12),
-                          Text(
-                            "Take a selfie so you can log in with the camera",
-                            style: TextStyle(
-                              fontSize: 13,
-                              color: colors.muted,
-                            ),
-                          ),
-                          const SizedBox(height: 12),
-                          const SizedBox(height: 16),
-                          SizedBox(
-                            width: double.infinity,
-                            child: ElevatedButton(
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: colors.accent,
-                                padding:
-                                    const EdgeInsets.symmetric(vertical: 16),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(28),
+                      
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: colors.softAccent,
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Text(
+                                  "Face login photo",
+                                  style: TextStyle(
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.w700,
+                                      color: colors.text),
                                 ),
-                              ),
-                              onPressed: null ,
-                              child: _saving
-                                  ? const SizedBox(
-                                      height: 20,
-                                      width: 20,
-                                      child: CircularProgressIndicator(
-                                          color: Colors.white, strokeWidth: 2),
-                                    )
-                                  : const Text('Take a photo',
-                                      style: TextStyle(
-                                          fontWeight: FontWeight.w700)),
+                                const SizedBox(width: 8),
+                                
+                                if (_initialVector.isNotEmpty || (_initialVector.isEmpty && _vector.isNotEmpty))
+                                  const Icon(
+                                    Icons.check_circle,
+                                    color: Colors.green,
+                                    size: 18,
+                                  ),
+                                
+                              ],
                             ),
-                          ),
-                        ],
+
+                            const SizedBox(height: 12),
+
+                            Text(
+                              "Take a selfie so you can log in with the camera",
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: colors.muted,
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+                            const SizedBox(height: 16),
+                            SizedBox(
+                              width: double.infinity,
+                              child: ElevatedButton(
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: colors.accent,
+                                  padding:
+                                      const EdgeInsets.symmetric(vertical: 16),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(28),
+                                  ),
+                                ),
+                                onPressed: () => showCameraModal(),
+                                child: _saving
+                                    ? const SizedBox(
+                                        height: 20,
+                                        width: 20,
+                                        child: CircularProgressIndicator(
+                                            color: Colors.white, strokeWidth: 2),
+                                      )
+                                    : const Text('Take a photo', style: TextStyle(fontWeight: FontWeight.w700)),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
                       // --- Field ---
                       _label(colors, 'Full name'),
                       _field(colors, _fullnameController,  key: const Key('fullNameField'), hint: user?.fullName ?? 'Marie Rossier'),
@@ -257,54 +289,54 @@ void initState() {
                       Text(
                       "SKILLS - TAP TO SELECT",
                       style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w700,
-                          letterSpacing: 0.5,
-                          color: colors.muted),
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 0.5,
+                        color: colors.muted),
                       ),
                       const SizedBox(height: 10),
                       Consumer<SkillProvider>(
-                      builder: (context, skillProvider, _) {
-                        if (skillProvider.isLoading) {
-                          return const Padding(
-                            padding: EdgeInsets.symmetric(vertical: 8),
-                            child: Center(child: CircularProgressIndicator()),
-                          );
-                        }
-                        if (skillProvider.skills.isEmpty) {
-                          return Text('No skills available', style: TextStyle(color: colors.muted));
-                        }
-                        return Wrap(
-                          spacing: 8,
-                          runSpacing: 8,
-                          children: skillProvider.skills.map((skill) {
-                            final selected = _selectedSkills.contains(skill.id);
-                            return GestureDetector(
-                              onTap: () => _toggleSkill(skill.id),
-                              child: AnimatedContainer(
-                                duration: const Duration(milliseconds: 150),
-                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                                decoration: BoxDecoration(
-                                  color: selected ? colors.accent : Colors.white,
-                                  borderRadius: BorderRadius.circular(999),
-                                  border: Border.all(
-                                    color: selected ? colors.accent : colors.muted.withValues(alpha: 0.3),
-                                  ),
-                                ),
-                                child: Text(
-                                  skill.name,
-                                  style: TextStyle(
-                                    color: selected ? Colors.white : colors.text,
-                                    fontWeight: FontWeight.w600,
-                                    fontSize: 14,
-                                  ),
-                                ),
-                              ),
+                        builder: (context, skillProvider, _) {
+                          if (skillProvider.isLoading) {
+                            return const Padding(
+                              padding: EdgeInsets.symmetric(vertical: 8),
+                              child: Center(child: CircularProgressIndicator()),
                             );
-                          }).toList(),
-                        );
-                      },
-                    ),
+                          }
+                          if (skillProvider.skills.isEmpty) {
+                            return Text('No skills available', style: TextStyle(color: colors.muted));
+                          }
+                          return Wrap(
+                            spacing: 8,
+                            runSpacing: 8,
+                            children: skillProvider.skills.map((skill) {
+                              final selected = _selectedSkills.contains(skill.id);
+                              return GestureDetector(
+                                onTap: () => _toggleSkill(skill.id),
+                                child: AnimatedContainer(
+                                  duration: const Duration(milliseconds: 150),
+                                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                                  decoration: BoxDecoration(
+                                    color: selected ? colors.accent : Colors.white,
+                                    borderRadius: BorderRadius.circular(999),
+                                    border: Border.all(
+                                      color: selected ? colors.accent : colors.muted.withValues(alpha: 0.3),
+                                    ),
+                                  ),
+                                  child: Text(
+                                    skill.name,
+                                    style: TextStyle(
+                                      color: selected ? Colors.white : colors.text,
+                                      fontWeight: FontWeight.w600,
+                                      fontSize: 14,
+                                    ),
+                                  ),
+                                ),
+                              );
+                            }).toList(),
+                          );
+                        },
+                      ),
                   
                       const SizedBox(height: 28),
                         if (_saveError != null) ...[
@@ -383,6 +415,7 @@ void initState() {
     final fullname = _fullnameController.text.trim().isEmpty ? user.fullName : _fullnameController.text.trim();
     final address = _addressController.text.trim().isEmpty ? user.address : _addressController.text.trim();
     final profilePictureUrl = _imageUrl ?? user.profilePictureUrl;
+    final vector = _vector.isEmpty ? user.vector : _vector;
 
     final updatedUser = user.copyWith(
       email: email,
@@ -390,6 +423,7 @@ void initState() {
       address: address,
       profilePictureUrl: profilePictureUrl,
       skills: _selectedSkills.toList(),
+      vector: vector,
     );
 
     final success = await authProvider.updateProfile(updatedUser);
@@ -424,65 +458,151 @@ void initState() {
     }
   }
 
-bool get _hasUnsavedChanges {
-  return _fullnameController.text.trim() != _initialFullName ||
-      _emailController.text.trim() != _initialEmail ||
-      _addressController.text.trim() != _initialAddress ||
-      (_imageUrl != null && _imageUrl != _initialImageUrl)||
-      !setEquals(_selectedSkills, _initialSkills);
-}
+  bool get _hasUnsavedChanges {
+    return _fullnameController.text.trim() != _initialFullName ||
+        _emailController.text.trim() != _initialEmail ||
+        _addressController.text.trim() != _initialAddress ||
+        (_imageUrl != null && _imageUrl != _initialImageUrl)||
+        !setEquals(_selectedSkills, _initialSkills) ||
+        !listEquals(_vector, _initialVector);
+  }
 
-void _toggleSkill(String skillId) {
-  setState(() {
-    if (_selectedSkills.contains(skillId)) {
-      _selectedSkills.remove(skillId);
-    } else {
-      _selectedSkills.add(skillId);
-    }
-  });
-}
+  void _toggleSkill(String skillId) {
+    setState(() {
+      if (_selectedSkills.contains(skillId)) {
+        _selectedSkills.remove(skillId);
+      } else {
+        _selectedSkills.add(skillId);
+      }
+    });
+  }
 
-Future<String?> _showUnsavedChangesDialog() {
-  return showDialog<String>(
-    context: context,
-    builder: (context) => AlertDialog(
-      title: const Text('Unsaved changes'),
-      content: const Text(
-        'You have unsaved changes. Would you like to save them before leaving?',
+  Future<String?> _showUnsavedChangesDialog() {
+    return showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Unsaved changes'),
+        content: const Text(
+          'You have unsaved changes. Would you like to save them before leaving?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, 'cancel'),
+            child: const Text('Continue editing'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, 'discard'),
+            child: const Text('Discard'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, 'save'),
+            child: const Text('Save changes'),
+          ),
+        ],
       ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context, 'cancel'),
-          child: const Text('Continue editing'),
-        ),
-        TextButton(
-          onPressed: () => Navigator.pop(context, 'discard'),
-          child: const Text('Discard'),
-        ),
-        ElevatedButton(
-          onPressed: () => Navigator.pop(context, 'save'),
-          child: const Text('Save changes'),
-        ),
-      ],
-    ),
-  );
-}
-Future<void> _handleBackNavigation() async {
-  if (!_hasUnsavedChanges) {
-    Navigator.of(context).pop();
-    return;
+    );
+  }
+  Future<void> _handleBackNavigation() async {
+    if (!_hasUnsavedChanges) {
+      Navigator.of(context).pop();
+      return;
+    }
+
+    final action = await _showUnsavedChangesDialog();
+
+    if (!mounted) return;
+
+    if (action == 'discard') {
+      Navigator.of(context).pop();
+    }
+
+    if (action == 'save') {
+      _updateProfile(context);
+    }
   }
 
-  final action = await _showUnsavedChangesDialog();
-
-  if (!mounted) return;
-
-  if (action == 'discard') {
-    Navigator.of(context).pop();
+  void applyVectorCallback(Float32List vector) {
+    Navigator.pop(context);
+    setState(() {
+      _vector = vector.toList(); 
+    });
   }
 
-  if (action == 'save') {
-    _updateProfile(context);
+  void updateCallback() {
+    if (!mounted) return;
+    setState(() {});
   }
-}
+
+  Future<String?> showCameraModal() {
+
+    final colors = Theme.of(context).extension<AppColors>()!;
+
+    return showGeneralDialog<String>(
+
+      context: context,
+      pageBuilder: (context, _, __) {
+        return StreamBuilder(
+          stream: Stream.periodic(const Duration(seconds: 1), (count) => count),
+          builder: ((context, snapshot) {
+            
+            final controller = _cameraService.getCameraController();
+            final error = _cameraService.cameraError;
+
+            return Scaffold(
+              body: Center(
+                child: Column(
+                  children: [
+
+                    SizedBox(height: 30),
+
+                    Row(
+                      children: [
+                        IconButton(
+                          icon: const Icon(Icons.chevron_left, size: 30),
+                          onPressed: () => Navigator.maybePop(context),
+                        ),
+                      ],
+                    ),
+
+
+                    SizedBox(height: 30),
+
+                    controller == null 
+                      ? Container(
+                          height: 1000,
+                          color: colors.field,
+                          child: Center(child: CircularProgressIndicator(color: colors.accent)),
+                        )
+                      : SizedBox(
+                          height: 1000,
+                          child: CameraPreview(controller),
+                        ),
+
+                    if (error != null)
+                      Text(error, style: TextStyle(color: Colors.red)),
+
+                    OutlinedButton(
+                      onPressed: () => requestDetection(),
+                      child: const Text('Detect'),
+                    ),
+
+                  ],
+                ),
+
+              )
+              
+            );
+
+          }),
+        );
+      },
+          
+    );
+
+  }
+
+  void requestDetection() {
+    _cameraService.requestDetection();
+  }
+
 }

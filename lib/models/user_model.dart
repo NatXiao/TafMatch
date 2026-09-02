@@ -9,6 +9,7 @@ class UserModel {
   final String profilePictureUrl;
   final String pictureRecognition;
   final List<String> skills;
+  final List<double> vector;
   final DateTime? createdAt;
 
   UserModel({
@@ -20,6 +21,7 @@ class UserModel {
     this.profilePictureUrl = '',
     this.pictureRecognition = '',
     this.skills = const [],
+    this.vector = const [],
     this.createdAt,
   });
 
@@ -32,6 +34,7 @@ class UserModel {
       'profilePictureUrl': profilePictureUrl,
       'pictureRecognition': pictureRecognition,
       'skills': skills,
+      'vector': vector,
       'createdAt': FieldValue.serverTimestamp(),
     };
   }
@@ -46,6 +49,7 @@ class UserModel {
       profilePictureUrl: map['profilePictureUrl'] ?? '',
       pictureRecognition: map['pictureRecognition'] ?? '',
       skills: List<String>.from(map['skills'] ?? []),
+      vector: List<double>.from(map['vector'] ?? []),
       createdAt: (map['createdAt'] as Timestamp?)?.toDate(),
     );
   }
@@ -58,18 +62,20 @@ class UserModel {
   String? profilePictureUrl,
   String? pictureRecognition,
   List<String>? skills,
+  List<double>? vector,
   DateTime? createdAt,
-}) {
-  return UserModel(
-    uid: uid,
-    email: email ?? this.email,
-    role: role ?? this.role,
-    fullName: fullName ?? this.fullName,
-    address: address ?? this.address,
-    profilePictureUrl: profilePictureUrl ?? this.profilePictureUrl,
-    pictureRecognition: pictureRecognition ?? this.pictureRecognition,
-    skills: skills ?? this.skills,
-    createdAt: createdAt ?? this.createdAt,
-  );
-}
+  }) {
+    return UserModel(
+      uid: uid,
+      email: email ?? this.email,
+      role: role ?? this.role,
+      fullName: fullName ?? this.fullName,
+      address: address ?? this.address,
+      profilePictureUrl: profilePictureUrl ?? this.profilePictureUrl,
+      pictureRecognition: pictureRecognition ?? this.pictureRecognition,
+      skills: skills ?? this.skills,
+      vector: vector ?? this.vector,
+      createdAt: createdAt ?? this.createdAt,
+    );
+  }
 }

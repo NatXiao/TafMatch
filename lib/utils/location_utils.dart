@@ -7,7 +7,7 @@ import 'package:taf_match/utils/transports_api.dart';
 
 class LocationUtils {
 
-  /// Retourne les coordonnées x,y de la géolocalisation
+  /// Return latitude and longitude of geolocalisation
   static Future<Position> findDeviceLocation() async {
     bool serviceEnabled;
     LocationPermission permission;
