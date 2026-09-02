@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:provider/provider.dart';
+import 'package:taf_match/providers/notification_provider.dart';
 import 'package:taf_match/providers/application_provider.dart';
 import 'package:taf_match/providers/skill_provider.dart';
 import 'package:taf_match/providers/user_provider.dart';
@@ -15,6 +16,7 @@ import 'package:taf_match/repositories/image_storage_repository.dart';
 import 'package:taf_match/services/firebase_auth_service.dart';
 import 'package:taf_match/utils/cloudinary_config.dart';
 import 'package:taf_match/utils/firebase_options.dart';
+import 'package:taf_match/utils/notification_utils.dart';
 import 'package:taf_match/utils/theme.dart';
 import 'package:taf_match/views/admin_dashboard.dart';
 import 'providers/auth_provider.dart';
@@ -24,8 +26,8 @@ import 'package:taf_match/providers/job_provider.dart';
 import 'package:taf_match/repositories/firestore_job_repository.dart';
 import 'package:taf_match/views/jp_main_screen.dart';
 import 'package:taf_match/views/js_main_screen.dart';
-
-import 'package:taf_match/services/salary_model.dart';      // 1. imports
+import 'package:taf_match/providers/chat_provider.dart';
+import 'package:taf_match/services/salary_model.dart'; // 1. imports
 import 'package:taf_match/services/salary_estimator.dart';
 
 void main() async {
@@ -35,15 +37,18 @@ void main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
 
-  final salaryModel = await SalaryModel.loadAsset(); 
+  // Must run before runApp() so terminated/background pushes are handled
+  // and foreground pushes get displayed.
+  await NotificationUtils.setupBackgroundHandler();
 
-  runApp(
-     MyApp(salaryModel: salaryModel));
+  final salaryModel = await SalaryModel.loadAsset();
+
+  runApp(MyApp(salaryModel: salaryModel));
 }
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key, required this.salaryModel});
-  
+
   final SalaryModel salaryModel;
   @override
   Widget build(BuildContext context) {
@@ -52,8 +57,6 @@ class MyApp extends StatelessWidget {
         Provider<SalaryEstimator>.value(
           value: SalaryEstimator(salaryModel),
         ),
-
-
         Provider<ImageStorageRepository>(
           create: (_) => CloudinaryImageRepository(
             cloudName: CloudinaryConfig.cloudName,
@@ -61,11 +64,8 @@ class MyApp extends StatelessWidget {
           ),
         ),
         ChangeNotifierProvider(
-          create: (_) => ApplicationProvider(FirestoreApplicationRepository()),
-        ),
-        ChangeNotifierProvider(
-          create: (_) => AuthProvider(FirebaseAuthService(), FirestoreUserRepository()),
-        ),
+            create: (_) =>
+                AuthProvider(FirebaseAuthService(), FirestoreUserRepository())),
         ChangeNotifierProxyProvider<AuthProvider, UserProvider>(
           create: (_) => UserProvider(FirestoreUserRepository()),
           update: (_, authProvider, userProvider) =>
@@ -81,7 +81,12 @@ class MyApp extends StatelessWidget {
         ),
         ChangeNotifierProvider(
           create: (_) => ApplicationProvider(FirestoreApplicationRepository()),
-        )
+        ),
+        ChangeNotifierProvider(create: (_) => NotificationProvider()),
+        ChangeNotifierProxyProvider<AuthProvider, ChatProvider>(
+          create: (_) => ChatProvider(),
+          update: (_, auth, chat) => chat!..syncUser(auth.user?.uid ?? ''),
+        ),
       ],
       child: Consumer2<AuthProvider, UserProvider>(
         builder: (context, auth, userProvider, _) {
@@ -96,15 +101,15 @@ class MyApp extends StatelessWidget {
               body: Center(child: CircularProgressIndicator()),
             );
           } else {
-              final role = userProvider.profile!.role.trim().toLowerCase();
-              if (role == 'employer') {
-                home = const JpMainScreen();
-              } else if (role == 'admin') {
-                home = const AdminDashboardScreen();
-              } else {
-                home = const JeMainScreen();
-              }
+            final role = userProvider.profile!.role.trim().toLowerCase();
+            if (role == 'employer') {
+              home = const JpMainScreen();
+            } else if (role == 'admin') {
+              home = const AdminDashboardScreen();
+            } else {
+              home = const JeMainScreen();
             }
+          }
 
           return MaterialApp(
             title: 'Taf Match',
