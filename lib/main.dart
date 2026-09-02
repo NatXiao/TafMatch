@@ -25,8 +25,8 @@ import 'package:taf_match/providers/job_provider.dart';
 import 'package:taf_match/repositories/firestore_job_repository.dart';
 import 'package:taf_match/views/jp_main_screen.dart';
 import 'package:taf_match/views/js_main_screen.dart';
-
-import 'package:taf_match/services/salary_model.dart';
+import 'package:taf_match/providers/chat_provider.dart';
+import 'package:taf_match/services/salary_model.dart'; // 1. imports
 import 'package:taf_match/services/salary_estimator.dart';
 
 void main() async {
@@ -38,15 +38,14 @@ void main() async {
 
   NotificationProvider.navigatorKey = GlobalKey<NavigatorState>();
 
-  final salaryModel = await SalaryModel.loadAsset(); 
+  final salaryModel = await SalaryModel.loadAsset();
 
-  runApp(
-     MyApp(salaryModel: salaryModel));
+  runApp(MyApp(salaryModel: salaryModel));
 }
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key, required this.salaryModel});
-  
+
   final SalaryModel salaryModel;
   @override
   Widget build(BuildContext context) {
@@ -55,8 +54,6 @@ class MyApp extends StatelessWidget {
         Provider<SalaryEstimator>.value(
           value: SalaryEstimator(salaryModel),
         ),
-
-
         Provider<ImageStorageRepository>(
           create: (_) => CloudinaryImageRepository(
             cloudName: CloudinaryConfig.cloudName,
@@ -64,11 +61,8 @@ class MyApp extends StatelessWidget {
           ),
         ),
         ChangeNotifierProvider(
-          create: (_) => ApplicationProvider(FirestoreApplicationRepository()),
-        ),
-        ChangeNotifierProvider(
-          create: (_) => AuthProvider(FirebaseAuthService(), FirestoreUserRepository()),
-        ),
+            create: (_) =>
+                AuthProvider(FirebaseAuthService(), FirestoreUserRepository())),
         ChangeNotifierProxyProvider<AuthProvider, UserProvider>(
           create: (_) => UserProvider(FirestoreUserRepository()),
           update: (_, authProvider, userProvider) =>

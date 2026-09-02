@@ -4,15 +4,29 @@ import 'package:taf_match/models/application_model.dart';
 import 'package:taf_match/models/job_model.dart';
 import 'package:taf_match/providers/application_provider.dart';
 import 'package:taf_match/providers/notification_provider.dart';
+import 'package:taf_match/providers/notification_provider.dart';
 import 'package:taf_match/repositories/firestore_review_repository.dart';
 import 'package:taf_match/repositories/firestore_user_repository.dart';
 import 'package:taf_match/utils/theme.dart';
 import 'package:taf_match/views/profile_screen.dart';
+import 'package:taf_match/providers/auth_provider.dart';
+import 'package:taf_match/providers/chat_provider.dart';
+import 'package:taf_match/views/chat_screen.dart';
 
-typedef _Applicant = ({String name, String photoUrl, double rating, int reviews});
+typedef _Applicant = ({
+  String name,
+  String photoUrl,
+  double rating,
+  int reviews
+});
 
 class ApplicantsScreen extends StatefulWidget {
-  const ApplicantsScreen({super.key, required this.job, this.userRepository, this.reviewRepository,});
+  const ApplicantsScreen({
+    super.key,
+    required this.job,
+    this.userRepository,
+    this.reviewRepository,
+  });
   final Job job;
   final FirestoreUserRepository? userRepository;
   final FirestoreReviewRepository? reviewRepository;
@@ -29,11 +43,12 @@ class _ApplicantsScreenState extends State<ApplicantsScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<ApplicationProvider>().listenToJobApplications(widget.job.id);
+      context
+          .read<ApplicationProvider>()
+          .listenToJobApplications(widget.job.id);
     });
     _userRepository = widget.userRepository ?? FirestoreUserRepository();
     _reviewRepository = widget.reviewRepository ?? FirestoreReviewRepository();
-  
   }
 
   Future<_Applicant> _loadApplicant(String studentId) async {
@@ -49,6 +64,7 @@ class _ApplicantsScreenState extends State<ApplicantsScreen> {
       reviews: reviews.length,
     );
   }
+
   void _openApplicantProfile(String studentId) {
     Navigator.push(
       context,
@@ -71,17 +87,22 @@ class _ApplicantsScreenState extends State<ApplicantsScreen> {
               child: Row(
                 children: [
                   IconButton(
-                    icon: Icon(Icons.chevron_left, size: 30, color: colors.text),
+                    icon:
+                        Icon(Icons.chevron_left, size: 30, color: colors.text),
                     onPressed: () => Navigator.maybePop(context),
                   ),
                   Text('Applicants',
-                      style: TextStyle(fontSize: 24, fontWeight: FontWeight.w600, color: colors.text)),
+                      style: TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.w600,
+                          color: colors.text)),
                 ],
               ),
             ),
             Padding(
               padding: const EdgeInsets.fromLTRB(22, 0, 22, 8),
-              child: Text('Tap an applicant to open their profile and rate them',
+              child: Text(
+                  'Tap an applicant to open their profile and rate them',
                   style: TextStyle(fontSize: 13, color: colors.muted)),
             ),
             Expanded(
@@ -115,7 +136,6 @@ class _ApplicantsScreenState extends State<ApplicantsScreen> {
   }
 }
 
-
 class _ApplicantCard extends StatelessWidget {
   const _ApplicantCard({required this.application, required this.job, required this.loadApplicant, required this.onOpenProfile});
 
@@ -134,15 +154,17 @@ class _ApplicantCard extends StatelessWidget {
         color: Colors.white,
         borderRadius: BorderRadius.circular(18),
         border: Border.all(color: colors.border),
-        boxShadow: const [BoxShadow(color: Color(0x242E3D8C), offset: Offset(0, 14), blurRadius: 34)],
+        boxShadow: const [
+          BoxShadow(
+              color: Color(0x242E3D8C), offset: Offset(0, 14), blurRadius: 34)
+        ],
       ),
       child: Column(
         children: [
           InkWell(
             borderRadius: BorderRadius.circular(12),
             onTap: onOpenProfile,
-            child:
-            FutureBuilder<_Applicant>(
+            child: FutureBuilder<_Applicant>(
               future: loadApplicant(application.studentId),
               builder: (context, snap) {
                 final a = snap.data ??
@@ -153,14 +175,16 @@ class _ApplicantCard extends StatelessWidget {
                     CircleAvatar(
                       radius: 22,
                       backgroundColor: colors.avatar,
-                      backgroundImage:
-                          a.photoUrl.isNotEmpty ? NetworkImage(a.photoUrl) : null,
+                      backgroundImage: a.photoUrl.isNotEmpty
+                          ? NetworkImage(a.photoUrl)
+                          : null,
                       child: a.photoUrl.isEmpty
-                          ? const Icon(Icons.person, color: Colors.white, size: 24)
+                          ? const Icon(Icons.person,
+                              color: Colors.white, size: 24)
                           : null,
                     ),
                     const SizedBox(width: 12),
-                  Expanded(
+                    Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -170,10 +194,13 @@ class _ApplicantCard extends StatelessWidget {
                               Flexible(
                                 child: Text(a.name,
                                     overflow: TextOverflow.ellipsis,
-                                    style: TextStyle(fontSize: 16,
-                                        fontWeight: FontWeight.w600, color: colors.accent)),
+                                    style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w600,
+                                        color: colors.accent)),
                               ),
-                              Icon(Icons.chevron_right, size: 18, color: colors.accent),
+                              Icon(Icons.chevron_right,
+                                  size: 18, color: colors.accent),
                             ],
                           ),
                           const SizedBox(height: 4),
@@ -181,8 +208,10 @@ class _ApplicantCard extends StatelessWidget {
                             children: [
                               Icon(Icons.star, size: 15, color: colors.accent),
                               const SizedBox(width: 4),
-                              Text('${a.rating.toStringAsFixed(1)} · ${a.reviews} reviews',
-                                  style: TextStyle(fontSize: 13, color: colors.muted)),
+                              Text(
+                                  '${a.rating.toStringAsFixed(1)} · ${a.reviews} reviews',
+                                  style: TextStyle(
+                                      fontSize: 13, color: colors.muted)),
                             ],
                           ),
                         ],
@@ -198,16 +227,20 @@ class _ApplicantCard extends StatelessWidget {
           Row(
             children: [
               Expanded(
+                // TODO send a push notification to the student when their application is accepted or rejected
                 child: ElevatedButton(
                   onPressed: application.status == 'accepted'
                       ? null
                       : () { _updateStatus(context, 'accepted');
                       },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: colors.accent, foregroundColor: Colors.white,
-                    elevation: 0, padding: const EdgeInsets.symmetric(vertical: 14),
+                    backgroundColor: colors.accent,
+                    foregroundColor: Colors.white,
+                    elevation: 0,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
                     shape: const StadiumBorder(),
-                    textStyle: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+                    textStyle: const TextStyle(
+                        fontSize: 15, fontWeight: FontWeight.w600),
                   ),
                   child: const Text('Accept'),
                 ),
@@ -224,16 +257,63 @@ class _ApplicantCard extends StatelessWidget {
                     side: BorderSide(color: colors.accent, width: 1.5),
                     padding: const EdgeInsets.symmetric(vertical: 14),
                     shape: const StadiumBorder(),
-                    textStyle: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+                    textStyle: const TextStyle(
+                        fontSize: 15, fontWeight: FontWeight.w600),
                   ),
                   child: const Text('Reject'),
                 ),
               ),
             ],
           ),
+          const SizedBox(height: 10),
+          SizedBox(
+            width: double.infinity,
+            child: TextButton.icon(
+              icon: const Icon(Icons.chat_bubble_outline, size: 18),
+              label: const Text('Message'),
+              style: TextButton.styleFrom(
+                foregroundColor: colors.accent,
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                shape: const StadiumBorder(),
+              ),
+              onPressed: () => _openChat(context),
+            ),
+          ),
         ],
       ),
     );
+  }
+
+  Future<void> _openChat(BuildContext context) async {
+    final employerId = context.read<AuthProvider>().user?.uid ?? '';
+    if (employerId.isEmpty) return;
+
+    final messenger = ScaffoldMessenger.of(context);
+    final navigator = Navigator.of(context);
+
+    try {
+      final conversation = await context.read<ChatProvider>().startConversation(
+            employerId: employerId,
+            studentId: application.studentId,
+            jobId: job.id,
+            jobTitle: job.title,
+          );
+      final user =
+          await FirestoreUserRepository().getProfile(application.studentId);
+
+      navigator.push(MaterialPageRoute(
+        builder: (_) => ChatScreen(
+          conversationId: conversation.id,
+          otherUserId: application.studentId,
+          otherUserName: user?.fullName ?? 'Applicant',
+          otherUserPhotoUrl: user?.profilePictureUrl ?? '',
+          jobTitle: conversation.jobTitle,
+        ),
+      ));
+    } catch (e) {
+      messenger
+          .showSnackBar(SnackBar(content: Text('Could not open chat: $e')));
+    }
   }
 
   Future<void> _updateStatus(
@@ -277,17 +357,25 @@ class _ApplicantCard extends StatelessWidget {
     late final Color fg;
     switch (status) {
       case 'accepted':
-        label = 'Accepted'; bg = colors.accent; fg = Colors.white;
+        label = 'Accepted';
+        bg = colors.accent;
+        fg = Colors.white;
       case 'rejected':
-        label = 'Rejected'; bg = colors.softDanger; fg = colors.danger;
+        label = 'Rejected';
+        bg = colors.softDanger;
+        fg = colors.danger;
       default:
-        label = 'To review'; bg = colors.softAccent; fg = colors.accent;
+        label = 'To review';
+        bg = colors.softAccent;
+        fg = colors.accent;
     }
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
-      decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(999)),
+      decoration:
+          BoxDecoration(color: bg, borderRadius: BorderRadius.circular(999)),
       child: Text(label,
-          style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: fg)),
+          style:
+              TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: fg)),
     );
   }
 }
