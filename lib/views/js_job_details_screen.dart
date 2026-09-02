@@ -1,8 +1,9 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_osm_plugin/flutter_osm_plugin.dart';
+import 'package:flutter_map/flutter_map.dart';
 import 'package:intl/intl.dart';
+import 'package:latlong2/latlong.dart';
 import 'package:provider/provider.dart';
 import 'package:taf_match/models/application_model.dart';
 import 'package:taf_match/models/job_model.dart';
@@ -54,15 +55,9 @@ class _JobDetailScreenState extends State<JobDetailScreen> {
   List<TransportModel> transports = [];
   bool isLoadingTransports = false;
 
-  final _controller = MapController(
-    initPosition: GeoPoint(latitude: 47.4358055, longitude: 8.4737324),
-    areaLimit: const BoundingBox(
-      east: 10.4922941,
-      north: 47.8084648,
-      south: 45.817995,
-      west: 5.9559113,
-    ),
-  );
+  final _mapController = MapController();
+  LatLng? _userPosition;
+  LatLng? _jobPosition;
 
   @override
   void initState() {
@@ -223,6 +218,7 @@ class _JobDetailScreenState extends State<JobDetailScreen> {
                 ],
               ),
             ),
+
             Expanded(
               child: ListView(
                 padding: const EdgeInsets.fromLTRB(22, 8, 22, 24),
@@ -440,46 +436,57 @@ class _JobDetailScreenState extends State<JobDetailScreen> {
                   Text('Interactive map', style: TextStyle(fontSize: 18, color: colors.muted, fontWeight: FontWeight.w700)),
                   const SizedBox(height: 20),
 
-                  SizedBox(
-                    height: 500,
-                    child: OSMFlutter(
-                      controller: _controller,
-                      osmOption: OSMOption(
-                        userTrackingOption: const UserTrackingOption(
-                          enableTracking: true,
-                          unFollowUser: false,
-                        ),
-                        zoomOption: const ZoomOption(
-                          initZoom: 8,
-                          minZoomLevel: 3,
-                          maxZoomLevel: 19,
-                          stepZoom: 1.0,
-                        ),
-                        userLocationMarker: UserLocationMaker(
-                          personMarker: const MarkerIcon(
-                            icon: Icon(
-                              Icons.location_history_rounded,
-                              color: Colors.red,
-                              size: 48,
-                            ),
-                          ),
-                          directionArrowMarker: const MarkerIcon(
-                            icon: Icon(
-                              Icons.double_arrow,
-                              size: 48,
-                            ),
-                          ),
-                        ),
-                        roadConfiguration: const RoadOption(
-                          roadColor: Colors.yellowAccent,
-                        ),
-                      ),
-                    )
-                  )
+                  Stack(
+                    children: [
 
+                      SizedBox(
+                        height: 500,
+                        child: FlutterMap(
+                          mapController: _mapController,
+                          options: MapOptions(
+                            initialCenter: LatLng(46.5, 6.6),
+                            initialZoom: 8,
+                          ),
+                          children: [
+                            TileLayer(
+                              urlTemplate: "https://tile.openstreetmap.org/{z}/{x}/{y}.png", // 'https://tile.opentopomap.org/{z}/{x}/{y}.png',
+                              userAgentPackageName: 'com.tafmatch.app',
+                            ),
+                            MarkerLayer(
+                              markers: [
+                                if (_userPosition != null)
+                                  Marker(
+                                    point: _userPosition!,
+                                    width: 48,
+                                    height: 48,
+                                    alignment: Alignment.topCenter,
+                                    child: const Icon(Icons.location_on, color: Colors.blue, size: 48),
+                                  ),
+                                if (_jobPosition != null)
+                                  Marker(
+                                    point: _jobPosition!,
+                                    width: 48,
+                                    height: 48,
+                                    alignment: Alignment.topCenter,
+                                    child: const Icon(Icons.location_on, color: Colors.red, size: 48),
+                                  ),
+                              ]
+                            ),
+                          ],
+                        )
+                      ),
+
+                      if (_userPosition == null)
+                        Container(
+                          height: 500,
+                          color: colors.field,
+                          child: Center(child: CircularProgressIndicator(color: colors.accent)),
+                        )
+                    ],
+                  )
                 ],
               ),
-
+            
             ),
 
           ],
@@ -719,29 +726,17 @@ class _JobDetailScreenState extends State<JobDetailScreen> {
 
     final coord = await LocationUtils.getLocationCoord(widget.job.address);
 
-    final userMarker = MarkerIcon(
-      icon: Icon(
-        Icons.location_on_outlined,
-        color: Colors.blue,
-        size: 48,
-      ),
-    );
+    setState(() {
+      _userPosition = LatLng(latitude, longitude);
 
-    final jobMarker = MarkerIcon(
-      icon: Icon(
-        Icons.location_on,
-        color: Colors.red,
-        size: 48,
-      ),
-    );
+      if (coord != null) {
+        _jobPosition = LatLng(coord.$1, coord.$2);
+      }
+    });
 
-    await _controller.addMarker(GeoPoint(latitude: latitude, longitude: longitude), markerIcon: userMarker);
+    final bounds = LatLngBounds.fromPoints([_userPosition!, _jobPosition!]);
 
-    if (coord != null) {
-      await _controller.addMarker(GeoPoint(latitude: coord.$1, longitude: coord.$2), markerIcon: jobMarker);
-    }
-
-    await _controller.currentLocation();
+    _mapController.fitCamera(CameraFit.bounds(bounds: bounds, padding: EdgeInsets.all(50)));
   }
 
 }

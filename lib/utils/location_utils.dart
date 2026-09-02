@@ -41,9 +41,7 @@ class LocationUtils {
     String? location;
     if (locations["stations"] != null) {
       locations['stations'].forEach((v) {
-        if (location == "") {
-          location = v["name"];
-        }
+        location ??= v["name"];
       });
     }
 
