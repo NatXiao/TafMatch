@@ -109,24 +109,24 @@ class AuthProvider with ChangeNotifier {
   // Update profile
   Future<bool> updateProfile(
   UserModel updatedUser,
-) async {
-  _isLoading = true;
-  _errorMessage = null;
-  notifyListeners();
-
-  try {
-    await _userRepository.updateProfile(updatedUser.uid, updatedUser.toMap());
-
-    _isLoading = false;
+  ) async {
+    _isLoading = true;
+    _errorMessage = null;
     notifyListeners();
 
-    return true;
-  } catch (e) {
-    _errorMessage = e.toString();
-    _isLoading = false;
-    notifyListeners();
+    try {
+      await _userRepository.updateProfile(updatedUser.uid, updatedUser.toMap());
 
-    return false;
+      _isLoading = false;
+      notifyListeners();
+
+      return true;
+    } catch (e) {
+      _errorMessage = e.toString();
+      _isLoading = false;
+      notifyListeners();
+
+      return false;
+    }
   }
-}
 }
