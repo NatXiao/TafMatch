@@ -8,6 +8,9 @@ import 'package:taf_match/repositories/firestore_review_repository.dart';
 import 'package:taf_match/repositories/firestore_user_repository.dart';
 import 'package:taf_match/utils/theme.dart';
 import 'package:taf_match/views/profile_screen.dart';
+import 'package:taf_match/providers/auth_provider.dart';
+import 'package:taf_match/providers/chat_provider.dart';
+import 'package:taf_match/views/chat_screen.dart';
 
 typedef _Applicant = ({String name, String photoUrl, double rating, int reviews});
 
@@ -232,23 +235,75 @@ class _ApplicantCard extends StatelessWidget {
               ),
             ],
           ),
+          const SizedBox(height: 10),
+          SizedBox(
+            width: double.infinity,
+            child: TextButton.icon(
+              icon: const Icon(Icons.chat_bubble_outline, size: 18),
+              label: const Text('Message'),
+              style: TextButton.styleFrom(
+                foregroundColor: colors.accent,
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                shape: const StadiumBorder(),
+              ),
+              onPressed: () => _openChat(context),
+            ),
+          ),
+          
         ],
       ),
     );
   }
 
+  Future<void> _openChat(BuildContext context) async {
+      final employerId = context.read<AuthProvider>().user?.uid ?? '';
+      if (employerId.isEmpty) return;
+
+      final messenger = ScaffoldMessenger.of(context);
+      final navigator = Navigator.of(context);
+
+      try {
+        final conversation = await context.read<ChatProvider>().startConversation(
+          employerId: employerId,
+          studentId: application.studentId,
+          jobId: job.id,
+          jobTitle: job.title,
+        );
+        final user =
+            await FirestoreUserRepository().getProfile(application.studentId);
+
+        navigator.push(MaterialPageRoute(
+          builder: (_) => ChatScreen(
+            conversationId: conversation.id,
+            otherUserId: application.studentId,
+            otherUserName: user?.fullName ?? 'Applicant',
+            otherUserPhotoUrl: user?.profilePictureUrl ?? '',
+            jobTitle: conversation.originJobTitle,
+          ),
+        ));
+      } catch (e) {
+        messenger.showSnackBar(
+            SnackBar(content: Text('Could not open chat: $e')));
+      }
+    }
+
+
+
+
   Future<void> _updateStatus(
     BuildContext context,
     String status,
   ) async {
+    final applications = context.read<ApplicationProvider>();
+    final notifications = context.read<NotificationProvider>();
+    final messenger = ScaffoldMessenger.of(context);
+
     try {
       // update the application
-      await context
-          .read<ApplicationProvider>()
-          .updateStatus(application.id, status);
+      await applications.updateStatus(application.id, status);
 
       // create the notification only if successful
-      await context.read<NotificationProvider>().notify(
+      await notifications.notify(
         userId: application.studentId,
         title: status == 'accepted'
             ? 'Application accepted'
@@ -261,13 +316,9 @@ class _ApplicantCard extends StatelessWidget {
         applicationId: application.id,
       );
     } catch (e) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Could not update application: $e'),
-          ),
-        );
-      }
+      messenger.showSnackBar(
+        SnackBar(content: Text('Could not update application: $e')),
+      );
     }
   }
 

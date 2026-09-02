@@ -5,6 +5,8 @@ import 'package:taf_match/providers/notification_provider.dart';
 import 'package:taf_match/views/jp_my_posting_screen.dart';
 import 'package:taf_match/utils/theme.dart';
 import 'package:taf_match/views/profile_screen.dart';
+import 'package:taf_match/providers/chat_provider.dart';
+import 'package:taf_match/views/chat_list_screen.dart';
 
 /// Main screen for job seekers, with bottom navigation bar to switch between Jobs, Applications, and Profile.
 class JpMainScreen extends StatefulWidget {
@@ -20,6 +22,7 @@ class _JpMainScreenState extends State<JpMainScreen> {
 
   final _screens = const [
     MyPostingsScreen(),
+    ChatListScreen(),
     ProfileScreen(),
   ];
 @override
@@ -33,7 +36,9 @@ class _JpMainScreenState extends State<JpMainScreen> {
         context
             .read<NotificationProvider>()
             .listenToNotifications(user.uid);
+        context.read<ChatProvider>().listenToConversations(user.uid);
       }
+
     });
   }
   @override
@@ -64,12 +69,47 @@ class _JpMainScreenState extends State<JpMainScreen> {
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
             _navItem(colors, 'Postings', 0),
-            _navItem(colors, 'Profile', 1),
+            _messagesNavItem(colors, 1),
+            _navItem(colors, 'Profile', 2),
           ],
         ),
       ),
     );
   }
+
+  Widget _messagesNavItem(AppColors colors, int index) {
+    return Consumer<ChatProvider>(
+      builder: (context, chat, _) {
+        final unread = chat.totalUnread;
+        return Stack(
+          clipBehavior: Clip.none,
+          children: [
+            _navItem(colors, 'Messages', index),
+            if (unread > 0)
+              Positioned(
+                right: -6,
+                top: -4,
+                child: Container(
+                  padding: const EdgeInsets.all(4),
+                  constraints: const BoxConstraints(minWidth: 18, minHeight: 18),
+                  decoration: const BoxDecoration(
+                      color: Colors.red, shape: BoxShape.circle),
+                  child: Text(
+                    unread > 9 ? '9+' : '$unread',
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ),
+          ],
+        );
+      },
+    );
+  }
+
 
   Widget _navItem(AppColors colors, String label, int index) {
     final active = _currentIndex == index;

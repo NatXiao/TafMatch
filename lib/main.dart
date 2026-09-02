@@ -26,7 +26,7 @@ import 'package:taf_match/providers/job_provider.dart';
 import 'package:taf_match/repositories/firestore_job_repository.dart';
 import 'package:taf_match/views/jp_main_screen.dart';
 import 'package:taf_match/views/js_main_screen.dart';
-
+import 'package:taf_match/providers/chat_provider.dart';
 import 'package:taf_match/services/salary_model.dart';      // 1. imports
 import 'package:taf_match/services/salary_estimator.dart';
 
@@ -83,6 +83,7 @@ class MyApp extends StatelessWidget {
           create: (_) => ApplicationProvider(FirestoreApplicationRepository()),
         ),
         ChangeNotifierProvider(create: (_) => NotificationProvider()),
+        ChangeNotifierProvider(create: (_) => ChatProvider()),
       ],
       child: Consumer2<AuthProvider, UserProvider>(
         builder: (context, auth, userProvider, _) {

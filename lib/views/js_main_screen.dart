@@ -6,6 +6,8 @@ import 'package:taf_match/views/js_job_list_screen.dart';
 import 'package:taf_match/views/js_applications_screen.dart';
 import 'package:taf_match/utils/theme.dart';
 import 'package:taf_match/views/profile_screen.dart';
+import 'package:taf_match/providers/chat_provider.dart';
+import 'package:taf_match/views/chat_list_screen.dart';
 
 /// Main screen for job seekers, with bottom navigation bar to switch between Jobs, Applications, and Profile.
 class JeMainScreen extends StatefulWidget {
@@ -24,6 +26,7 @@ class _JeMainScreenState extends State<JeMainScreen> {
   late final List<Widget> _screens = [
     widget.jobsScreen ?? const JobListScreen(),
     widget.applicationsScreen ?? const ApplicationsScreen(),
+    const ChatListScreen(),
     ProfileScreen(),
   ];
   @override
@@ -37,6 +40,8 @@ class _JeMainScreenState extends State<JeMainScreen> {
         context
             .read<NotificationProvider>()
             .listenToNotifications(user.uid);
+        context.read<ChatProvider>().listenToConversations(user.uid); 
+        
       }
     });
   }
@@ -69,12 +74,47 @@ class _JeMainScreenState extends State<JeMainScreen> {
           children: [
             _navItem(colors, 'Jobs', 0, Key("jobs_tab")),
             _navItem(colors, 'Applications', 1, Key("applications_tab")),
-            _navItem(colors, 'Profile', 2, Key("profile_tab")),
+            _messagesNavItem(colors, 2, const Key("messages_tab")), 
+            _navItem(colors, 'Profile', 3, Key("profile_tab")),
           ],
         ),
       ),
     );
   }
+
+    Widget _messagesNavItem(AppColors colors, int index, Key key) {
+      return Consumer<ChatProvider>(
+        builder: (context, chat, _) {
+          final unread = chat.totalUnread;
+          return Stack(
+            clipBehavior: Clip.none,
+            children: [
+              _navItem(colors, 'Messages', index, key),
+              if (unread > 0)
+                Positioned(
+                  right: -6,
+                  top: -4,
+                  child: Container(
+                    padding: const EdgeInsets.all(4),
+                    constraints: const BoxConstraints(minWidth: 18, minHeight: 18),
+                    decoration: const BoxDecoration(
+                        color: Colors.red, shape: BoxShape.circle),
+                    child: Text(
+                      unread > 9 ? '9+' : '$unread',
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                ),
+            ],
+          );
+        },
+      );
+    }
+
 
   Widget _navItem(AppColors colors, String label, int index, Key key) {
     final active = _currentIndex == index;
