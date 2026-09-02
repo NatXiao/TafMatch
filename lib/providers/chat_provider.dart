@@ -39,9 +39,6 @@ class ChatProvider extends ChangeNotifier {
 
     if (userId.isEmpty) {
       _conversations = [];
-      for (final c in conversations) {
-        debugPrint('>>> conv ${c.id} unread=${c.unreadCount}');
-      }
       notifyListeners();
       return;
     }
@@ -62,8 +59,8 @@ class ChatProvider extends ChangeNotifier {
   Future<Conversation> startConversation({
     required String employerId,
     required String studentId,
-    String? jobId,
-    String? jobTitle,
+    required String jobId,
+    required String jobTitle,
   }) {
     return _repository.openConversation(
       employerId: employerId,
@@ -86,8 +83,7 @@ class ChatProvider extends ChangeNotifier {
     _loadingMessages = true;
     notifyListeners();
 
-    _messagesSubscription =
-        _repository.watchMessages(conversationId).listen(
+    _messagesSubscription = _repository.watchMessages(conversationId).listen(
       (messages) {
         _messages = messages;
         _loadingMessages = false;
@@ -109,8 +105,6 @@ class ChatProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  
-
   Future<void> sendMessage({
     required String conversationId,
     required String senderId,
@@ -130,17 +124,8 @@ class ChatProvider extends ChangeNotifier {
 
   Future<void> markRead(String conversationId, [String? userId]) async {
     final uid = userId ?? _currentUserId;
-    debugPrint('>>> markRead called: conv=$conversationId uid=$uid');
-    if (uid.isEmpty) {
-      debugPrint('>>> markRead ABORTED: empty uid');
-      return;
-    }
-    try {
-      await _repository.markRead(conversationId: conversationId, userId: uid);
-      debugPrint('>>> markRead OK');
-    } catch (e) {
-      debugPrint('>>> markRead FAILED: $e');
-    }
+    if (uid.isEmpty) return;
+    await _repository.markRead(conversationId: conversationId, userId: uid);
   }
 
   void clear() {
@@ -153,7 +138,7 @@ class ChatProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-    /// Called by the proxy provider whenever the signed-in user changes.
+  /// Called by the proxy provider whenever the signed-in user changes.
   void syncUser(String userId) {
     if (userId == _currentUserId) return;
     _currentUserId = userId;

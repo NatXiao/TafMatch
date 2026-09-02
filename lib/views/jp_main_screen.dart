@@ -10,8 +10,15 @@ import 'package:taf_match/views/chat_list_screen.dart';
 
 /// Main screen for job seekers, with bottom navigation bar to switch between Jobs, Applications, and Profile.
 class JpMainScreen extends StatefulWidget {
-  const JpMainScreen({super.key, this.postingsScreen});
+  const JpMainScreen({
+    super.key,
+    this.postingsScreen,
+    this.chatScreen,
+    this.profileScreen,
+  });
   final Widget? postingsScreen;
+  final Widget? chatScreen;
+  final Widget? profileScreen;
   @override
   State<JpMainScreen> createState() => _JpMainScreenState();
 }
@@ -20,12 +27,13 @@ class _JpMainScreenState extends State<JpMainScreen> {
   // Current index of the selected tab in the bottom navigation bar.
   int _currentIndex = 0;
 
-  final _screens = const [
-    MyPostingsScreen(),
-    ChatListScreen(),
-    ProfileScreen(),
+  late final List<Widget> _screens = [
+    widget.postingsScreen ?? const MyPostingsScreen(),
+    widget.chatScreen ?? const ChatListScreen(),
+    widget.profileScreen ?? const ProfileScreen(),
   ];
-@override
+
+  @override
   void initState() {
     super.initState();
 
@@ -33,14 +41,12 @@ class _JpMainScreenState extends State<JpMainScreen> {
       final user = context.read<AuthProvider>().user;
 
       if (user != null) {
-        context
-            .read<NotificationProvider>()
-            .listenToNotifications(user.uid);
+        context.read<NotificationProvider>().listenToNotifications(user.uid);
         context.read<ChatProvider>().listenToConversations(user.uid);
       }
-
     });
   }
+
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).extension<AppColors>()!;
@@ -91,7 +97,8 @@ class _JpMainScreenState extends State<JpMainScreen> {
                 top: -4,
                 child: Container(
                   padding: const EdgeInsets.all(4),
-                  constraints: const BoxConstraints(minWidth: 18, minHeight: 18),
+                  constraints:
+                      const BoxConstraints(minWidth: 18, minHeight: 18),
                   decoration: const BoxDecoration(
                       color: Colors.red, shape: BoxShape.circle),
                   child: Text(
@@ -110,7 +117,6 @@ class _JpMainScreenState extends State<JpMainScreen> {
     );
   }
 
-
   Widget _navItem(AppColors colors, String label, int index) {
     final active = _currentIndex == index;
     final color = active ? colors.accent : colors.muted;
@@ -120,7 +126,8 @@ class _JpMainScreenState extends State<JpMainScreen> {
         mainAxisSize: MainAxisSize.min,
         children: [
           Container(
-            width: 8, height: 8,
+            width: 8,
+            height: 8,
             decoration: BoxDecoration(
               color: active ? colors.accent : colors.border,
               shape: BoxShape.circle,
@@ -128,7 +135,8 @@ class _JpMainScreenState extends State<JpMainScreen> {
           ),
           const SizedBox(height: 6),
           Text(label,
-              style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: color)),
+              style: TextStyle(
+                  fontSize: 13, fontWeight: FontWeight.w600, color: color)),
         ],
       ),
     );

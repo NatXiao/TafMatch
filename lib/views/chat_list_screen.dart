@@ -132,17 +132,35 @@ class _ConversationTile extends StatelessWidget {
           color: colors.text,
         ),
       ),
-      subtitle: Text(
-        conversation.hasMessages
-            ? conversation.lastMessage
-            : 'Conversation started',
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-        style: TextStyle(
-          fontSize: 13,
-          color: unread > 0 ? colors.text : colors.muted,
-          fontWeight: unread > 0 ? FontWeight.w600 : FontWeight.w400,
-        ),
+      isThreeLine: true,
+      subtitle: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (conversation.jobTitle.isNotEmpty)
+            Text(
+              conversation.jobTitle,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontSize: 12,
+                color: colors.accent,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          Text(
+            conversation.hasMessages
+                ? conversation.lastMessage
+                : 'Conversation started',
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              fontSize: 13,
+              color: unread > 0 ? colors.text : colors.muted,
+              fontWeight: unread > 0 ? FontWeight.w600 : FontWeight.w400,
+            ),
+          ),
+        ],
       ),
       trailing: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -182,7 +200,7 @@ class _ConversationTile extends StatelessWidget {
             otherUserId: conversation.otherParticipant(currentUserId),
             otherUserName: other?.fullName ?? 'Unknown user',
             otherUserPhotoUrl: other?.profilePictureUrl ?? '',
-            jobTitle: conversation.originJobTitle,
+            jobTitle: conversation.jobTitle,
           ),
         ),
       ),

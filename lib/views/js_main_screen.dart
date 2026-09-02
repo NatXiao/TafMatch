@@ -11,9 +11,17 @@ import 'package:taf_match/views/chat_list_screen.dart';
 
 /// Main screen for job seekers, with bottom navigation bar to switch between Jobs, Applications, and Profile.
 class JeMainScreen extends StatefulWidget {
-  const JeMainScreen({super.key, this.jobsScreen, this.applicationsScreen});
+  const JeMainScreen({
+    super.key,
+    this.jobsScreen,
+    this.applicationsScreen,
+    this.chatScreen,
+    this.profileScreen,
+  });
   final Widget? jobsScreen;
   final Widget? applicationsScreen;
+  final Widget? chatScreen;
+  final Widget? profileScreen;
 
   @override
   State<JeMainScreen> createState() => _JeMainScreenState();
@@ -26,8 +34,8 @@ class _JeMainScreenState extends State<JeMainScreen> {
   late final List<Widget> _screens = [
     widget.jobsScreen ?? const JobListScreen(),
     widget.applicationsScreen ?? const ApplicationsScreen(),
-    const ChatListScreen(),
-    ProfileScreen(),
+    widget.chatScreen ?? const ChatListScreen(),
+    widget.profileScreen ?? const ProfileScreen(),
   ];
   @override
   void initState() {
@@ -37,14 +45,12 @@ class _JeMainScreenState extends State<JeMainScreen> {
       final user = context.read<AuthProvider>().user;
 
       if (user != null) {
-        context
-            .read<NotificationProvider>()
-            .listenToNotifications(user.uid);
-        context.read<ChatProvider>().listenToConversations(user.uid); 
-        
+        context.read<NotificationProvider>().listenToNotifications(user.uid);
+        context.read<ChatProvider>().listenToConversations(user.uid);
       }
     });
   }
+
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).extension<AppColors>()!;
@@ -74,7 +80,7 @@ class _JeMainScreenState extends State<JeMainScreen> {
           children: [
             _navItem(colors, 'Jobs', 0, Key("jobs_tab")),
             _navItem(colors, 'Applications', 1, Key("applications_tab")),
-            _messagesNavItem(colors, 2, const Key("messages_tab")), 
+            _messagesNavItem(colors, 2, const Key("messages_tab")),
             _navItem(colors, 'Profile', 3, Key("profile_tab")),
           ],
         ),
@@ -82,39 +88,39 @@ class _JeMainScreenState extends State<JeMainScreen> {
     );
   }
 
-    Widget _messagesNavItem(AppColors colors, int index, Key key) {
-      return Consumer<ChatProvider>(
-        builder: (context, chat, _) {
-          final unread = chat.totalUnread;
-          return Stack(
-            clipBehavior: Clip.none,
-            children: [
-              _navItem(colors, 'Messages', index, key),
-              if (unread > 0)
-                Positioned(
-                  right: -6,
-                  top: -4,
-                  child: Container(
-                    padding: const EdgeInsets.all(4),
-                    constraints: const BoxConstraints(minWidth: 18, minHeight: 18),
-                    decoration: const BoxDecoration(
-                        color: Colors.red, shape: BoxShape.circle),
-                    child: Text(
-                      unread > 9 ? '9+' : '$unread',
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 10,
-                          fontWeight: FontWeight.bold),
-                    ),
+  Widget _messagesNavItem(AppColors colors, int index, Key key) {
+    return Consumer<ChatProvider>(
+      builder: (context, chat, _) {
+        final unread = chat.totalUnread;
+        return Stack(
+          clipBehavior: Clip.none,
+          children: [
+            _navItem(colors, 'Messages', index, key),
+            if (unread > 0)
+              Positioned(
+                right: -6,
+                top: -4,
+                child: Container(
+                  padding: const EdgeInsets.all(4),
+                  constraints:
+                      const BoxConstraints(minWidth: 18, minHeight: 18),
+                  decoration: const BoxDecoration(
+                      color: Colors.red, shape: BoxShape.circle),
+                  child: Text(
+                    unread > 9 ? '9+' : '$unread',
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold),
                   ),
                 ),
-            ],
-          );
-        },
-      );
-    }
-
+              ),
+          ],
+        );
+      },
+    );
+  }
 
   Widget _navItem(AppColors colors, String label, int index, Key key) {
     final active = _currentIndex == index;
@@ -125,16 +131,20 @@ class _JeMainScreenState extends State<JeMainScreen> {
         mainAxisSize: MainAxisSize.min,
         children: [
           Container(
-            width: 8, height: 8,
+            width: 8,
+            height: 8,
             decoration: BoxDecoration(
               color: active ? colors.accent : colors.border,
               shape: BoxShape.circle,
             ),
           ),
           const SizedBox(height: 6),
-          Text(label,
-              style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: color),
-              key: key,),
+          Text(
+            label,
+            style: TextStyle(
+                fontSize: 13, fontWeight: FontWeight.w600, color: color),
+            key: key,
+          ),
         ],
       ),
     );

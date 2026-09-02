@@ -27,7 +27,7 @@ import 'package:taf_match/repositories/firestore_job_repository.dart';
 import 'package:taf_match/views/jp_main_screen.dart';
 import 'package:taf_match/views/js_main_screen.dart';
 import 'package:taf_match/providers/chat_provider.dart';
-import 'package:taf_match/services/salary_model.dart';      // 1. imports
+import 'package:taf_match/services/salary_model.dart'; // 1. imports
 import 'package:taf_match/services/salary_estimator.dart';
 
 void main() async {
@@ -41,15 +41,14 @@ void main() async {
   // and foreground pushes get displayed.
   await NotificationUtils.setupBackgroundHandler();
 
-  final salaryModel = await SalaryModel.loadAsset(); 
+  final salaryModel = await SalaryModel.loadAsset();
 
-  runApp(
-     MyApp(salaryModel: salaryModel));
+  runApp(MyApp(salaryModel: salaryModel));
 }
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key, required this.salaryModel});
-  
+
   final SalaryModel salaryModel;
   @override
   Widget build(BuildContext context) {
@@ -58,18 +57,19 @@ class MyApp extends StatelessWidget {
         Provider<SalaryEstimator>.value(
           value: SalaryEstimator(salaryModel),
         ),
-
-
         Provider<ImageStorageRepository>(
           create: (_) => CloudinaryImageRepository(
             cloudName: CloudinaryConfig.cloudName,
             uploadPreset: CloudinaryConfig.uploadPreset,
           ),
         ),
-        ChangeNotifierProvider(create: (_) => AuthProvider(FirebaseAuthService(), FirestoreUserRepository())),
+        ChangeNotifierProvider(
+            create: (_) =>
+                AuthProvider(FirebaseAuthService(), FirestoreUserRepository())),
         ChangeNotifierProxyProvider<AuthProvider, UserProvider>(
           create: (_) => UserProvider(FirestoreUserRepository()),
-          update: (_, authProvider, userProvider) => userProvider!..updateAuthProvider(authProvider),
+          update: (_, authProvider, userProvider) =>
+              userProvider!..updateAuthProvider(authProvider),
         ),
         ChangeNotifierProvider(
             create: (_) => JobProvider(FirestoreJobRepository())),
@@ -101,15 +101,15 @@ class MyApp extends StatelessWidget {
               body: Center(child: CircularProgressIndicator()),
             );
           } else {
-              final role = userProvider.profile!.role.trim().toLowerCase();
-              if (role == 'employer') {
-                home = const JpMainScreen();
-              } else if (role == 'admin') {
-                home = const AdminDashboardScreen();
-              } else {
-                home = const JeMainScreen();
-              }
+            final role = userProvider.profile!.role.trim().toLowerCase();
+            if (role == 'employer') {
+              home = const JpMainScreen();
+            } else if (role == 'admin') {
+              home = const AdminDashboardScreen();
+            } else {
+              home = const JeMainScreen();
             }
+          }
 
           return MaterialApp(
             title: 'Taf Match',

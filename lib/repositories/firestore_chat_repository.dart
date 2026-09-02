@@ -30,7 +30,8 @@ class FirestoreChatRepository {
 
   /// Newest first — pair this with a `reverse: true` ListView so new messages
   /// appear at the bottom without having to scroll manually.
-  Stream<List<Message>> watchMessages(String conversationId, {int limit = 200}) {
+  Stream<List<Message>> watchMessages(String conversationId,
+      {int limit = 200}) {
     return _messages(conversationId)
         .orderBy('sentAt', descending: true)
         .limit(limit)
@@ -45,16 +46,16 @@ class FirestoreChatRepository {
     return Conversation.fromFirestore(snapshot);
   }
 
-  /// Returns the existing thread for this pair, or creates it.
-  ///
-  /// Only an employer should ever call this — the Firestore rules enforce it.
+  /// Returns the existing thread for this (employer, student, job) triplet,
+  /// or creates it. Only an employer should ever call this — the Firestore
+  /// rules enforce it.
   Future<Conversation> openConversation({
     required String employerId,
     required String studentId,
-    String? jobId,
-    String? jobTitle,
+    required String jobId,
+    required String jobTitle,
   }) async {
-    final id = Conversation.buildId(employerId, studentId);
+    final id = Conversation.buildId(employerId, studentId, jobId);
     final ref = _conversations.doc(id);
 
     final existing = await ref.get();
@@ -65,8 +66,8 @@ class FirestoreChatRepository {
       'employerId': employerId,
       'studentId': studentId,
       'participants': [employerId, studentId],
-      'originJobId': jobId,
-      'originJobTitle': jobTitle,
+      'jobId': jobId,
+      'jobTitle': jobTitle,
       'lastMessage': '',
       'lastSenderId': '',
       'lastMessageAt': now,

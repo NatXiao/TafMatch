@@ -107,7 +107,9 @@ class _ChatScreenState extends State<ChatScreen> {
     if (messages.isNotEmpty && messages.first.senderId != currentUserId) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
-          context.read<ChatProvider>().markRead(widget.conversationId, currentUserId);
+          context
+              .read<ChatProvider>()
+              .markRead(widget.conversationId, currentUserId);
         }
       });
     }
@@ -305,8 +307,7 @@ class _MessageBubble extends StatelessWidget {
               constraints: BoxConstraints(
                 maxWidth: MediaQuery.of(context).size.width * 0.75,
               ),
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
               decoration: BoxDecoration(
                 color: isMine ? colors.accent : colors.softAccent,
                 borderRadius: radius,
