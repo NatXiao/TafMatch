@@ -21,7 +21,7 @@ class ApplicationsScreen extends StatefulWidget {
 }
 
 class _ApplicationsScreenState extends State<ApplicationsScreen> {
-  // Récupération des repositoire uniquement (une fois)
+  // Fetch the repositories only once
   late final FirestoreJobRepository _jobRepository;
   late final FirestoreUserRepository _userRepository;
   @override
@@ -36,7 +36,7 @@ class _ApplicationsScreenState extends State<ApplicationsScreen> {
     });
   }
 
-  // Récupération des jobs et employeurs pour chaque application (titre du job + nom de l'employeur)
+  // Fetch jobs and employers for each application (job title + employer name)
   Future<_JobInfo> _loadJobInfo(String jobId) async {
     final job = await _jobRepository.getById(jobId);
     if (job == null) return (title: 'Unknown job', employer: '');

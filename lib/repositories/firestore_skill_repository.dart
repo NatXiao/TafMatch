@@ -6,7 +6,7 @@ class FirestoreSkillRepository {
   CollectionReference<Map<String, dynamic>> get _skills =>
       _db.collection('skills');
 
-  // Lire tout le catalogue
+  // Read the entire catalog
   Future<List<Skill>> getAll() async {
     final snapshot = await _skills.get();
     return snapshot.docs
@@ -14,7 +14,7 @@ class FirestoreSkillRepository {
         .toList();
   }
 
-  // Remplir le catalogue une seule fois
+  // Populate the catalog once
   Future<void> seed(List<String> names) async {
     for (final name in names) {
       await _skills.add({'name': name});

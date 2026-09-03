@@ -11,9 +11,14 @@ import 'package:taf_match/providers/user_provider.dart';
 import 'package:taf_match/utils/theme.dart';
 import 'package:taf_match/views/js_job_details_screen.dart';
 import 'package:taf_match/views/profile_screen.dart';
+import 'package:taf_match/providers/notification_provider.dart'; 
+import 'package:mockito/annotations.dart';
+import 'package:taf_match/repositories/firestore_notification_repository.dart';
+import 'js_job_details_screen_test.mocks.dart';
 
 import '../fakes.dart';
 
+@GenerateMocks([FirestoreNotificationRepository])
 void main() {
   late FakeApplicationRepository applicationRepository;
   late FakeAuthService authService;
@@ -25,6 +30,7 @@ void main() {
   late ReviewProvider reviewProvider;
   late SkillProvider skillProvider;
   late FakeSkillRepository skillRepository;
+  late NotificationProvider notificationProvider; 
 
   final job = Job(
     id: 'job-1',
@@ -40,6 +46,14 @@ void main() {
     userRepository = FakeUserRepository();
     reviewRepository = FakeReviewRepository();
     skillRepository = FakeSkillRepository();
+
+  
+    final mockFirestoreNotificationRepository = MockFirestoreNotificationRepository();
+
+    
+    notificationProvider = NotificationProvider(
+      repository: mockFirestoreNotificationRepository,
+    );
 
     applicationProvider = ApplicationProvider(applicationRepository);
     authProvider = AuthProvider(authService, userRepository);
@@ -59,6 +73,7 @@ void main() {
     authService.dispose();
     userRepository.dispose();
     reviewRepository.dispose();
+    notificationProvider.dispose();
   });
 
   Future<void> signInAsStudent(WidgetTester tester) async {
@@ -73,8 +88,9 @@ void main() {
           value: applicationProvider,
         ),
         ChangeNotifierProvider<AuthProvider>.value(value: authProvider),
-        // Les trois suivants ne servent pas a JobDetailScreen lui-meme, mais a
-        // ProfileScreen, ouvert depuis la carte employeur.
+        ChangeNotifierProvider<NotificationProvider>.value(
+          value: notificationProvider,
+        ),
         ChangeNotifierProvider<UserProvider>.value(value: userProvider),
         ChangeNotifierProvider<ReviewProvider>.value(value: reviewProvider),
         ChangeNotifierProvider<SkillProvider>.value(value: skillProvider),

@@ -80,7 +80,7 @@ class SalaryModel {
       final coef = (feature['coef'] as num).toDouble();
 
       if (feature['kind'] == 'categorical') {
-        final seen = value == null ? null : value.toString();
+        final seen = value?.toString();
         if (seen == feature['category']) total += coef;
       }        else {
         final fill = (feature['fill_value'] as num).toDouble();
@@ -89,12 +89,12 @@ class SalaryModel {
         if (value == null) {
           number = fill;
         } else if (value is bool) {
-          // Le modèle a vu 0/1, jamais true/false : convertir, pas parser.
+          // The model saw 0/1, never true/false: convert, don't parse.
           number = value ? 1.0 : 0.0;
         } else if (value is num) {
           number = value.toDouble();
         } else {
-          // Champs texte : l'illisible est traité comme vide, comme l'imputer.
+          // Text fields: unreadable values are treated as empty, like the imputer.
           number = double.tryParse(value.toString().replaceAll(',', '.')) ?? fill;
         }
 
@@ -105,8 +105,8 @@ class SalaryModel {
     }
 
     var prediction = _logTarget ? math.exp(total) - 1.0 : total;
-    if (_floor != null) prediction = math.max(prediction, _floor!);
-    if (_ceiling != null) prediction = math.min(prediction, _ceiling!);
+    if (_floor != null) prediction = math.max(prediction, _floor);
+    if (_ceiling != null) prediction = math.min(prediction, _ceiling);
     return prediction;
   }
 

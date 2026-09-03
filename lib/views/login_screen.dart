@@ -5,7 +5,7 @@ import 'package:taf_match/views/about_screen.dart';
 import 'package:taf_match/views/face_login_screen.dart';
 
 import 'package:taf_match/views/signup_screen.dart';
-import 'package:taf_match/utils/theme.dart'; // pour AppColors
+import 'package:taf_match/utils/theme.dart'; // for AppColors
 
 import '../providers/auth_provider.dart';
 
@@ -43,7 +43,7 @@ class LoginScreenState extends State<LoginScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // --- Logo rond ---
+                // --- Circular logo ---
                 Center(
                   child: Container(
                     width: 92, height: 92,
@@ -68,7 +68,7 @@ class LoginScreenState extends State<LoginScreen> {
                 ),
                 const SizedBox(height: 28),
 
-                // --- Champs ---
+                // --- Fields ---
                 _label(colors, 'Email'),
                 _field(colors, _emailController, hint: 'name@edu.hes-so.ch',
                     validator: (value) {
@@ -96,7 +96,7 @@ class LoginScreenState extends State<LoginScreen> {
                 ],
                 const SizedBox(height: 20),
 
-                // --- Bouton Log in ---
+                // --- Log in button ---
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
@@ -115,7 +115,7 @@ class LoginScreenState extends State<LoginScreen> {
                 ),
                 const SizedBox(height: 12),
 
-                // --- Bouton Log in with a photo ---
+                // --- Log in with a photo button ---
                 SizedBox(
                   width: double.infinity,
                   child: OutlinedButton(
@@ -134,7 +134,7 @@ class LoginScreenState extends State<LoginScreen> {
                 ),
                 const SizedBox(height: 20),
 
-                // --- Lien vers l'inscription ---
+                // --- Sign-up link ---
                 Center(
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -154,7 +154,7 @@ class LoginScreenState extends State<LoginScreen> {
                 ),
 
                 const SizedBox(height: 40),
-                // --- Footer About ---
+                // --- About footer ---
                 Center(
                   child: InkWell(
                     onTap: () => Navigator.of(context).push(
@@ -212,30 +212,30 @@ class LoginScreenState extends State<LoginScreen> {
     if (!(_formKey.currentState?.validate() ?? false)) return;
 
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final notifications = context.read<NotificationProvider>();
+    final messenger = ScaffoldMessenger.of(context);
+
     final email = _emailController.text;
     final password = _passwordController.text;
 
     await authProvider.signInWithEmailAndPassword(email, password);
-    final user = context.read<AuthProvider>().user;
+    if (authProvider.user == null) return;
 
-    if (user != null) {
+    await Future.delayed(const Duration(milliseconds: 300));
+    if (!mounted) return;
 
-      await Future.delayed(const Duration(milliseconds: 300)); // TODO : remove this delay and find a better way to ensure the notification count is updated before showing the snackbar
-      if (!mounted) return;
+    final unreadCount = notifications.unreadCount;
+    if (unreadCount == 0) return;
 
-      final unreadCount = context.read<NotificationProvider>().unreadCount;
-      if (unreadCount > 0) {
-        final notificationLabel = unreadCount == 1 ? 'notification' : 'notifications';
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            behavior: SnackBarBehavior.floating,
-            content: Text(
-              'You have $unreadCount new $notificationLabel in your profile.', 
-            ),
-          ),
-        );
-      }
-    }
+    final notificationLabel =
+        unreadCount == 1 ? 'notification' : 'notifications';
+    messenger.showSnackBar(
+      SnackBar(
+        behavior: SnackBarBehavior.floating,
+        content: Text(
+          'You have $unreadCount new $notificationLabel in your profile.',
+        ),
+      ),
+    );
   }
-  
 }

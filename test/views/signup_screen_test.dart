@@ -191,7 +191,7 @@ void main() {
       expect(userRepository.lastAddedUser!.fullName, 'Marie Rossier');
       expect(userRepository.lastAddedUser!.email, 'marie@edu.ch');
       expect(userRepository.lastAddedUser!.address, 'Rue du Rhône 1');
-      expect(userRepository.lastAddedUser!.role, Constants.ROLE_EMPLOYER);
+      expect(userRepository.lastAddedUser!.role, Constants.roleEmployer);
 
       // The screen was popped back to the button page.
       expect(find.byType(SignupScreen), findsNothing);
@@ -215,6 +215,6 @@ void main() {
     await tester.tap(find.widgetWithText(ElevatedButton, 'Create account'));
     await tester.pumpAndSettle();
 
-    expect(userRepository.lastAddedUser!.role, Constants.ROLE_STUDENT);
+    expect(userRepository.lastAddedUser!.role, Constants.roleStudent);
   });
 }

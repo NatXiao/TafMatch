@@ -38,7 +38,7 @@ String _shortDate(DateTime d) {
   return '${days[d.weekday - 1]} ${d.day} ${months[d.month - 1]}';
 }
 
-// Information a affiché de l'employeur
+// Employer information to display
 typedef _Employer = ({
   String name,
   String photoUrl,
@@ -90,7 +90,7 @@ class _JobDetailScreenState extends State<JobDetailScreen> {
     updateMarkerOnMap();
   }
 
-  // Charge les infos de l'employeur (nom, photo, note, nb reviews)
+  // Load employer information (name, photo, rating, number of reviews)
   Future<_Employer> _loadEmployer() async {
     final user = await _userRepository.getProfile(widget.job.employerId);
     final reviews =
@@ -106,7 +106,7 @@ class _JobDetailScreenState extends State<JobDetailScreen> {
     );
   }
 
-  // Ouvre le profil de l'employeur.
+  // Open the employer's profile.
   void _openEmployerProfile() {
     Navigator.push(
       context,
@@ -115,11 +115,11 @@ class _JobDetailScreenState extends State<JobDetailScreen> {
     );
   }
 
-  /// Salaire annuel estimé, en CHF.
+
   ///
-  /// La valeur enregistrée à la publication fait foi. Les annonces créées
-  /// avant l'intégration du modèle n'en ont pas : on la recalcule alors à la
-  /// volée, ce qui est possible puisque les 13 colonnes sont dans le document.
+  /// The value stored when the posting was created is authoritative.
+  /// Older postings do not have it, so it is recalculated on the fly
+  /// because the 13 model columns are already stored in the document.
   double? get _estimatedAnnual {
     final stored = widget.job.predictedSalaryChf;
     if (stored != null) return stored;
@@ -130,7 +130,7 @@ class _JobDetailScreenState extends State<JobDetailScreen> {
     }
   }
 
-  /// La même estimation ramenée à l'heure, au taux d'activité de l'offre.
+  /// The same estimate converted to an hourly rate based on the posting's workload.
   double? get _estimatedHourly {
     final annual = _estimatedAnnual;
     if (annual == null) return null;
@@ -139,7 +139,7 @@ class _JobDetailScreenState extends State<JobDetailScreen> {
         .hourlyFromAnnual(annual, widget.job.workloadPercent);
   }
 
-  /// Écart entre le salaire proposé et l'estimation, en pourcentage.
+  /// Difference between the offered salary and the estimate, as a percentage.
   double? get _salaryGapPercent {
     final offered = widget.job.salaryChfPerHour;
     final estimate = _estimatedHourly;
@@ -147,46 +147,52 @@ class _JobDetailScreenState extends State<JobDetailScreen> {
     return (offered - estimate) / estimate * 100;
   }
 
-  // Apply pour le job
-  // TODO add a push notification to the employer when a student applies
+  // Apply for the job
   Future<void> _apply() async {
     setState(() => _applying = true);
     final uid = context.read<AuthProvider>().user?.uid ?? '';
+
+    // Capture values before await: BuildContext must not be read again
+    // after an asynchronous gap.
+    final applications = context.read<ApplicationProvider>();
+    final notifications = context.read<NotificationProvider>();
+    final messenger = ScaffoldMessenger.of(context);
+
     try {
-      await context.read<ApplicationProvider>().apply(
-            Application(id: '', jobId: widget.job.id, studentId: uid),
-          );
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Your application has successfully been sent!',
-                style: TextStyle(color: Colors.white)),
-            backgroundColor: Colors.blue,
-          ),
-        );
-      }
-      await context.read<NotificationProvider>().notify(
-            userId: widget.job.employerId,
-            title: 'New applicant',
-            message: 'Someone applied to "${widget.job.title}"',
-            type: 'application_received',
-            jobId: widget.job.id,
-          );
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text('Could not apply: $e',
+      await applications.apply(
+        Application(id: '', jobId: widget.job.id, studentId: uid),
+      );
+      messenger.showSnackBar(
+        const SnackBar(
+          content: Text('Your application has successfully been sent!',
               style: TextStyle(color: Colors.white)),
           backgroundColor: Colors.blue,
-        ));
-      }
+        ),
+      );
+      await notifications.notify(
+        userId: widget.job.employerId,
+        title: 'New applicant',
+        message: 'Someone applied to "${widget.job.title}"',
+        type: 'application_received',
+        jobId: widget.job.id,
+      );
+    } catch (e) {
+      messenger.showSnackBar(SnackBar(
+        content: Text('Could not apply: $e',
+            style: TextStyle(color: Colors.white)),
+        backgroundColor: Colors.blue,
+      ));
     } finally {
       if (mounted) setState(() => _applying = false);
     }
   }
 
-  // Annule (retire) la candidature après confirmation.
+  // Cancel (remove) the application after confirmation.
   Future<void> _cancel(Application app) async {
+    final applications = context.read<ApplicationProvider>();
+    final messenger = ScaffoldMessenger.of(context);
+
+
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -206,22 +212,18 @@ class _JobDetailScreenState extends State<JobDetailScreen> {
       ),
     );
     if (confirmed != true) return;
+    if (!mounted) return;
 
     setState(() => _cancelling = true);
     try {
-      await context.read<ApplicationProvider>().cancel(app.id);
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text('Your application has been cancelled.',
-              style: TextStyle(color: Colors.white)),
-          backgroundColor: Colors.blue,
-        ));
-      }
+      await applications.cancel(app.id);
+      messenger.showSnackBar(const SnackBar(
+        content: Text('Your application has been cancelled.',
+            style: TextStyle(color: Colors.white)),
+        backgroundColor: Colors.blue,
+      ));
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text('Could not cancel: $e')));
-      }
+      messenger.showSnackBar(SnackBar(content: Text('Could not cancel: $e')));
     } finally {
       if (mounted) setState(() => _cancelling = false);
     }
@@ -232,7 +234,7 @@ class _JobDetailScreenState extends State<JobDetailScreen> {
     final colors = Theme.of(context).extension<AppColors>()!;
     final job = widget.job;
 
-    // Cherche si l'étudiant a déjà postulé pour ce job
+    // Check whether the student has already applied for this job
     final apps = context.watch<ApplicationProvider>().applications;
     Application? myApp;
     for (final a in apps) {
@@ -242,7 +244,7 @@ class _JobDetailScreenState extends State<JobDetailScreen> {
       }
     }
 
-    // --- Sous-titre (adresse + date) ---
+    // --- Subtitle (address + date) ---
     final subtitle = [
       if (job.address.isNotEmpty) job.address,
       if (job.endDate != null) _shortDate(job.endDate!),
@@ -254,7 +256,7 @@ class _JobDetailScreenState extends State<JobDetailScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // --- Barre du haut ---
+            // --- Top bar ---
             Padding(
               padding: const EdgeInsets.fromLTRB(12, 8, 22, 4),
               child: Row(
@@ -277,7 +279,7 @@ class _JobDetailScreenState extends State<JobDetailScreen> {
               child: ListView(
                 padding: const EdgeInsets.fromLTRB(22, 8, 22, 24),
                 children: [
-                  // --- Image (tap = profil employeur) ---
+                  // --- Image (tap = employer profile) ---
                   Container(
                     height: 170,
                     decoration: BoxDecoration(
@@ -301,7 +303,7 @@ class _JobDetailScreenState extends State<JobDetailScreen> {
                   ),
                   const SizedBox(height: 18),
 
-                  // --- Titre + sous-titre ---
+                  // --- Title + subtitle ---
                   Text(job.title,
                       style: TextStyle(
                           fontSize: 24,
@@ -312,7 +314,7 @@ class _JobDetailScreenState extends State<JobDetailScreen> {
                       style: TextStyle(fontSize: 15, color: colors.muted)),
                   const SizedBox(height: 16),
 
-                  // --- Carte employeur (tap = profil / notation) ---
+                  // --- Employer card (tap = profile / rating) ---
                   FutureBuilder<_Employer>(
                     future: _loadEmployer(),
                     builder: (context, snap) {
@@ -385,13 +387,13 @@ class _JobDetailScreenState extends State<JobDetailScreen> {
                     },
                   ),
                   const SizedBox(height: 8),
-                  // --- Petit texte d'aide sous la carte ---
+                  // --- Small helper text below the card ---
                   Text(
                       'Tap the job or employer to open their profile or rate them',
                       style: TextStyle(fontSize: 12, color: colors.muted)),
                   const SizedBox(height: 24),
 
-                  // --- Ta candidature ---
+                  // --- Your application ---
                   Wrap(
                     alignment: WrapAlignment.spaceBetween,
                     runSpacing: 8,
@@ -415,11 +417,11 @@ class _JobDetailScreenState extends State<JobDetailScreen> {
                   ),
                   const SizedBox(height: 24),
 
-                  // --- Salaire + estimation ---
+                  // --- Salary + estimate ---
                   _salaryBox(colors),
                   const SizedBox(height: 24),
 
-                  // --- Le détail de l'offre ---
+                  // --- Job posting details ---
                   _jobFacts(colors),
 
                   if (job.description.isNotEmpty) ...[
@@ -435,7 +437,7 @@ class _JobDetailScreenState extends State<JobDetailScreen> {
                             fontSize: 14, height: 1.5, color: colors.text)),
                   ],
 
-                  // Liste des transports disponibles
+                  // List of available transportation options
                   const SizedBox(height: 20),
                   Text('Routes · Next connections',
                       style: TextStyle(
@@ -500,7 +502,7 @@ class _JobDetailScreenState extends State<JobDetailScreen> {
                     ),
                   ]),
 
-                  // Carte intéractive
+                  // Interactive map
                   const SizedBox(height: 20),
                   Text('Interactive map',
                       style: TextStyle(
@@ -566,7 +568,7 @@ class _JobDetailScreenState extends State<JobDetailScreen> {
     );
   }
 
-  /// Salaire proposé à gauche, estimation du modèle à droite, écart en dessous.
+  /// Offered salary on the left, model estimate on the right, difference below.
   Widget _salaryBox(AppColors colors) {
     final job = widget.job;
     final hourly = _estimatedHourly;
@@ -620,8 +622,8 @@ class _JobDetailScreenState extends State<JobDetailScreen> {
             ],
           ),
 
-          // L'écart est l'information utile : le chiffre du modèle seul ne dit
-          // rien de plus que ce que l'étudiant lit déjà à gauche.
+          // The difference is the useful information: the model value alone does not
+          // add anything beyond what the student already sees on the left.
           if (gap != null) ...[
             const SizedBox(height: 12),
             Text(
@@ -646,7 +648,7 @@ class _JobDetailScreenState extends State<JobDetailScreen> {
     );
   }
 
-  /// Les champs de l'offre qui alimentent le modèle, tels quels.
+  /// Job fields that feed the model, as entered.
   Widget _jobFacts(AppColors colors) {
     final job = widget.job;
 

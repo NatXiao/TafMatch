@@ -6,7 +6,7 @@ class FirestoreJobRepository {
   CollectionReference<Map<String, dynamic>> get _jobs =>
       _db.collection('jobs');
 
-  // Créer une offre → renvoie l'id généré
+  // Create a job posting → returns the generated id
   Future<String> create(Job job) async {
     final doc = await _jobs.add(job.toMap());
     return doc.id;
@@ -18,7 +18,7 @@ class FirestoreJobRepository {
     return Job.fromMap(id, doc.data()!);
   }
 
-  // Toutes les offres ouvertes (pour les étudiants)
+  // All open job postings (for students)
   Stream<List<Job>> watchLiveJobs() {
     return _jobs
         .where('endDate', isGreaterThanOrEqualTo: Timestamp.now())
@@ -28,7 +28,7 @@ class FirestoreJobRepository {
             .toList());
   }
 
-  // Les offres d'un employeur précis
+  // Job postings from a specific employer
   Stream<List<Job>> watchByEmployer(String employerId) {
     return _jobs
         .where('employerId', isEqualTo: employerId)

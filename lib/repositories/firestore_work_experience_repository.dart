@@ -4,7 +4,7 @@ import '../models/work_experience_model.dart';
 class FirestoreWorkExperienceRepository {
   final FirebaseFirestore _db = FirebaseFirestore.instance;
 
-  // La sous-collection d'UN utilisateur précis
+  // The subcollection of a specific user
   CollectionReference<Map<String, dynamic>> _experiencesOf(String uid) =>
       _db.collection('users').doc(uid).collection('workExperiences');
 
@@ -12,7 +12,7 @@ class FirestoreWorkExperienceRepository {
     return _experiencesOf(uid).add(experience.toMap());
   }
 
-  // Les expériences d'un utilisateur
+  // A user's work experiences
   Stream<List<WorkExperience>> watchForUser(String uid) {
     return _experiencesOf(uid).snapshots().map((snap) => snap.docs
         .map((doc) => WorkExperience.fromMap(doc.id, doc.data()))

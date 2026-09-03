@@ -90,10 +90,10 @@ class MyApp extends StatelessWidget {
           Widget home;
 
           if (auth.user == null) {
-            // 1. Pas connecté
+            // 1. Not logged in
             home = const LoginScreen();
           } else if (userProvider.profile == null) {
-            // 2. Connecté, mais le profil se charge encore
+            // 2. Logged in, but the profile is still loading
             home = const Scaffold(
               body: Center(child: CircularProgressIndicator()),
             );

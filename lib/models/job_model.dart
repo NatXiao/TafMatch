@@ -18,7 +18,7 @@ class Job {
 
   final DateTime? createdAt;
 
-  // Saisies du formulaire sans équivalent ailleurs : elles restent stockées.
+  // Form inputs with no equivalent elsewhere: they remain stored.
   final double experienceMin;
   final double experienceMax;
   final String companySize;
@@ -29,8 +29,8 @@ class Job {
   final double? predictedSalaryChf;
   final String? predictionModelVersion;
 
-  /// Ancien champ `IsPermanent`, lu pour les annonces créées avant que les
-  /// dates de contrat ne soient enregistrées. Ne sert plus qu'au repli.
+  /// Legacy `IsPermanent` field, used for postings created before
+  /// contract dates were stored. It is only used as a fallback.
   final bool? _legacyIsPermanent;                                           
 
   Job({
@@ -64,20 +64,20 @@ class Job {
   }) : _legacyIsPermanent = legacyIsPermanent;                              
 
   // ------------------------------------------------------------------
-  // Colonnes du modèle dérivées de la saisie, jamais stockées.
+  // Model columns derived from the input, never stored.
   // ------------------------------------------------------------------
 
   String get industry => domainName;                                         
   String get diploma => degree;                                              
   double get workloadPercent => (workPercentage ?? 100).toDouble();          
 
-  /// Permanent = un début de contrat, pas de fin. Les annonces antérieures
-  /// n'ont pas les dates : on retombe sur l'ancien booléen stocké.
+  /// Permanent = a contract start date with no end date. Older postings
+  /// do not have the dates, so the legacy stored boolean is used.
   bool get isPermanent => contractStartDate != null                         
       ? contractEndDate == null                                             
       : (_legacyIsPermanent ?? false);                                      
 
-  /// `'French, English'` -> `{French, English}`, tolérant aux espaces.
+  /// `'French, English'` -> `{French, English}`,
   Set<String> get languageSet => languages                                  
       .split(',')                                                           
       .map((l) => l.trim())                                                 

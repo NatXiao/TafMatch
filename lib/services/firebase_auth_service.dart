@@ -33,8 +33,8 @@ class FirebaseAuthService implements AuthService {
     }
   }
 
-  // Crée le compte et renvoie l'uid (ou null si échec).
-  // Le profil Firestore est créé par le repository, pas ici.
+  // Creates the account and returns the uid (or null on failure).
+  // The Firestore profile is created by the repository, not here.
   @override
   Future<String?> register(String email, String password) async {
     try {
@@ -53,7 +53,7 @@ class FirebaseAuthService implements AuthService {
       return uid;   // ← l'uid attendu par AuthProvider
     } on FirebaseAuthException catch (e) {
       dev.log('Auth error: ${e.code}', name: 'FirebaseAuthService');
-      return null;  // échec → AuthProvider affichera l'erreur
+      return null;  // On failure, AuthProvider displays the error.
     } catch (e) {
       dev.log('Unknown error: $e', name: 'FirebaseAuthService');
       return null;
