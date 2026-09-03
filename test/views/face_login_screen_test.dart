@@ -4,9 +4,13 @@ import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
 import 'package:provider/provider.dart';
 import 'package:taf_match/providers/auth_provider.dart';
+import 'package:taf_match/providers/user_provider.dart';
+import 'package:taf_match/utils/theme.dart';
 import 'package:taf_match/views/face_login_screen.dart';
 
+import '../fakes.dart';
 import 'face_login_screen_test.mocks.dart';
+import 'test_helpers.dart';
 
 @GenerateMocks([AuthProvider])
 void main() {
@@ -20,10 +24,16 @@ void main() {
   });
 
   Widget createTestWidget() {
-    return MaterialApp(
-      home: ChangeNotifierProvider<AuthProvider>.value(
-        value: mockAuthProvider,
-        child: const FaceLoginScreen(),
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider<AuthProvider>.value(value: mockAuthProvider),
+        ChangeNotifierProvider<UserProvider>(
+          create: (_) => UserProvider(FakeUserRepository()),
+        ),
+      ],
+      child: MaterialApp(
+        theme: buildThemeData(),
+        home: FaceLoginScreen(cameraService: FakeCameraService()),
       ),
     );
   }
@@ -34,11 +44,12 @@ void main() {
     expect(find.text('Log in with a photo'), findsOneWidget);
     expect(find.text('Password'), findsOneWidget);
     expect(find.text('Log in'), findsOneWidget);
-    expect(find.text('Retake photo'), findsOneWidget);
+    expect(find.text('Detect'), findsOneWidget);
     expect(find.text('About developers - v1.0'), findsOneWidget);
   });
 
   testWidgets('shows password validation error when empty', (tester) async {
+    await useTallSurface(tester);
     await tester.pumpWidget(createTestWidget());
 
     await tester.tap(find.text('Log in'));

@@ -2,9 +2,7 @@ import 'dart:typed_data';
 
 import 'package:camera/camera.dart';
 import 'package:face_detection_tflite/face_detection_tflite.dart';
-import 'package:face_detection_tflite/face_detection_tflite_native.dart' hide FaceDetector;
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:taf_match/models/user_model.dart';
 import 'package:taf_match/providers/user_provider.dart';
@@ -14,7 +12,10 @@ import 'package:taf_match/views/about_screen.dart';
 import '../providers/auth_provider.dart';
 
 class FaceLoginScreen extends StatefulWidget {
-  const FaceLoginScreen({super.key});
+  FaceLoginScreen({super.key, CameraService? cameraService})
+    : _cameraService = cameraService ?? CameraService();
+
+  final CameraService _cameraService;
 
   @override
   FaceLoginScreenState createState() => FaceLoginScreenState();
@@ -26,7 +27,7 @@ class FaceLoginScreenState extends State<FaceLoginScreen> {
 
   late List<UserModel> users;
 
-  CameraService cameraService = CameraService();
+  // CameraService cameraService = CameraService();
   UserModel? potentialUser;
   bool userNotFound = false;
 
@@ -39,18 +40,12 @@ class FaceLoginScreenState extends State<FaceLoginScreen> {
       if (mounted) context.read<UserProvider>().loadUsers();
     });
 
-    cameraService.initCameraAndDetector(findUserCallback, updateCallback).then((_) {
-      if (!mounted) return;
-      setState(() {});
-    });
-    
+    widget._cameraService.initCameraAndDetector(findUserCallback);
   }
 
   @override
   void dispose() {
-
-    cameraService.dispose();
-
+    widget._cameraService.dispose();
     super.dispose();
   }
 
@@ -114,36 +109,60 @@ class FaceLoginScreenState extends State<FaceLoginScreen> {
                               : null,
                         ),
 
+                      const SizedBox(height: 20),
 
-                      const SizedBox(height: 16),
+                      ListenableBuilder(
+                        listenable: widget._cameraService,
+                        builder: (context, _) {
+                          final controller = widget._cameraService.cameraController;
+                          final error = widget._cameraService.cameraError;
 
-                      if (cameraService.getCameraController() != null)
-                        SizedBox(
-                          height: 400,
-                          child: buildCameraOverlay(),
-                        ),
-                      if (cameraService.getCameraController() == null)
-                        Container(
-                            height: 400,
-                            color: colors.field,
-                            child: Center(child: CircularProgressIndicator(color: colors.accent)),
-                          ),
+                          return Column(
 
-                      OutlinedButton(
-                        onPressed: () => requestDetection(),
-                        child: const Text('Detect'),
+                            children: [
+
+                              SizedBox(
+                                height: 400,
+                                child: controller == null || !controller.value.isInitialized
+                                  ? Container(
+                                      color: colors.field,
+                                      child: Center(child: CircularProgressIndicator(color: colors.accent)),
+                                    )
+                                  : CameraPreview(controller),
+                              ),
+
+                              OutlinedButton(
+                                onPressed: () => requestDetection(),
+                                child: const Text('Detect'),
+                              ),
+
+                              SizedBox(
+                                height: 40,
+                                child: Visibility(
+                                  visible: error != null || potentialUser != null || userNotFound,
+                                  child: error != null
+                                      ? Text(error, style: const TextStyle(color: Colors.red))
+                                      : userNotFound
+                                          ? Text(
+                                              'Account not found, retry or activate face login in profile page !',
+                                              style: const TextStyle(color: Colors.red),
+                                            )
+                                          : potentialUser != null
+                                              ? Text(
+                                                  'You are ${potentialUser!.fullName} (${potentialUser?.email ?? "No email"}), enter your password to access to your account',
+                                                  style: TextStyle(color: colors.muted),
+                                                )
+                                              : const SizedBox.shrink(),
+                                ),
+                              ),
+
+                            ],
+
+                          );
+
+                        },
                       ),
 
-                      if (cameraService.cameraError != null)
-                        Text(cameraService.cameraError!, style: TextStyle(color: Colors.red)),
-
-                      if (potentialUser != null)
-                        Text("You are ${potentialUser!.fullName} (${potentialUser?.email ?? "No email"}), enter your password to access to your account", style: TextStyle(color: colors.muted),),
-
-                      if (userNotFound)
-                        Text("Account not found, retry or activate face login in profile page !", style: TextStyle(color: Colors.red)),
-
-                      const SizedBox(height: 16),
 
                       TextFormField(
                         controller: _passwordController,
@@ -218,17 +237,11 @@ class FaceLoginScreenState extends State<FaceLoginScreen> {
     );
   }
 
-
-  Widget buildCameraOverlay() {
-    return CameraPreview(cameraService.getCameraController()!);
-  }
-
-
   void requestDetection() {
     setState(() {
       userNotFound = false;
     });
-    cameraService.requestDetection();
+    widget._cameraService.requestDetection();
   }
 
   void findUserCallback(Float32List vector) {
@@ -236,12 +249,6 @@ class FaceLoginScreenState extends State<FaceLoginScreen> {
       potentialUser = findUser(vector);
     });
   }
-
-  void updateCallback() {
-    if (!mounted) return;
-    setState(() {});
-  }
-
 
   UserModel? findUser(Float32List vector) {
 
@@ -260,20 +267,20 @@ class FaceLoginScreenState extends State<FaceLoginScreen> {
     return null;
   }
 
-
   void _authenticate(BuildContext context) async {
     FocusScope.of(context).unfocus();
 
     if (!(_formKey.currentState?.validate() ?? false)) return;
 
+    final navigator = Navigator.of(context);
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     final email = potentialUser?.email ?? "";
     final password = _passwordController.text;
 
-    bool result = await authProvider.signInWithEmailAndPassword(email, password);
-
-    if (result == true) {
-      Navigator.maybePop(context);
+    await authProvider.signInWithEmailAndPassword(email, password);
+    
+    if (authProvider.user != null && mounted) {
+      navigator.popUntil((route) => route.isFirst);
     }
   }
 }

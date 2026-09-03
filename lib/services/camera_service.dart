@@ -2,20 +2,21 @@ import 'dart:typed_data';
 
 import 'package:camera/camera.dart';
 import 'package:face_detection_tflite/face_detection_tflite.dart';
+import 'package:flutter/widgets.dart';
 
-typedef detectionCallback = void Function(Float32List vector);
-typedef stateUpdateCallback = void Function();
+typedef DetectionCallback = void Function(Float32List vector);
 
-class CameraService {
+class CameraService extends ChangeNotifier {
 
   CameraController? cameraController;
   FaceDetector? detector;
   bool detectionRequested = false;
+  bool streamStarted = false;
 
   String? cameraError;
 
-
-  Future<void> initCameraAndDetector(detectionCallback callback, stateUpdateCallback _stateUpdateCallback) async {
+  /// Initialize camera and launch streaming
+  void initCameraAndDetector(DetectionCallback callback) async {
 
     detector = await FaceDetector.create(model: FaceDetectionModel.frontCamera);
 
@@ -32,24 +33,24 @@ class CameraService {
         if (e is CameraException) {
           switch (e.code) {
             case 'CameraAccessDenied':
-              print("INIT : NO ACCESS");
               cameraError = "Camera Access Denied !";
-              _stateUpdateCallback();
+              notifyListeners();
               return;
             default:
-              print("INIT : FATAL ERROR");
               cameraError = "An error occured with camera !";
-              _stateUpdateCallback();
+              notifyListeners();
               return;
           }
         }
       });
 
-    await cameraController!.startImageStream(((image) => _processImage(image, callback, _stateUpdateCallback)));
+    await cameraController!.startImageStream(((image) => _processImage(image, callback)));
+    notifyListeners();
   }
 
+  Future<void> _processImage(CameraImage image, DetectionCallback callback) async {
 
-  Future<void> _processImage(CameraImage image, detectionCallback callback, stateUpdateCallback _stateUpdateCallback) async {
+    streamStarted = true;
 
     if (detectionRequested) {
       detectionRequested = false;
@@ -63,12 +64,12 @@ class CameraService {
       
       if (faces.length > 1) {
         cameraError = "Too many person on the image !";
-        _stateUpdateCallback();
+        notifyListeners();
       }
 
       if (faces.isEmpty) {
         cameraError = "No person found on the image !";
-        _stateUpdateCallback();
+        notifyListeners();
       }
 
       if (faces.length == 1) {
@@ -89,15 +90,17 @@ class CameraService {
 
   }
 
-
+  /// Request a detection of face in the camera
   void requestDetection() {
     detectionRequested = true;
   }
 
+  @override
   void dispose() {
+    if (streamStarted == true) cameraController?.stopImageStream();
     cameraController?.dispose();
+    super.dispose();
   }
-
 
   CameraController? getCameraController() {
     return cameraController;

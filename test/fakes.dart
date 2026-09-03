@@ -15,6 +15,7 @@ import 'package:taf_match/models/skill_model.dart';
 import 'package:taf_match/repositories/firestore_skill_repository.dart';
 import 'package:taf_match/models/work_experience_model.dart';
 import 'package:taf_match/repositories/firestore_work_experience_repository.dart';
+import 'package:taf_match/services/camera_service.dart';
 
 class FakeUser implements User {
   @override
@@ -452,4 +453,14 @@ class FakeWorkExperienceRepository implements FirestoreWorkExperienceRepository 
   void emit(List<WorkExperience> experiences) => _controller.add(experiences);
 
   void dispose() => _controller.close();
+}
+
+
+class FakeCameraService extends CameraService {
+  
+  @override
+  void initCameraAndDetector(DetectionCallback callback) {}
+
+  @override
+  void requestDetection() {}
 }

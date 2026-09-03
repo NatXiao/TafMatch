@@ -52,11 +52,6 @@ class EditProfileScreenState extends State<EditProfileScreen> {
   void initState() {
     super.initState();
 
-    _cameraService.initCameraAndDetector(applyVectorCallback, updateCallback).then((_) {
-      if (!mounted) return;
-      setState(() {});
-    });
-
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
 
@@ -523,77 +518,101 @@ class EditProfileScreenState extends State<EditProfileScreen> {
 
   void applyVectorCallback(Float32List vector) {
     Navigator.pop(context);
+    _cameraService.dispose();
     setState(() {
       _vector = vector.toList(); 
     });
   }
 
-  void updateCallback() {
-    if (!mounted) return;
-    setState(() {});
-  }
-
   Future<String?> showCameraModal() {
-
     final colors = Theme.of(context).extension<AppColors>()!;
+
+    _cameraService.initCameraAndDetector(applyVectorCallback);
 
     return showGeneralDialog<String>(
 
       context: context,
       pageBuilder: (context, _, __) {
-        return StreamBuilder(
-          stream: Stream.periodic(const Duration(seconds: 1), (count) => count),
-          builder: ((context, snapshot) {
-            
-            final controller = _cameraService.getCameraController();
-            final error = _cameraService.cameraError;
 
-            return Scaffold(
-              body: Center(
-                child: Column(
+        return Scaffold(
+          body: SafeArea(
+            child: ListenableBuilder(
+              listenable: _cameraService,
+              builder: (context, _) {
+
+                final controller = _cameraService.cameraController;
+                final error = _cameraService.cameraError;
+
+                return Column(
                   children: [
-
-                    SizedBox(height: 30),
-
                     Row(
                       children: [
                         IconButton(
                           icon: const Icon(Icons.chevron_left, size: 30),
-                          onPressed: () => Navigator.maybePop(context),
+                          onPressed: () {
+                            _cameraService.dispose();
+                            Navigator.maybePop(context);
+                          },
                         ),
                       ],
                     ),
 
+                    Expanded(
+                      child: Builder(
+                        builder: (context) {
+                          debugPrint('controller: $controller');
+                          debugPrint('isInitialized: ${controller?.value.isInitialized}');
+                          
+                          if (controller == null || !controller.value.isInitialized) {
+                            return ColoredBox(
+                              color: colors.field,
+                              child: Center(child: CircularProgressIndicator(color: colors.accent)),
+                            );
+                          }
+                          return ColoredBox(
+                            color: colors.field,
+                            child: AspectRatio(
+                              aspectRatio: controller.value.aspectRatio,
+                              child: CameraPreview(controller),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
 
-                    SizedBox(height: 30),
+                    Visibility(
+                      visible: error != null,
+                      maintainSize: true,
+                      maintainAnimation: true,
+                      maintainState: true,
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 8),
+                        child: Text(error ?? '', style: const TextStyle(color: Colors.red)),
+                      ),
+                    ),
 
-                    controller == null 
-                      ? Container(
-                          height: 1000,
-                          color: colors.field,
-                          child: Center(child: CircularProgressIndicator(color: colors.accent)),
-                        )
-                      : SizedBox(
-                          height: 1000,
-                          child: CameraPreview(controller),
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(22, 16, 22, 32),
+                      child: SizedBox(
+                        width: double.infinity,
+                        child: OutlinedButton(
+                          onPressed: _cameraService.requestDetection,
+                          style: OutlinedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                            shape: const StadiumBorder(),
+                          ),
+                          child: const Text('Detect', style: TextStyle(fontSize: 16)),
                         ),
-
-                    if (error != null)
-                      Text(error, style: TextStyle(color: Colors.red)),
-
-                    OutlinedButton(
-                      onPressed: () => requestDetection(),
-                      child: const Text('Detect'),
+                      ),
                     ),
 
                   ],
-                ),
 
-              )
-              
-            );
+                );
 
-          }),
+              }
+            ),
+          ),
         );
       },
           
