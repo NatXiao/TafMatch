@@ -255,7 +255,7 @@ class ProfileScreenState extends State<ProfileScreen> {
                           onTap: () => Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (_) => const EditProfileScreen(),
+                              builder: (_) => EditProfileScreen(),
                             ),
                           ),
                           borderRadius: BorderRadius.circular(50),

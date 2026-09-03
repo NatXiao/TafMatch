@@ -454,13 +454,3 @@ class FakeWorkExperienceRepository implements FirestoreWorkExperienceRepository 
 
   void dispose() => _controller.close();
 }
-
-
-class FakeCameraService extends CameraService {
-  
-  @override
-  void initCameraAndDetector(DetectionCallback callback) {}
-
-  @override
-  void requestDetection() {}
-}

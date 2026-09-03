@@ -70,7 +70,7 @@ void main() {
       userRepository: userRepository,
       reviewRepository: reviewRepository,
       skillRepository: skillRepository,
-      child: const EditProfileScreen(),
+      child: EditProfileScreen(),
     );
     return MultiProvider(
       providers: [

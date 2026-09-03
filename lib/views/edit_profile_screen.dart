@@ -52,11 +52,6 @@ class EditProfileScreenState extends State<EditProfileScreen> {
   void initState() {
     super.initState();
 
-    _cameraService.initCameraAndDetector(applyVectorCallback, updateCallback).then((_) {
-      if (!mounted) return;
-      setState(() {});
-    });
-
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
 
@@ -533,72 +528,87 @@ class EditProfileScreenState extends State<EditProfileScreen> {
     setState(() {});
   }
 
-  Future<String?> showCameraModal() {
+  Future<String?> showCameraModal() async {
+    await _cameraService.initCameraAndDetector(applyVectorCallback, updateCallback);
 
     final colors = Theme.of(context).extension<AppColors>()!;
 
-    return showGeneralDialog<String>(
-
+    final result = await showGeneralDialog<String>(
       context: context,
       pageBuilder: (context, _, __) {
         return StreamBuilder(
-          stream: Stream.periodic(const Duration(seconds: 1), (count) => count),
-          builder: ((context, snapshot) {
-            
+          stream: Stream.periodic(const Duration(milliseconds: 500), (c) => c),
+          builder: (context, _) {
             final controller = _cameraService.getCameraController();
             final error = _cameraService.cameraError;
 
             return Scaffold(
-              body: Center(
+              backgroundColor: Colors.black,
+              body: SafeArea(
                 child: Column(
                   children: [
-
-                    SizedBox(height: 30),
-
                     Row(
                       children: [
                         IconButton(
-                          icon: const Icon(Icons.chevron_left, size: 30),
-                          onPressed: () => Navigator.maybePop(context),
+                          icon: const Icon(Icons.chevron_left, size: 30, color: Colors.white),
+                          onPressed: () {
+                            _cameraService.dispose();
+                            Navigator.maybePop(context);
+                          },
                         ),
                       ],
                     ),
-
-
-                    SizedBox(height: 30),
-
-                    controller == null 
-                      ? Container(
-                          height: 1000,
-                          color: colors.field,
-                          child: Center(child: CircularProgressIndicator(color: colors.accent)),
-                        )
-                      : SizedBox(
-                          height: 1000,
+                    Expanded(
+                      child: () {
+                        if (controller == null || !controller.value.isInitialized) {
+                          return Container(
+                            color: colors.field,
+                            child: Center(child: CircularProgressIndicator(color: colors.accent)),
+                          );
+                        }
+                        return AspectRatio(
+                          aspectRatio: controller.value.aspectRatio,
                           child: CameraPreview(controller),
-                        ),
-
-                    if (error != null)
-                      Text(error, style: TextStyle(color: Colors.red)),
-
-                    OutlinedButton(
-                      onPressed: () => requestDetection(),
-                      child: const Text('Detect (Good lighting is required)'),
+                        );
+                      }(),
                     ),
-
+                    Visibility(
+                      visible: error != null,
+                      maintainSize: true,
+                      maintainAnimation: true,
+                      maintainState: true,
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 8),
+                        child: Text(error ?? '', style: const TextStyle(color: Colors.red)),
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(22, 16, 22, 32),
+                      child: SizedBox(
+                        width: double.infinity,
+                        child: OutlinedButton(
+                          onPressed: requestDetection,
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: Colors.white,
+                            side: const BorderSide(color: Colors.white54),
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                            shape: const StadiumBorder(),
+                          ),
+                          child: const Text('Detect (Good lighting is required)'),
+                        ),
+                      ),
+                    ),
                   ],
                 ),
-
-              )
-              
+              ),
             );
-
-          }),
+          },
         );
       },
-          
     );
 
+    _cameraService.dispose();
+    return result;
   }
 
   void requestDetection() {

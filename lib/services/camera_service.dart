@@ -3,8 +3,8 @@ import 'dart:typed_data';
 import 'package:camera/camera.dart';
 import 'package:face_detection_tflite/face_detection_tflite.dart';
 
-typedef detectionCallback = void Function(Float32List vector);
-typedef stateUpdateCallback = void Function();
+typedef DetectionCallback = void Function(Float32List vector);
+typedef StateUpdateCallback = void Function();
 
 class CameraService {
 
@@ -15,7 +15,7 @@ class CameraService {
   String? cameraError;
 
 
-  Future<void> initCameraAndDetector(detectionCallback callback, stateUpdateCallback _stateUpdateCallback) async {
+  Future<void> initCameraAndDetector(DetectionCallback callback, StateUpdateCallback _stateUpdateCallback) async {
 
     detector = await FaceDetector.create(model: FaceDetectionModel.frontCamera);
 
@@ -46,10 +46,11 @@ class CameraService {
       });
 
     await cameraController!.startImageStream(((image) => _processImage(image, callback, _stateUpdateCallback)));
+    _stateUpdateCallback();
   }
 
 
-  Future<void> _processImage(CameraImage image, detectionCallback callback, stateUpdateCallback _stateUpdateCallback) async {
+  Future<void> _processImage(CameraImage image, DetectionCallback callback, StateUpdateCallback _stateUpdateCallback) async {
 
     if (detectionRequested) {
       detectionRequested = false;
