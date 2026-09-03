@@ -3,21 +3,21 @@ import 'dart:convert';
 
 import 'package:http/http.dart' as http;
 
-/// Une adresse proposee par l'API de swisstopo.
+/// An address suggestion returned by the swisstopo API.
 class AddressSuggestion {
   const AddressSuggestion({required this.label, required this.canton});
 
-  /// Adresse formatee, prete a etre mise dans le champ.
+  /// Formatted address, ready to be inserted into the field.
   final String label;
 
-  /// Sigle du canton, ou chaine vide si l'API ne l'a pas fourni.
+  /// Canton abbreviation, or an empty string if the API did not provide one.
   final String canton;
 }
 
-/// Autocompletion d'adresses suisses via l'API officielle de swisstopo.
+/// Swiss address autocomplete using the official swisstopo API.
 ///
-/// Gratuite, sans cle. En contrepartie, swisstopo demande d'eviter les
-/// requetes a haute intensite: le champ doit etre debounce cote client.
+/// Free and keyless. In return, swisstopo asks clients to avoid high-intensity
+/// requests: the field must be debounced on the client side.
 class AddressLookup {
   AddressLookup({http.Client? client}) : _client = client ?? http.Client();
 
@@ -61,19 +61,19 @@ class AddressLookup {
           .where((s) => s.label.isNotEmpty)
           .toList();
     } catch (_) {
-      // Hors ligne ou API indisponible: pas de suggestion, la saisie manuelle
-      // reste possible. Ne jamais bloquer la publication pour ca.
+      // Offline or API unavailable: no suggestions are shown, but manual entry
+      // remains possible. Never block posting creation because of this.
       return const [];
     }
   }
 
-  /// Le label arrive avec du balisage: "<b>Rue de Lausanne 1</b> 1950 Sion".
+  /// The label contains markup: "<b>Rue de Lausanne 1</b> 1950 Sion".
   static String _stripTags(String raw) =>
       raw.replaceAll(RegExp(r'<[^>]*>'), '').replaceAll(RegExp(r'\s+'), ' ').trim();
 
-  /// Le canton est le dernier jeton de `detail`, apres le code pays:
+  /// The canton is the last token in `detail`, after the country code:
   /// "paradeplatz 2 8001 zuerich 261 zuerich ch zh" -> "ZH".
-  /// Il manque pour certaines adresses, notamment au Liechtenstein.
+  /// It is missing for some addresses, especially in Liechtenstein.
   static String _cantonFrom(String detail) {
     final tokens = detail.trim().split(RegExp(r'\s+'));
     if (tokens.isEmpty) return '';

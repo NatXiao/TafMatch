@@ -397,18 +397,29 @@ class EditProfileScreenState extends State<EditProfileScreen> {
     );
   }
 
-  void _updateProfile(BuildContext context) async {
+  Future<void> _updateProfile(BuildContext context) async {
+    if (_saving) return;
+
     final user = context.read<UserProvider>().profile;
     if (user == null) return;
-
     FocusScope.of(context).unfocus();
     if (!(_formKey.currentState?.validate() ?? false)) return;
 
-    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    // Captures avant les await : le BuildContext ne doit plus etre relu
+    // apres un gap asynchrone.
+    final authProvider = context.read<AuthProvider>();
+    final userProvider = context.read<UserProvider>();
+    final navigator = Navigator.of(context);
 
-    final email = _emailController.text.trim().isEmpty ? user.email : _emailController.text.trim();
-    final fullname = _fullnameController.text.trim().isEmpty ? user.fullName : _fullnameController.text.trim();
-    final address = _addressController.text.trim().isEmpty ? user.address : _addressController.text.trim();
+    final email = _emailController.text.trim().isEmpty
+        ? user.email
+        : _emailController.text.trim();
+    final fullname = _fullnameController.text.trim().isEmpty
+        ? user.fullName
+        : _fullnameController.text.trim();
+    final address = _addressController.text.trim().isEmpty
+        ? user.address
+        : _addressController.text.trim();
     final profilePictureUrl = _imageUrl ?? user.profilePictureUrl;
     final vector = _vector.isEmpty ? user.vector : _vector;
 
@@ -421,11 +432,15 @@ class EditProfileScreenState extends State<EditProfileScreen> {
       vector: vector,
     );
 
-    final success = await authProvider.updateProfile(updatedUser);
-
-    if (success && context.mounted) {
-      await context.read<UserProvider>().loadProfile(updatedUser.uid);
-      if (context.mounted) Navigator.of(context).pop();
+    setState(() => _saving = true);
+    try {
+      final success = await authProvider.updateProfile(updatedUser);
+      if (!success) return;
+      await userProvider.loadProfile(updatedUser.uid);
+      if (!mounted) return;
+      navigator.pop();
+    } finally {
+      if (mounted) setState(() => _saving = false);
     }
   }
 

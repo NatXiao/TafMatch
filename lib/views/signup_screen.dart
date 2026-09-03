@@ -22,7 +22,7 @@ class SignupScreenState extends State<SignupScreen> {
   final _formKey = GlobalKey<FormState>();
   final _picker = ImagePicker();
 
-  var roleState = Constants.ROLE_STUDENT;
+  var roleState = Constants.roleStudent;
 
   String? _imageUrl;
   bool _isUploading = false;
@@ -37,7 +37,7 @@ class SignupScreenState extends State<SignupScreen> {
       body: SafeArea(
         child: Column(
           children: [
-            // --- Barre du haut ---
+            // --- Top bar ---
             Padding(
               padding: const EdgeInsets.fromLTRB(12, 8, 22, 4),
               child: Row(
@@ -59,7 +59,7 @@ class SignupScreenState extends State<SignupScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // --- Avatar + bouton + ---
+                      // --- Avatar + add button ---
                       Center(
                         child: InkWell(
                           onTap: _isUploading ? null : () => _pickImage(),
@@ -111,7 +111,7 @@ class SignupScreenState extends State<SignupScreen> {
                       ],
                       const SizedBox(height: 16),
 
-                      // --- Sélecteur de rôle (pilule) ---
+                      // --- Role selector (pill) ---
                       _label(colors, 'I am a...'),
                       const SizedBox(height: 8),
                       Container(
@@ -123,14 +123,14 @@ class SignupScreenState extends State<SignupScreen> {
                         ),
                         child: Row(
                           children: [
-                            _roleTab(colors, 'Student', Constants.ROLE_STUDENT),
-                            _roleTab(colors, 'Employer', Constants.ROLE_EMPLOYER),
+                            _roleTab(colors, 'Student', Constants.roleStudent),
+                            _roleTab(colors, 'Employer', Constants.roleEmployer),
                           ],
                         ),
                       ),
                       const SizedBox(height: 18),
 
-                      // --- Champs ---
+                      // --- Fields ---
                       _label(colors, 'Full name'),
                       _field(colors, _fullnameController, hint: 'Marie Rossier',
                           validator: (v) => (v == null || v.isEmpty) ? 'Please enter your name' : null),
@@ -169,7 +169,7 @@ class SignupScreenState extends State<SignupScreen> {
                       }),
                       const SizedBox(height: 28),
 
-                      // --- Bouton principal ---
+                      // --- Main button ---
                       SizedBox(
                         width: double.infinity,
                         child: ElevatedButton(
@@ -185,7 +185,7 @@ class SignupScreenState extends State<SignupScreen> {
                       ),
                       const SizedBox(height: 12),
 
-                      // --- Lien Log in ---
+                      // --- Log in link ---
                       Center(
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
@@ -211,7 +211,7 @@ class SignupScreenState extends State<SignupScreen> {
     );
   }
 
-  // Onglet de rôle (moitié de la pilule)
+  // Role tab (half of the pill)
   Widget _roleTab(AppColors colors, String label, String value) {
     final selected = roleState == value;
     return Expanded(
@@ -272,6 +272,8 @@ class SignupScreenState extends State<SignupScreen> {
     if (!(_formKey.currentState?.validate() ?? false)) return;
 
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final navigator = Navigator.of(context);
+    
     final email = _emailController.text;
     final password = _passwordController.text;
     final fullname = _fullnameController.text;
@@ -281,8 +283,8 @@ class SignupScreenState extends State<SignupScreen> {
 
     final success = await authProvider.register(email, password, fullname, role, address, profilePictureUrl : profilePictureUrl);
 
-    if (success && context.mounted) {
-      Navigator.of(context).pop();
+    if (success) {
+      navigator.pop();
     }
   }
 

@@ -13,7 +13,7 @@ class JobProvider with ChangeNotifier {
 
   List<Job> get jobs => _jobs;
 
-  // Écoute les offres ouvertes (côté étudiant)
+  // Listen to open job postings (student side)
   void listenToLiveJobs() {
     _subscription?.cancel();
     _subscription = _repository.watchLiveJobs().listen((jobs) {
@@ -22,7 +22,7 @@ class JobProvider with ChangeNotifier {
     });
   }
 
-  // Écoute les offres d'un employeur
+  // Listen to an employer's job postings
   void listenToEmployerJobs(String employerId) {
     _subscription?.cancel();
     _subscription = _repository.watchByEmployer(employerId).listen((jobs) {

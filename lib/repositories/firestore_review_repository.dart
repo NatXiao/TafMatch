@@ -10,7 +10,7 @@ class FirestoreReviewRepository {
     return _reviews.add(review.toMap());
   }
 
-  // Tous les avis reçus par un utilisateur
+  // All reviews received by a user
   Stream<List<Review>> watchForUser(String targetUserId) {
     return _reviews
         .where('targetUserId', isEqualTo: targetUserId)

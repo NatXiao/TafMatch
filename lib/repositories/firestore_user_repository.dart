@@ -4,16 +4,16 @@ import '../models/user_model.dart';
 class FirestoreUserRepository {
   final FirebaseFirestore _db = FirebaseFirestore.instance;
 
-  // Un raccourci vers la collection "users"
+  // A shortcut to the "users" collection
   CollectionReference<Map<String, dynamic>> get _users =>
       _db.collection('users');
 
-  // CRÉER le profil
+  // CREATE the profile
   Future<void> createProfile(UserModel user) {
     return _users.doc(user.uid).set(user.toMap());
   }
 
-  // LIRE un profil une seule fois
+  // READ a profile once
   Future<UserModel?> getProfile(String uid) async {
     final doc = await _users.doc(uid).get();
     if (!doc.exists) return null;
@@ -43,7 +43,7 @@ class FirestoreUserRepository {
     return users;
   }
 
-  // ÉCOUTER un profil en temps réel (pour un StreamBuilder)
+  // LISTEN to a profile in real time (for a StreamBuilder)
   Stream<UserModel?> watchProfile(String uid) {
     return _users.doc(uid).snapshots().map((doc) {
       if (!doc.exists) return null;
@@ -51,26 +51,26 @@ class FirestoreUserRepository {
     });
   }
 
-  // METTRE À JOUR quelques champs (ex. nom, adresse)
+  // UPDATE specific fields (e.g. name, address)
   Future<void> updateProfile(String uid, Map<String, dynamic> fields) {
     return _users.doc(uid).update(fields);
   }
 
-  // AJOUTER un skill à l'utilisateur
+  // ADD a skill to the user
   Future<void> addSkill(String uid, String skill) {
     return _users.doc(uid).update({
       'skills': FieldValue.arrayUnion([skill]),
     });
   }
 
-  // RETIRER un skill
+  // REMOVE a skill
   Future<void> removeSkill(String uid, String skill) {
     return _users.doc(uid).update({
       'skills': FieldValue.arrayRemove([skill]),
     });
   }
 
-  // SUPPRIMER le profil
+  // DELETE the profile
   Future<void> deleteProfile(String uid) {
     return _users.doc(uid).delete();
   }

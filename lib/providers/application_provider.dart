@@ -13,7 +13,7 @@ class ApplicationProvider with ChangeNotifier {
 
   List<Application> get applications => _applications;
 
-  // Les candidatures d'un étudiant
+  // A student's applications
   void listenToStudentApplications(String studentId) {
     _subscription?.cancel();
     _subscription =
@@ -23,7 +23,7 @@ class ApplicationProvider with ChangeNotifier {
     });
   }
 
-  // Les candidats à une offre (côté employeur)
+  // Applicants for a job posting (employer side)
   void listenToJobApplications(String jobId) {
     _subscription?.cancel();
     _subscription = _repository.watchByJob(jobId).listen((apps) {

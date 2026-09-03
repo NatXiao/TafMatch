@@ -854,7 +854,7 @@ class NewPostingScreenState extends State<NewPostingScreen> {
     final colors = Theme.of(context).extension<AppColors>()!;
 
     return DropdownButtonFormField<String>(
-      value: value,
+      initialValue: value,
       validator: validator,
       isExpanded: true,
       hint: Text(

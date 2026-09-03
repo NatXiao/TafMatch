@@ -1,6 +1,4 @@
-/**
- * Application model representing a student's application to a job.
- */
+// Application model representing a student's application to a job.
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class Application {

@@ -5,7 +5,7 @@ abstract class AuthService {
   Stream<User?> authStateChanges();
   Future<String?> signInWithEmailAndPassword(String email, String password);
 
-  // Renvoie l'uid du nouvel utilisateur, ou null si échec
+  // Returns the new user's uid, or null on failure.
   Future<String?> register(String email, String password);
 
   Future<String?> signOut();

@@ -67,7 +67,7 @@ class AppColors extends ThemeExtension<AppColors> {
 }
 
 // ---------------------------------------------------------------------------
-// Thème principal de l'application.
+// Main application theme.
 // ---------------------------------------------------------------------------
 ThemeData buildThemeData() {
   final base = ThemeData.light();
