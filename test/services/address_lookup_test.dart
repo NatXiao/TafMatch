@@ -6,14 +6,14 @@ import 'package:http/testing.dart';
 
 import 'package:taf_match/services/address_lookup.dart';
 
-/// Construit une reponse JSON encodee en UTF-8, comme le fait l'API.
+/// Builds a JSON response encoded in UTF-8, as the API does.
 http.Response _ok(List<Map<String, dynamic>> results) => http.Response.bytes(
       utf8.encode(jsonEncode({'results': results})),
       200,
       headers: {'content-type': 'application/json; charset=utf-8'},
     );
 
-/// Un resultat de l'API, reduit aux champs que le parseur regarde.
+/// An API result reduced to the fields inspected by the parser.
 Map<String, dynamic> _result({String? label, String? detail}) => {
       'attrs': {
         if (label != null) 'label': label,
@@ -21,7 +21,7 @@ Map<String, dynamic> _result({String? label, String? detail}) => {
       },
     };
 
-/// MockClient qui memorise l'appel a [close], pour tester dispose().
+/// MockClient that records the call to [close], to test dispose().
 class _TrackingClient extends MockClient {
   _TrackingClient(super.fn);
 
@@ -228,8 +228,8 @@ void main() {
             ])),
       );
 
-      // Documente le comportement present: le cast sur `attrs` leve, le catch
-      // avale l'erreur et la suggestion valide est perdue avec.
+      // Documents the current behavior: casting `attrs` throws, and the catch
+      // swallows the error and the valid suggestion is lost.
       expect(await lookup.search('lausanne'), isEmpty);
     });
   });
@@ -245,7 +245,7 @@ void main() {
   });
 }
 
-/// Exception quelconque pour simuler une panne reseau sans importer dart:io.
+/// Any exception to simulate a network failure without importing dart:io.
 class SocketExceptionStub implements Exception {
   const SocketExceptionStub();
 }

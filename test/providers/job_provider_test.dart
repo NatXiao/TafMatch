@@ -89,7 +89,7 @@ void main() {
 
     expect(provider.jobs, isEmpty);
 
-    // dispose() est deja fait: le tearDown ne doit pas le refaire.
+    // dispose() has already been called: tearDown must not call it again.
     provider = JobProvider(repository);
   });
 

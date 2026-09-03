@@ -9,17 +9,17 @@ import 'package:taf_match/repositories/firestore_chat_repository.dart';
 import 'package:taf_match/utils/theme.dart';
 import 'package:taf_match/views/jp_main_screen.dart';
 
-/// Trois substituts distincts, chacun avec sa cle.
+/// Three distinct substitutes, each with its own key.
 ///
-/// `const Placeholder()` est canonicalise par Dart: les onglets partageraient
-/// la meme instance et `find.byWidget` en trouverait plusieurs.
+/// `const Placeholder()` is canonicalized by Dart: the tabs would share
+/// the same instance and `find.byWidget` would find multiple matches.
 const _postingsScreen = SizedBox(key: Key('postings_screen'));
 const _chatScreen = SizedBox(key: Key('chat_screen'));
 const _profileScreen = SizedBox(key: Key('profile_screen'));
 
-/// AuthProvider a besoin d'un vrai repository Firestore pour etre construit,
-/// donc l'ecran recoit un substitut. Un user null empeche initState de lancer
-/// le moindre stream, ce qui suffit a un test de navigation.
+/// AuthProvider needs a real Firestore repository to be constructed,
+/// so the screen receives a substitute. A null user prevents initState from starting
+/// any stream, which is enough for a navigation test.
 class _FakeAuthProvider extends ChangeNotifier implements AuthProvider {
   @override
   User? get user => null;
@@ -51,10 +51,10 @@ void main() {
         child: MaterialApp(
           theme: buildThemeData(),
           home: const JpMainScreen(
-            // Les vrais ecrans touchent Firebase (MyPostingsScreen cree un
-            // FirestoreApplicationRepository dans initState) et reclament
+            // The real screens access Firebase (MyPostingsScreen creates a
+            // FirestoreApplicationRepository in initState) and require
             // plusieurs providers (ProfileScreen). IndexedStack construit tous
-            // ses enfants des le premier build, meme ceux qu'il ne peint pas.
+            // its children during the first build, even those it does not paint.
             postingsScreen: _postingsScreen,
             chatScreen: _chatScreen,
             profileScreen: _profileScreen,
@@ -114,9 +114,9 @@ void main() {
   ) async {
     await pumpMainScreen(tester);
 
-    // skipOffstage: false est indispensable: IndexedStack enveloppe dans un
-    // Offstage les enfants qu'il ne peint pas, et les finders les ignorent par
-    // defaut. C'est justement ce qu'on veut verifier: montes, mais caches.
+    // skipOffstage: false is essential: IndexedStack wraps children in
+    // Offstage, and finders ignore them by
+    // default. This is exactly what we want to verify: mounted but hidden.
     expect(
       find.byKey(const Key('postings_screen'), skipOffstage: false),
       findsOneWidget,

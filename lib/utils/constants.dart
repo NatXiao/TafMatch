@@ -1,9 +1,7 @@
 
 
 class Constants {
-
-  static const ROLE_STUDENT = "user";
-  static const ROLE_EMPLOYER = "employer";
-  static const ROLE_ADMIN = "admin";
-
+  static const String roleStudent = 'student';
+  static const String roleEmployer = 'employer';
+  static const String roleAdmin = 'admin';
 }

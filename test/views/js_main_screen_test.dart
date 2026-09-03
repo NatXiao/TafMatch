@@ -9,19 +9,19 @@ import 'package:taf_match/repositories/firestore_chat_repository.dart';
 import 'package:taf_match/utils/theme.dart';
 import 'package:taf_match/views/js_main_screen.dart';
 
-/// Quatre substituts distincts, chacun avec sa cle.
+/// Four distinct substitutes, each with its own key.
 ///
-/// `const Placeholder()` etait canonicalise par Dart: les onglets partageaient
-/// la meme instance, et `find.byWidget` en trouvait plusieurs au lieu d'un.
-/// Des cles differentes suffisent a les distinguer.
+/// `const Placeholder()` was canonicalized by Dart: the tabs shared
+/// the same instance, and `find.byWidget` found multiple matches instead of one.
+/// Different keys are enough to distinguish them.
 const _jobsScreen = SizedBox(key: Key('jobs_screen'));
 const _applicationsScreen = SizedBox(key: Key('applications_screen'));
 const _chatScreen = SizedBox(key: Key('chat_screen'));
 const _profileScreen = SizedBox(key: Key('profile_screen'));
 
-/// AuthProvider a besoin d'un vrai repository Firestore pour etre construit,
-/// donc l'ecran recoit un substitut. Un user null empeche initState de lancer
-/// le moindre stream, ce qui suffit a un test de navigation.
+/// AuthProvider needs a real Firestore repository to be constructed,
+/// so the screen receives a substitute. A null user prevents initState from starting
+/// any stream, which is enough for a navigation test.
 class _FakeAuthProvider extends ChangeNotifier implements AuthProvider {
   @override
   User? get user => null;
@@ -56,9 +56,9 @@ void main() {
             jobsScreen: _jobsScreen,
             applicationsScreen: _applicationsScreen,
             chatScreen: _chatScreen,
-            // Substitut aussi pour le profil: le vrai ProfileScreen reclame
+            // Substitute for the profile as well: the real ProfileScreen requires
             // plusieurs providers, et IndexedStack construit tous ses enfants
-            // des le premier build, meme ceux qu'il ne peint pas.
+            // several providers, and IndexedStack builds all children during the first build, even those it does not paint.
             profileScreen: _profileScreen,
           ),
         ),
@@ -68,8 +68,8 @@ void main() {
 
   /// L'onglet reellement affiche.
   ///
-  /// On ne peut pas s'appuyer sur la presence des enfants: IndexedStack les
-  /// monte tous et se contente de n'en peindre qu'un.
+  /// We cannot rely on the presence of the children: IndexedStack
+  /// mounts all of them and only paints one.
   int visibleTab(WidgetTester tester) =>
       tester.widget<IndexedStack>(find.byType(IndexedStack)).index!;
 
@@ -129,12 +129,12 @@ void main() {
   ) async {
     await pumpMainScreen(tester);
 
-    // C'est l'interet d'IndexedStack par rapport a un simple switch: les
-    // ecrans restent montes, donc leur scroll et leurs abonnements survivent.
+    // This is the benefit of IndexedStack over a simple switch: the
+    // screens remain mounted, so their scroll position and subscriptions survive.
     //
-    // skipOffstage: false est indispensable — IndexedStack enveloppe dans un
-    // Offstage les enfants qu'il ne peint pas, et les finders les ignorent par
-    // defaut. C'est justement ce qu'on veut verifier ici: montes, mais caches.
+    // skipOffstage: false is essential — IndexedStack wraps children in
+    // Offstage, and finders ignore them by
+    // default. This is exactly what we want to verify: mounted but hidden.
     expect(
       find.byKey(const Key('jobs_screen'), skipOffstage: false),
       findsOneWidget,

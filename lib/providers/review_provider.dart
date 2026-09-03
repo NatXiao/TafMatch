@@ -13,7 +13,7 @@ class ReviewProvider with ChangeNotifier {
 
   List<Review> get reviews => _reviews;
 
-  // Les avis reçus par un utilisateur
+  // Reviews received by a user
   void listenToUserReviews(String targetUserId) {
     _subscription?.cancel();
     _subscription =

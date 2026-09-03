@@ -58,8 +58,8 @@ void main() {
     );
   }
 
-  /// Une annonce vivante par defaut: sans date de fin, `isLive` est vrai.
-  /// Passer une `endDate` passee pour obtenir une annonce fermee.
+  /// A live posting by default: without an end date, `isLive` is true.
+  /// Pass a past `endDate` to get a closed posting.
   Job makeJob({
     required String id,
     required String title,
@@ -118,10 +118,10 @@ void main() {
     await tester.pump();
 
     jobRepository.emit([
-      // Pas de date de fin: l'annonce reste ouverte.
+      // No end date: the posting remains open.
       makeJob(id: '1', title: 'Barista'),
-      // Deadline depassee: l'annonce est fermee, meme si l'employeur n'a rien
-      // fait pour la retirer.
+      // Deadline passed: the posting is closed, even if the employer did not
+      // remove it.
       makeJob(id: '2', title: 'Waiter', endDate: yesterday()),
     ]);
     await tester.pumpAndSettle();

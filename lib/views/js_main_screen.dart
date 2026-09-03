@@ -40,6 +40,14 @@ class _JeMainScreenState extends State<JeMainScreen> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final user = context.read<AuthProvider>().user;
+
+      if (user != null) {
+        context.read<NotificationProvider>().listenToNotifications(user.uid);
+        context.read<ChatProvider>().listenToConversations(user.uid);
+      }
+    });
   }
   @override
   Widget build(BuildContext context) {

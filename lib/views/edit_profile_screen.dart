@@ -10,7 +10,7 @@ import 'package:taf_match/providers/user_provider.dart';
 import 'package:taf_match/providers/skill_provider.dart';
 import 'package:taf_match/repositories/image_storage_repository.dart';
 import 'package:taf_match/services/camera_service.dart';
-import 'package:taf_match/utils/theme.dart';
+import 'package:taf_match/utils/theme.dart'; // for AppColors
 
 class EditProfileScreen extends StatefulWidget {
   const EditProfileScreen({super.key});
@@ -117,7 +117,7 @@ class EditProfileScreenState extends State<EditProfileScreen> {
       body: SafeArea(
         child: Column(
           children: [
-            // --- Barre du haut ---
+            
             Padding(
               padding: const EdgeInsets.fromLTRB(12, 8, 22, 4),
               child: Row(
@@ -139,7 +139,7 @@ class EditProfileScreenState extends State<EditProfileScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // --- Avatar + bouton + ---
+                      
                       Center(
                         child: InkWell(
                           onTap: _isUploading ? null : () => _pickImage(),
@@ -397,18 +397,29 @@ class EditProfileScreenState extends State<EditProfileScreen> {
     );
   }
 
-  void _updateProfile(BuildContext context) async {
+  Future<void> _updateProfile(BuildContext context) async {
+    if (_saving) return;
+
     final user = context.read<UserProvider>().profile;
     if (user == null) return;
-
     FocusScope.of(context).unfocus();
     if (!(_formKey.currentState?.validate() ?? false)) return;
 
-    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    // Capture values before await: BuildContext must not be read again
+    // after an asynchronous gap.
+    final authProvider = context.read<AuthProvider>();
+    final userProvider = context.read<UserProvider>();
+    final navigator = Navigator.of(context);
 
-    final email = _emailController.text.trim().isEmpty ? user.email : _emailController.text.trim();
-    final fullname = _fullnameController.text.trim().isEmpty ? user.fullName : _fullnameController.text.trim();
-    final address = _addressController.text.trim().isEmpty ? user.address : _addressController.text.trim();
+    final email = _emailController.text.trim().isEmpty
+        ? user.email
+        : _emailController.text.trim();
+    final fullname = _fullnameController.text.trim().isEmpty
+        ? user.fullName
+        : _fullnameController.text.trim();
+    final address = _addressController.text.trim().isEmpty
+        ? user.address
+        : _addressController.text.trim();
     final profilePictureUrl = _imageUrl ?? user.profilePictureUrl;
     final vector = _vector.isEmpty ? user.vector : _vector;
 
@@ -421,11 +432,15 @@ class EditProfileScreenState extends State<EditProfileScreen> {
       vector: vector,
     );
 
-    final success = await authProvider.updateProfile(updatedUser);
-
-    if (success && context.mounted) {
-      await context.read<UserProvider>().loadProfile(updatedUser.uid);
-      if (context.mounted) Navigator.of(context).pop();
+    setState(() => _saving = true);
+    try {
+      final success = await authProvider.updateProfile(updatedUser);
+      if (!success) return;
+      await userProvider.loadProfile(updatedUser.uid);
+      if (!mounted) return;
+      navigator.pop();
+    } finally {
+      if (mounted) setState(() => _saving = false);
     }
   }
 

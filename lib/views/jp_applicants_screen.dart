@@ -4,7 +4,6 @@ import 'package:taf_match/models/application_model.dart';
 import 'package:taf_match/models/job_model.dart';
 import 'package:taf_match/providers/application_provider.dart';
 import 'package:taf_match/providers/notification_provider.dart';
-import 'package:taf_match/providers/notification_provider.dart';
 import 'package:taf_match/repositories/firestore_review_repository.dart';
 import 'package:taf_match/repositories/firestore_user_repository.dart';
 import 'package:taf_match/utils/theme.dart';
@@ -227,7 +226,7 @@ class _ApplicantCard extends StatelessWidget {
           Row(
             children: [
               Expanded(
-                // TODO send a push notification to the student when their application is accepted or rejected
+                
                 child: ElevatedButton(
                   onPressed: application.status == 'accepted'
                       ? null
@@ -287,7 +286,7 @@ class _ApplicantCard extends StatelessWidget {
   Future<void> _openChat(BuildContext context) async {
     final employerId = context.read<AuthProvider>().user?.uid ?? '';
     if (employerId.isEmpty) return;
-
+  
     final messenger = ScaffoldMessenger.of(context);
     final navigator = Navigator.of(context);
 
@@ -320,14 +319,15 @@ class _ApplicantCard extends StatelessWidget {
     BuildContext context,
     String status,
   ) async {
+    final applications = context.read<ApplicationProvider>();
+    final notifications = context.read<NotificationProvider>();
+    final messenger = ScaffoldMessenger.of(context);
     try {
       // update the application
-      await context
-          .read<ApplicationProvider>()
-          .updateStatus(application.id, status);
+      await applications.updateStatus(application.id, status);
 
       // create the notification only if successful
-      await context.read<NotificationProvider>().notify(
+      await notifications.notify(
         userId: application.studentId,
         title: status == 'accepted'
             ? 'Application accepted'
@@ -341,13 +341,11 @@ class _ApplicantCard extends StatelessWidget {
       );
     } catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Could not update application: $e'),
-          ),
-        );
-      }
+      messenger.showSnackBar(
+        SnackBar(content: Text('Could not update application: $e')),
+      );
     }
+  }
   }
 
   Widget _statusBadge(BuildContext context, String status) {

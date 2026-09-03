@@ -24,7 +24,7 @@ class JobListScreen extends StatefulWidget {
 class _JobListScreenState extends State<JobListScreen> {
   final _searchController = TextEditingController();
 
-  // --- État des filtres ---
+  // --- Filter state ---
   RangeValues _salaryRange = const RangeValues(0, 250);
   RangeValues _percentRange = const RangeValues(0, 100);
   final Set<String> _selectedCategories = {};
@@ -34,7 +34,7 @@ class _JobListScreenState extends State<JobListScreen> {
     'Hospitality', 'Public Sector', 'Consulting', 'Pharma', 'Retail', 'Construction',
   ];
 
-  // Compte combien de filtres sont actifs (pour l'afficher sur le bouton)
+  // Count how many filters are active (to display on the button)
   int get _activeFilterCount {
     var n = 0;
     if (_salaryRange.start > 0 || _salaryRange.end < 250) n++;
@@ -72,7 +72,7 @@ class _JobListScreenState extends State<JobListScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const SizedBox(height: 12),
-              // --- Titre + logout ---
+              // --- Title + logout ---
               Row(
                 children: [
                   Text('Jobs',
@@ -91,7 +91,7 @@ class _JobListScreenState extends State<JobListScreen> {
                 ],
               ),
               const SizedBox(height: 20),
-              // --- Recherche ---
+              // --- Search ---
               TextField(
                 controller: _searchController,
                 onChanged: (_) => setState(() {}),
@@ -113,7 +113,7 @@ class _JobListScreenState extends State<JobListScreen> {
                 ),
               ),
               const SizedBox(height: 14),
-              // --- Bouton Filters ---
+              // --- Filters button ---
               Row(
                 children: [
                   InkWell(
@@ -145,7 +145,7 @@ class _JobListScreenState extends State<JobListScreen> {
                     ),
                   ),
                   const SizedBox(width: 10),
-                  // Bouton pour tout effacer (visible seulement si des filtres sont actifs)
+                  // Clear all button (visible only when filters are active)
                   if (_activeFilterCount > 0)
                     InkWell(
                       onTap: () => setState(() {
@@ -164,11 +164,11 @@ class _JobListScreenState extends State<JobListScreen> {
                 ],
               ),
               const SizedBox(height: 16),
-              // --- Liste ---
+              // --- List ---
               Expanded(
                 child: Consumer<JobProvider>(
                   builder: (context, jobProvider, _) {
-                    // Filtrage des jobs : recherche + salaire + pourcentage + catégorie
+                    // Filter jobs: search + salary + percentage + category
                     final jobs = jobProvider.jobs.where((job) {
                       final matchesQuery = query.isEmpty ||
                           job.title.toLowerCase().contains(query) ||
@@ -210,9 +210,9 @@ class _JobListScreenState extends State<JobListScreen> {
     );
   }
 
-  // --- Panneau des filtres ---
+  // --- Filter panel ---
   void _openFilters() {
-    // Copies temporaires : on ne modifie l'écran que si l'utilisateur valide.
+    // Temporary copies: only update the screen when the user confirms.
     var salary = _salaryRange;
     var percent = _percentRange;
     final cats = {..._selectedCategories};
@@ -235,7 +235,7 @@ class _JobListScreenState extends State<JobListScreen> {
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Titre + Reset
+                    // Title + Reset
                     Row(
                       children: [
                         Text('Filters',
@@ -253,7 +253,7 @@ class _JobListScreenState extends State<JobListScreen> {
                     ),
                     const SizedBox(height: 8),
 
-                    // Salaire
+                    // Salary
                     Text('Salary (CHF/h): ${salary.start.round()} – ${salary.end.round()}',
                         style: TextStyle(fontSize: 14, color: colors.text)),
                     RangeSlider(
@@ -265,7 +265,7 @@ class _JobListScreenState extends State<JobListScreen> {
                     ),
                     const SizedBox(height: 8),
 
-                    // Pourcentage
+                    // Percentage
                     Text('Work percentage: ${percent.start.round()}% – ${percent.end.round()}%',
                         style: TextStyle(fontSize: 14, color: colors.text)),
                     RangeSlider(
@@ -277,7 +277,7 @@ class _JobListScreenState extends State<JobListScreen> {
                     ),
                     const SizedBox(height: 16),
 
-                    // Catégories
+                    // Categories
                     Text('Categories', style: TextStyle(fontSize: 14, color: colors.text)),
                     const SizedBox(height: 8),
                     Wrap(
@@ -307,7 +307,7 @@ class _JobListScreenState extends State<JobListScreen> {
                     ),
                     const SizedBox(height: 20),
 
-                    // Appliquer
+                    // Apply
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton(
@@ -345,11 +345,11 @@ class _JobCard extends StatelessWidget {
   const _JobCard({required this.job});
   final Job job;
 
-  /// Estimation du modèle, ramenée à l'heure au taux d'activité de l'offre.
+  /// Model estimate converted to an hourly rate based on the posting's workload.
   ///
-  /// La valeur figée à la publication fait foi ; pour les annonces antérieures
-  /// au modèle, elle est recalculée à la volée — les 13 colonnes sont déjà
-  /// dans le document Firestore.
+  /// The value stored when the posting was created is authoritative; for older
+  /// postings created before the model, it is recalculated on the fly because the 13
+  /// columns are already stored in the Firestore document.
   double? _estimatedHourly(BuildContext context) {
     try {
       final estimator = context.read<SalaryEstimator>();
@@ -395,7 +395,7 @@ class _JobCard extends StatelessWidget {
             Row(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                // Vignette image (placeholder si pas de photo)
+                // Image thumbnail (placeholder if there is no photo)
                 Container(
                   width: 64, height: 64,
                   decoration: BoxDecoration(
@@ -416,9 +416,9 @@ class _JobCard extends StatelessWidget {
                   Text('${job.salaryChfPerHour!.toStringAsFixed(0)} CHF/h',
                       style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: colors.accent)),
                 const Spacer(),
-                // Le badge affiche l'estimation du modèle, pas le salaire
-                // proposé : il apparaît donc aussi quand aucun salaire n'est
-                // affiché, cas où il sert le plus.
+                // The badge displays the model estimate, not the offered salary
+                // so it also appears when no salary is displayed,
+                // which is when it is most useful.
                 if (estimate != null)
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),

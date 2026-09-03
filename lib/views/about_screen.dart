@@ -21,7 +21,7 @@ class AboutScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // --- Barre du haut ---
+            // --- Top bar ---
             Padding(
               padding: const EdgeInsets.fromLTRB(12, 8, 22, 4),
               child: Row(

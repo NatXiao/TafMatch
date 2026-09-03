@@ -23,14 +23,14 @@ class AuthProvider with ChangeNotifier {
     });
   }
 
-  // CONNEXION
+  // LOGIN
   Future<bool> signInWithEmailAndPassword(String email, String password) {
     return _authenticate(
       () => _authService.signInWithEmailAndPassword(email, password),
     );
   }
 
-  // INSCRIPTION
+  // SIGN UP
   Future<bool> register(
     String email,
     String password,
@@ -44,7 +44,7 @@ class AuthProvider with ChangeNotifier {
     notifyListeners();
 
     try {
-      // Firebase crée le compte et renvoie l'uid
+      // Firebase creates the account and returns the uid
       final uid = await _authService.register(email, password);
 
       if (uid == null) {
@@ -54,7 +54,7 @@ class AuthProvider with ChangeNotifier {
         return false;
       }
 
-      // Construction du profil
+      // Build the profile
       final newUser = UserModel(
         uid: uid,
         email: email,
@@ -64,7 +64,7 @@ class AuthProvider with ChangeNotifier {
         profilePictureUrl: profilePictureUrl,
       );
 
-      // Ecriture dans firestore
+      // Write to Firestore
       await _userRepository.createProfile(newUser);
 
       _isLoading = false;
@@ -78,13 +78,13 @@ class AuthProvider with ChangeNotifier {
     }
   }
 
-  // DÉCONNEXION
+  // LOGOUT
   Future<void> signOut() async {
     _errorMessage = await _authService.signOut();
     notifyListeners();
   }
 
-  // Efface le message d'erreur affiché
+  // Clear the displayed error message
   void clearError() {
     if (_errorMessage == null) return;
     _errorMessage = null;

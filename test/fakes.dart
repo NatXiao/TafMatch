@@ -92,7 +92,7 @@ class FakeUserRepository implements FirestoreUserRepository {
 
   @override
   Future<void> addSkill(String uid, String skill) {
-    // TODO: implement addSkill
+    
     throw UnimplementedError();
   }
 
@@ -104,7 +104,7 @@ class FakeUserRepository implements FirestoreUserRepository {
 
   @override
   Future<void> deleteProfile(String uid) {
-    // TODO: implement deleteProfile
+    
     throw UnimplementedError();
   }
 
@@ -115,19 +115,19 @@ class FakeUserRepository implements FirestoreUserRepository {
 
   @override
   Future<void> removeSkill(String uid, String skill) {
-    // TODO: implement removeSkill
+    
     throw UnimplementedError();
   }
 
   @override
   Future<void> updateProfile(String uid, Map<String, dynamic> fields) {
-    // TODO: implement updateProfile
+    
     throw UnimplementedError();
   }
 
   @override
   Stream<UserModel?> watchProfile(String uid) {
-    // TODO: implement watchProfile
+    
     throw UnimplementedError();
   }
 
