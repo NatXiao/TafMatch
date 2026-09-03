@@ -2,100 +2,273 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Notifications are personal to the user who owns them.
-    match /notifications/{notificationId} {
-      allow create: if request.auth != null
-        && request.resource.data.userId != request.auth.uid;
-      allow read: if request.auth != null
-        && resource.data.userId == request.auth.uid;
-      allow update: if request.auth != null
-        && resource.data.userId == request.auth.uid
-        && request.resource.data.userId == request.auth.uid;
-      allow delete: if false;
-    }
 
-    // Each user can only read and write tasks under their own user document.
-    match /users/{userId}/tasks/{taskId} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
-    }
+    // ============================================================
+    // Helpers
+    // ============================================================
 
-    
     function isSignedIn() {
       return request.auth != null;
     }
 
     function userRole() {
-      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role;
+      return get(
+        /databases/$(database)/documents/users/$(request.auth.uid)
+      ).data.role;
     }
 
     function isEmployer() {
       return isSignedIn() && userRole() == 'employer';
     }
 
-    function isParticipant(conversationId) {
-      return isSignedIn()
-        && request.auth.uid in get(/databases/$(database)/documents/conversations/$(conversationId)).data.participants;
+    function isStudent() {
+      return isSignedIn() && userRole() == 'student';
     }
 
-    // ---------------------------------------------------------------------
-    // Messaging
-    // ---------------------------------------------------------------------
+    // ============================================================
+    // USERS / PROFILES
+    // ============================================================
+
+    match /users/{userId} {
+
+      // Authenticated users can view profiles.
+      allow read: if isSignedIn();
+
+      // A user can create only their own profile.
+      allow create: if isSignedIn()
+        && request.auth.uid == userId;
+
+      // A user can update only their own profile.
+      allow update: if isSignedIn()
+        && request.auth.uid == userId;
+
+      // Client cannot delete profiles.
+      allow delete: if false;
+
+      // ----------------------------------------------------------
+      // TASKS
+      // ----------------------------------------------------------
+
+      match /tasks/{taskId} {
+        allow read, write: if isSignedIn()
+          && request.auth.uid == userId;
+      }
+    }
+
+
+    // ============================================================
+    // JOBS
+    // ============================================================
+
+    match /jobs/{jobId} {
+
+      // Students and employers can see jobs.
+      allow read: if isSignedIn();
+
+      // Only employers can publish jobs.
+      allow create: if isEmployer()
+        && request.resource.data.employerId == request.auth.uid;
+
+      // Only the owner can modify their job.
+      allow update: if isEmployer()
+        && resource.data.employerId == request.auth.uid
+        && request.resource.data.employerId == request.auth.uid;
+
+      // Only the owner can delete their job.
+      allow delete: if isEmployer()
+        && resource.data.employerId == request.auth.uid;
+    }
+
+
+    // ============================================================
+    // APPLICATIONS
+    // ============================================================
+
+    match /applications/{applicationId} {
+
+      // A student can create an application only for themselves.
+      allow create: if isStudent()
+        && request.resource.data.studentId == request.auth.uid;
+
+      // Students can read their own applications.
+      //
+      // Employers can read applications belonging to their jobs.
+      allow read: if isSignedIn()
+        && (
+          resource.data.studentId == request.auth.uid
+          ||
+          (
+            isEmployer()
+            && get(
+              /databases/$(database)/documents/jobs/$(resource.data.jobId)
+            ).data.employerId == request.auth.uid
+          )
+        );
+
+      // A student can cancel their own application.
+      allow delete: if isStudent()
+        && resource.data.studentId == request.auth.uid;
+
+      // Only the employer owning the job can change application status.
+      allow update: if isEmployer()
+        && get(
+          /databases/$(database)/documents/jobs/$(resource.data.jobId)
+        ).data.employerId == request.auth.uid
+        && request.resource.data.studentId == resource.data.studentId
+        && request.resource.data.jobId == resource.data.jobId;
+    }
+
+
+    // ============================================================
+    // REVIEWS / RATINGS
+    // ============================================================
+
+    match /reviews/{reviewId} {
+
+      // Anyone authenticated can see reviews.
+      allow read: if isSignedIn();
+
+      // An authenticated user can create a review.
+      //
+      // The author must always be the currently logged-in user.
+      allow create: if isSignedIn()
+        && request.resource.data.authorId == request.auth.uid
+        && request.resource.data.targetUserId is string
+        && request.resource.data.targetUserId != request.auth.uid;
+
+      // A user can delete only reviews they authored.
+      allow delete: if isSignedIn()
+        && resource.data.authorId == request.auth.uid;
+
+      // Reviews cannot be edited.
+      allow update: if false;
+    }
+
+
+    // ============================================================
+    // SKILLS
+    // ============================================================
+
+    match /skills/{skillId} {
+
+      // Everyone authenticated can read the skill catalogue.
+      allow read: if isSignedIn();
+
+      // Skill catalogue is not managed by normal clients.
+      allow create, update, delete: if false;
+    }
+
+
+    // ============================================================
+    // NOTIFICATIONS
+    // ============================================================
+
+    match /notifications/{notificationId} {
+
+      // A user can create a notification for themselves.
+      allow create: if isSignedIn()
+        && request.resource.data.userId == request.auth.uid;
+
+      // A user can read only their own notifications.
+      allow read: if isSignedIn()
+        && resource.data.userId == request.auth.uid;
+
+      // A user can update only their own notifications.
+      allow update: if isSignedIn()
+        && resource.data.userId == request.auth.uid
+        && request.resource.data.userId == request.auth.uid;
+
+      // Client cannot delete notifications.
+      allow delete: if false;
+    }
+
+
+    // ============================================================
+    // CONVERSATIONS
+    // ============================================================
+
     match /conversations/{conversationId} {
 
+      // Only participants can read a conversation.
       allow read: if isSignedIn()
-                  && request.auth.uid in resource.data.participants;
+        && request.auth.uid in resource.data.participants;
 
-      // Only an employer opens a thread, only with themselves as employer,
-      // and only under the deterministic id. This is the rule that enforces
-      // "the student can never message first".
+      // Only an employer can create a conversation.
       allow create: if isEmployer()
         && request.resource.data.employerId == request.auth.uid
         && request.resource.data.studentId is string
         && request.resource.data.studentId != request.auth.uid
         && request.resource.data.jobId is string
         && request.resource.data.jobId != ''
-        && conversationId == request.resource.data.employerId + '_'
-             + request.resource.data.studentId + '_'
-             + request.resource.data.jobId
+        && conversationId ==
+          request.resource.data.employerId + '_' +
+          request.resource.data.studentId + '_' +
+          request.resource.data.jobId
         && request.resource.data.participants.hasOnly([
-             request.resource.data.employerId,
-             request.resource.data.studentId
-           ])
+          request.resource.data.employerId,
+          request.resource.data.studentId
+        ])
         && request.resource.data.participants.size() == 2
         && request.resource.data.lastMessage == ''
         && request.resource.data.lastSenderId == '';
 
-      // Both sides may update the preview / unread counters, but never
-      // rewrite who the thread belongs to.
+      // Participants can update conversation metadata,
+      // but cannot change ownership or participants.
       allow update: if isSignedIn()
         && request.auth.uid in resource.data.participants
         && request.resource.data.employerId == resource.data.employerId
         && request.resource.data.studentId == resource.data.studentId
         && request.resource.data.participants == resource.data.participants
         && request.resource.data.jobId == resource.data.jobId
-        && (request.resource.data.get('deletedAt', null) == resource.data.get('deletedAt', null)
-            || request.auth.uid == resource.data.employerId);
+        && (
+          request.resource.data.get('deletedAt', null)
+            == resource.data.get('deletedAt', null)
+          ||
+          request.auth.uid == resource.data.employerId
+        );
 
+      // Conversations cannot be deleted directly.
       allow delete: if false;
 
-      match /messages/{messageId} {
-        allow read: if isParticipant(conversationId);
 
-        allow create: if isParticipant(conversationId)
+      // ----------------------------------------------------------
+      // MESSAGES
+      // ----------------------------------------------------------
+
+      match /messages/{messageId} {
+
+        // Only participants can read messages.
+        allow read: if isSignedIn()
+          && request.auth.uid in get(
+            /databases/$(database)/documents/conversations/$(conversationId)
+          ).data.participants;
+
+        // Participants can send messages.
+        allow create: if isSignedIn()
+          && request.auth.uid in get(
+            /databases/$(database)/documents/conversations/$(conversationId)
+          ).data.participants
           && request.resource.data.senderId == request.auth.uid
           && request.resource.data.text is string
           && request.resource.data.text.size() > 0
           && request.resource.data.text.size() <= 2000;
 
-        // Messages are immutable, but the employer may purge the whole thread.
+        // Messages are immutable.
         allow update: if false;
+
+        // Employer can delete messages when purging a conversation.
         allow delete: if isSignedIn()
-          && request.auth.uid == get(/databases/$(database)/documents/conversations/$(conversationId)).data.employerId;
+          && request.auth.uid == get(
+            /databases/$(database)/documents/conversations/$(conversationId)
+          ).data.employerId;
       }
     }
 
 
-    // Deny everything else by default.
+    // ============================================================
+    // DEFAULT DENY
+    // ============================================================
+
     match /{document=**} {
       allow read, write: if false;
     }
