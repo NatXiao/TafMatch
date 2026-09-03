@@ -21,13 +21,30 @@ import 'package:taf_match/views/profile_screen.dart';
 
 String _shortDate(DateTime d) {
   const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  const months = [
+    'Jan',
+    'Feb',
+    'Mar',
+    'Apr',
+    'May',
+    'Jun',
+    'Jul',
+    'Aug',
+    'Sep',
+    'Oct',
+    'Nov',
+    'Dec'
+  ];
   return '${days[d.weekday - 1]} ${d.day} ${months[d.month - 1]}';
 }
 
 // Information a affiché de l'employeur
-typedef _Employer = ({String name, String photoUrl, double rating, int reviews});
+typedef _Employer = ({
+  String name,
+  String photoUrl,
+  double rating,
+  int reviews
+});
 
 class JobDetailScreen extends StatefulWidget {
   const JobDetailScreen({
@@ -36,7 +53,6 @@ class JobDetailScreen extends StatefulWidget {
     this.userRepository,
     this.reviewRepository,
   });
-
 
   final Job job;
 
@@ -77,10 +93,11 @@ class _JobDetailScreenState extends State<JobDetailScreen> {
   // Charge les infos de l'employeur (nom, photo, note, nb reviews)
   Future<_Employer> _loadEmployer() async {
     final user = await _userRepository.getProfile(widget.job.employerId);
-    final reviews = await _reviewRepository.watchForUser(widget.job.employerId).first;
+    final reviews =
+        await _reviewRepository.watchForUser(widget.job.employerId).first;
     final avg = reviews.isEmpty
-      ? 0.0
-      : reviews.map((r) => r.rating).reduce((a, b) => a + b) / reviews.length;
+        ? 0.0
+        : reviews.map((r) => r.rating).reduce((a, b) => a + b) / reviews.length;
     return (
       name: user?.fullName ?? 'Unknown',
       photoUrl: user?.profilePictureUrl ?? '',
@@ -89,11 +106,12 @@ class _JobDetailScreenState extends State<JobDetailScreen> {
     );
   }
 
-  // Ouvre le profil de l'employeur. 
+  // Ouvre le profil de l'employeur.
   void _openEmployerProfile() {
     Navigator.push(
       context,
-      MaterialPageRoute(builder: (_) => ProfileScreen(userId: widget.job.employerId)),
+      MaterialPageRoute(
+          builder: (_) => ProfileScreen(userId: widget.job.employerId)),
     );
   }
 
@@ -138,32 +156,27 @@ class _JobDetailScreenState extends State<JobDetailScreen> {
       await context.read<ApplicationProvider>().apply(
             Application(id: '', jobId: widget.job.id, studentId: uid),
           );
-        if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'Your application has successfully been sent!', style: TextStyle(color: Colors.white)
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Your application has successfully been sent!',
+                style: TextStyle(color: Colors.white)),
+            backgroundColor: Colors.blue,
           ),
-          backgroundColor: Colors.blue,
-        ),
-      );
-    }
-    await context.read<NotificationProvider>().notify(
-      userId: widget.job.employerId,
-      title: 'New applicant',
-      message: 'Someone applied to "${widget.job.title}"',
-      type: 'application_received',
-      jobId: widget.job.id,
-    );
+        );
+      }
+      await context.read<NotificationProvider>().notify(
+            userId: widget.job.employerId,
+            title: 'New applicant',
+            message: 'Someone applied to "${widget.job.title}"',
+            type: 'application_received',
+            jobId: widget.job.id,
+          );
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(
-              SnackBar(
-          content: Text(
-            'Could not apply: $e',
-            style: TextStyle(color: Colors.white)
-          ),
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text('Could not apply: $e',
+              style: TextStyle(color: Colors.white)),
           backgroundColor: Colors.blue,
         ));
       }
@@ -178,7 +191,8 @@ class _JobDetailScreenState extends State<JobDetailScreen> {
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Cancel application?'),
-        content: const Text('This will withdraw your application for this job.'),
+        content:
+            const Text('This will withdraw your application for this job.'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
@@ -197,16 +211,12 @@ class _JobDetailScreenState extends State<JobDetailScreen> {
     try {
       await context.read<ApplicationProvider>().cancel(app.id);
       if (mounted) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(
-              SnackBar(
-          content: Text(
-            'Your application has been cancelled.',
-            style: TextStyle(color: Colors.white)
-          ),
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text('Your application has been cancelled.',
+              style: TextStyle(color: Colors.white)),
           backgroundColor: Colors.blue,
         ));
-        }
+      }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context)
@@ -226,7 +236,10 @@ class _JobDetailScreenState extends State<JobDetailScreen> {
     final apps = context.watch<ApplicationProvider>().applications;
     Application? myApp;
     for (final a in apps) {
-      if (a.jobId == job.id) { myApp = a; break; }
+      if (a.jobId == job.id) {
+        myApp = a;
+        break;
+      }
     }
 
     // --- Sous-titre (adresse + date) ---
@@ -247,11 +260,15 @@ class _JobDetailScreenState extends State<JobDetailScreen> {
               child: Row(
                 children: [
                   IconButton(
-                    icon: Icon(Icons.chevron_left, size: 30, color: colors.text),
+                    icon:
+                        Icon(Icons.chevron_left, size: 30, color: colors.text),
                     onPressed: () => Navigator.maybePop(context),
                   ),
                   Text('Job details',
-                      style: TextStyle(fontSize: 24, fontWeight: FontWeight.w600, color: colors.text)),
+                      style: TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.w600,
+                          color: colors.text)),
                 ],
               ),
             ),
@@ -262,27 +279,37 @@ class _JobDetailScreenState extends State<JobDetailScreen> {
                 children: [
                   // --- Image (tap = profil employeur) ---
                   Container(
-                      height: 170,
-                      decoration: BoxDecoration(
-                        color: colors.field,
-                        borderRadius: BorderRadius.circular(18),
-                        image: job.pictureUrl.isNotEmpty
-                            ? DecorationImage(image: NetworkImage(job.pictureUrl), fit: BoxFit.cover)
-                            : null,
-                      ),
-                      child: job.pictureUrl.isEmpty
-                          ? Center(
-                              child: Container(width: 16, height: 16,
-                                  decoration: BoxDecoration(color: colors.avatar, shape: BoxShape.circle)))
+                    height: 170,
+                    decoration: BoxDecoration(
+                      color: colors.field,
+                      borderRadius: BorderRadius.circular(18),
+                      image: job.pictureUrl.isNotEmpty
+                          ? DecorationImage(
+                              image: NetworkImage(job.pictureUrl),
+                              fit: BoxFit.cover)
                           : null,
                     ),
+                    child: job.pictureUrl.isEmpty
+                        ? Center(
+                            child: Container(
+                                width: 16,
+                                height: 16,
+                                decoration: BoxDecoration(
+                                    color: colors.avatar,
+                                    shape: BoxShape.circle)))
+                        : null,
+                  ),
                   const SizedBox(height: 18),
 
                   // --- Titre + sous-titre ---
                   Text(job.title,
-                      style: TextStyle(fontSize: 24, fontWeight: FontWeight.w700, color: colors.text)),
+                      style: TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.w700,
+                          color: colors.text)),
                   const SizedBox(height: 6),
-                  Text(subtitle, style: TextStyle(fontSize: 15, color: colors.muted)),
+                  Text(subtitle,
+                      style: TextStyle(fontSize: 15, color: colors.muted)),
                   const SizedBox(height: 16),
 
                   // --- Carte employeur (tap = profil / notation) ---
@@ -290,7 +317,12 @@ class _JobDetailScreenState extends State<JobDetailScreen> {
                     future: _loadEmployer(),
                     builder: (context, snap) {
                       final e = snap.data ??
-                          (name: 'Loading…', photoUrl: '', rating: 0.0, reviews: 0);
+                          (
+                            name: 'Loading…',
+                            photoUrl: '',
+                            rating: 0.0,
+                            reviews: 0
+                          );
                       return InkWell(
                         borderRadius: BorderRadius.circular(16),
                         onTap: _openEmployerProfile,
@@ -299,16 +331,20 @@ class _JobDetailScreenState extends State<JobDetailScreen> {
                           decoration: BoxDecoration(
                             color: Colors.white,
                             borderRadius: BorderRadius.circular(16),
-                            border: Border.all(color: colors.accent, width: 1.4),
+                            border:
+                                Border.all(color: colors.accent, width: 1.4),
                           ),
                           child: Row(
                             children: [
                               CircleAvatar(
                                 radius: 22,
                                 backgroundColor: colors.avatar,
-                                backgroundImage: e.photoUrl.isNotEmpty ? NetworkImage(e.photoUrl) : null,
+                                backgroundImage: e.photoUrl.isNotEmpty
+                                    ? NetworkImage(e.photoUrl)
+                                    : null,
                                 child: e.photoUrl.isEmpty
-                                    ? const Icon(Icons.person, color: Colors.white, size: 24)
+                                    ? const Icon(Icons.person,
+                                        color: Colors.white, size: 24)
                                     : null,
                               ),
                               const SizedBox(width: 12),
@@ -317,21 +353,31 @@ class _JobDetailScreenState extends State<JobDetailScreen> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(e.name,
-                                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: colors.text)),
+                                        style: TextStyle(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.w600,
+                                            color: colors.text)),
                                     const SizedBox(height: 2),
                                     Row(
                                       children: [
-                                        Icon(Icons.star, size: 15, color: colors.accent),
+                                        Icon(Icons.star,
+                                            size: 15, color: colors.accent),
                                         const SizedBox(width: 4),
-                                        Text('${e.rating.toStringAsFixed(1)} · ${e.reviews} reviews',
-                                            style: TextStyle(fontSize: 13, color: colors.muted)),
+                                        Text(
+                                            '${e.rating.toStringAsFixed(1)} · ${e.reviews} reviews',
+                                            style: TextStyle(
+                                                fontSize: 13,
+                                                color: colors.muted)),
                                       ],
                                     ),
                                   ],
                                 ),
                               ),
                               Text('View profile',
-                                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: colors.accent)),
+                                  style: TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w600,
+                                      color: colors.accent)),
                             ],
                           ),
                         ),
@@ -340,23 +386,29 @@ class _JobDetailScreenState extends State<JobDetailScreen> {
                   ),
                   const SizedBox(height: 8),
                   // --- Petit texte d'aide sous la carte ---
-                  Text('Tap the job or employer to open their profile or rate them',
+                  Text(
+                      'Tap the job or employer to open their profile or rate them',
                       style: TextStyle(fontSize: 12, color: colors.muted)),
                   const SizedBox(height: 24),
 
                   // --- Ta candidature ---
-                  Row(
+                  Wrap(
+                    alignment: WrapAlignment.spaceBetween,
+                    runSpacing: 8,
+                    crossAxisAlignment: WrapCrossAlignment.center,
                     children: [
                       Text('Your application',
                           style: TextStyle(fontSize: 15, color: colors.muted)),
-                      const Spacer(),
                       if (myApp != null) ...[
-                        _statusBadge(colors, myApp.status),
-                        // Bouton d'annulation (sauf si déjà refusée)
-                        if (myApp.status != 'rejected') ...[
-                          const SizedBox(width: 8),
-                          _cancelButton(colors, myApp),
-                        ],
+                        Wrap(
+                          spacing: 8,
+                          crossAxisAlignment: WrapCrossAlignment.center,
+                          children: [
+                            _statusBadge(colors, myApp.status),
+                            if (myApp.status != 'rejected')
+                              _cancelButton(colors, myApp),
+                          ],
+                        ),
                       ] else
                         _applyButton(colors),
                     ],
@@ -373,94 +425,115 @@ class _JobDetailScreenState extends State<JobDetailScreen> {
                   if (job.description.isNotEmpty) ...[
                     const SizedBox(height: 24),
                     Text('Description',
-                        style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: colors.text)),
+                        style: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w600,
+                            color: colors.text)),
                     const SizedBox(height: 8),
                     Text(job.description,
-                        style: TextStyle(fontSize: 14, height: 1.5, color: colors.text)),
+                        style: TextStyle(
+                            fontSize: 14, height: 1.5, color: colors.text)),
                   ],
 
                   // Liste des transports disponibles
                   const SizedBox(height: 20),
-                  Text('Routes · Next connections', style: TextStyle(fontSize: 18, color: colors.muted, fontWeight: FontWeight.w700)),
+                  Text('Routes · Next connections',
+                      style: TextStyle(
+                          fontSize: 18,
+                          color: colors.muted,
+                          fontWeight: FontWeight.w700)),
                   const SizedBox(height: 20),
 
                   Visibility(
                     visible: isLoadingTransports,
-                    child: Text("Loading...", style: TextStyle(color: colors.muted)),
+                    child: Text("Loading...",
+                        style: TextStyle(color: colors.muted)),
                   ),
 
                   Visibility(
                     visible: !isLoadingTransports && transports.isEmpty,
-                    child: Text("No connections found.", style: TextStyle(color: colors.muted)),
-                  ),  
-
-                  Row(
-                    children: [
-                      Expanded(
-                        child: ListView.builder(
-                            shrinkWrap: true,
-                            itemCount: transports.length,
-                            itemBuilder: (_, int index) {
-
-                              return Container(
-                                padding: EdgeInsets.fromLTRB(0, 0, 0, 10),
-                                child: Row(
-                                  spacing: 10,
-                                  children: [
-                                    Container(
-                                      padding: const EdgeInsets.fromLTRB(10, 5, 10, 5),
-                                      width: 100,
-                                      decoration: BoxDecoration(
-                                        color: colors.softAccent,
-                                        borderRadius: BorderRadius.circular(18),
-                                      ),
-                                      child: Center(
-                                        child:Text(transports[index].name, style: TextStyle(color: colors.accent, fontWeight: FontWeight.w700)),
-                                      ),
-                                    ),
-                                    Text("${formatDate(transports[index].departure)} → ${formatDate(transports[index].arrival)} · ${transports[index].duration.inMinutes} min", style: TextStyle(color: colors.muted)),
-                                  ],
-                                ),
-                              );
-
-                            }
-                          ),
-
-                      ),
-                    ]
+                    child: Text("No connections found.",
+                        style: TextStyle(color: colors.muted)),
                   ),
 
+                  Row(children: [
+                    Expanded(
+                      child: ListView.builder(
+                          shrinkWrap: true,
+                          itemCount: transports.length,
+                          itemBuilder: (_, int index) {
+                            return Container(
+                              padding: EdgeInsets.fromLTRB(0, 0, 0, 10),
+                              child: Row(
+                                spacing: 10,
+                                children: [
+                                  Container(
+                                    padding:
+                                        const EdgeInsets.fromLTRB(10, 5, 10, 5),
+                                    width: 100,
+                                    decoration: BoxDecoration(
+                                      color: colors.softAccent,
+                                      borderRadius: BorderRadius.circular(18),
+                                    ),
+                                    child: Center(
+                                      child: Text(
+                                        transports[index].name,
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: TextStyle(
+                                            color: colors.accent,
+                                            fontWeight: FontWeight.w700),
+                                      ),
+                                    ),
+                                  ),
+                                  Expanded(
+                                    child: Text(
+                                      "${formatDate(transports[index].departure)} → ${formatDate(transports[index].arrival)} · ${transports[index].duration.inMinutes} min",
+                                      softWrap: true,
+                                      style: TextStyle(color: colors.muted),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            );
+                          }),
+                    ),
+                  ]),
 
                   // Carte intéractive
                   const SizedBox(height: 20),
-                  Text('Interactive map', style: TextStyle(fontSize: 18, color: colors.muted, fontWeight: FontWeight.w700)),
+                  Text('Interactive map',
+                      style: TextStyle(
+                          fontSize: 18,
+                          color: colors.muted,
+                          fontWeight: FontWeight.w700)),
                   const SizedBox(height: 20),
 
                   Stack(
                     children: [
-
                       SizedBox(
-                        height: 500,
-                        child: FlutterMap(
-                          mapController: _mapController,
-                          options: MapOptions(
-                            initialCenter: LatLng(46.5, 6.6),
-                            initialZoom: 8,
-                          ),
-                          children: [
-                            TileLayer(
-                              urlTemplate: "https://tile.openstreetmap.org/{z}/{x}/{y}.png", // 'https://tile.opentopomap.org/{z}/{x}/{y}.png',
-                              userAgentPackageName: 'com.tafmatch.app',
+                          height: 500,
+                          child: FlutterMap(
+                            mapController: _mapController,
+                            options: MapOptions(
+                              initialCenter: LatLng(46.5, 6.6),
+                              initialZoom: 8,
                             ),
-                            MarkerLayer(
-                              markers: [
+                            children: [
+                              TileLayer(
+                                urlTemplate:
+                                    "https://tile.openstreetmap.org/{z}/{x}/{y}.png", // 'https://tile.opentopomap.org/{z}/{x}/{y}.png',
+                                userAgentPackageName: 'com.tafmatch.app',
+                              ),
+                              MarkerLayer(markers: [
                                 if (_userPosition != null)
                                   Marker(
                                     point: _userPosition!,
                                     width: 48,
                                     height: 48,
                                     alignment: Alignment.topCenter,
-                                    child: const Icon(Icons.location_on, color: Colors.blue, size: 48),
+                                    child: const Icon(Icons.location_on,
+                                        color: Colors.blue, size: 48),
                                   ),
                                 if (_jobPosition != null)
                                   Marker(
@@ -468,27 +541,25 @@ class _JobDetailScreenState extends State<JobDetailScreen> {
                                     width: 48,
                                     height: 48,
                                     alignment: Alignment.topCenter,
-                                    child: const Icon(Icons.location_on, color: Colors.red, size: 48),
+                                    child: const Icon(Icons.location_on,
+                                        color: Colors.red, size: 48),
                                   ),
-                              ]
-                            ),
-                          ],
-                        )
-                      ),
-
+                              ]),
+                            ],
+                          )),
                       if (_userPosition == null)
                         Container(
                           height: 500,
                           color: colors.field,
-                          child: Center(child: CircularProgressIndicator(color: colors.accent)),
+                          child: Center(
+                              child: CircularProgressIndicator(
+                                  color: colors.accent)),
                         )
                     ],
                   )
                 ],
               ),
-            
             ),
-
           ],
         ),
       ),
@@ -516,13 +587,17 @@ class _JobDetailScreenState extends State<JobDetailScreen> {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Offered salary', style: TextStyle(fontSize: 13, color: colors.muted)),
+                  Text('Offered salary',
+                      style: TextStyle(fontSize: 13, color: colors.muted)),
                   const SizedBox(height: 4),
                   Text(
                     job.salaryChfPerHour != null
                         ? '${job.salaryChfPerHour!.toStringAsFixed(0)} CHF/h'
                         : '—',
-                    style: TextStyle(fontSize: 22, fontWeight: FontWeight.w700, color: colors.text),
+                    style: TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.w700,
+                        color: colors.text),
                   ),
                 ],
               ),
@@ -530,11 +605,15 @@ class _JobDetailScreenState extends State<JobDetailScreen> {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  Text('AI estimate', style: TextStyle(fontSize: 13, color: colors.muted)),
+                  Text('AI estimate',
+                      style: TextStyle(fontSize: 13, color: colors.muted)),
                   const SizedBox(height: 4),
                   Text(
                     hourly != null ? '${hourly.toStringAsFixed(2)} CHF/h' : '—',
-                    style: TextStyle(fontSize: 22, fontWeight: FontWeight.w700, color: colors.accent),
+                    style: TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.w700,
+                        color: colors.accent),
                   ),
                 ],
               ),
@@ -599,7 +678,8 @@ class _JobDetailScreenState extends State<JobDetailScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text('The offer',
-            style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: colors.text)),
+            style: TextStyle(
+                fontSize: 15, fontWeight: FontWeight.w600, color: colors.text)),
         const SizedBox(height: 12),
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
@@ -619,7 +699,8 @@ class _JobDetailScreenState extends State<JobDetailScreen> {
                       SizedBox(
                         width: 120,
                         child: Text(entry.key,
-                            style: TextStyle(fontSize: 14, color: colors.muted)),
+                            style:
+                                TextStyle(fontSize: 14, color: colors.muted)),
                       ),
                       Expanded(
                         child: Text(entry.value,
@@ -639,14 +720,19 @@ class _JobDetailScreenState extends State<JobDetailScreen> {
     return ElevatedButton(
       onPressed: _applying ? null : _apply,
       style: ElevatedButton.styleFrom(
-        backgroundColor: colors.accent, foregroundColor: Colors.white,
-        elevation: 0, padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 12),
+        backgroundColor: colors.accent,
+        foregroundColor: Colors.white,
+        elevation: 0,
+        padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 12),
         shape: const StadiumBorder(),
         textStyle: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
       ),
       child: _applying
-          ? const SizedBox(height: 18, width: 18,
-              child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+          ? const SizedBox(
+              height: 18,
+              width: 18,
+              child: CircularProgressIndicator(
+                  strokeWidth: 2, color: Colors.white))
           : const Text('Apply'),
     );
   }
@@ -662,7 +748,9 @@ class _JobDetailScreenState extends State<JobDetailScreen> {
         textStyle: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
       ),
       child: _cancelling
-          ? const SizedBox(height: 14, width: 14,
+          ? const SizedBox(
+              height: 14,
+              width: 14,
               child: CircularProgressIndicator(strokeWidth: 2))
           : const Text('Cancel'),
     );
@@ -671,16 +759,22 @@ class _JobDetailScreenState extends State<JobDetailScreen> {
   Widget _statusBadge(AppColors colors, String status) {
     late final String label;
     switch (status) {
-      case 'accepted': label = 'Accepted';
-      case 'rejected': label = 'Rejected';
-      case 'reviewed': label = 'Reviewed';
-      default: label = 'Submitted';
+      case 'accepted':
+        label = 'Accepted';
+      case 'rejected':
+        label = 'Rejected';
+      case 'reviewed':
+        label = 'Reviewed';
+      default:
+        label = 'Submitted';
     }
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      decoration: BoxDecoration(color: colors.softAccent, borderRadius: BorderRadius.circular(999)),
+      decoration: BoxDecoration(
+          color: colors.softAccent, borderRadius: BorderRadius.circular(999)),
       child: Text(label,
-          style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: colors.accent)),
+          style: TextStyle(
+              fontSize: 13, fontWeight: FontWeight.w600, color: colors.accent)),
     );
   }
 
@@ -697,7 +791,8 @@ class _JobDetailScreenState extends State<JobDetailScreen> {
       return;
     }
 
-    final raw = await TransportsApi.findTransport(location, widget.job.address, DateTime.now());
+    final raw = await TransportsApi.findTransport(
+        location, widget.job.address, DateTime.now());
     final data = jsonDecode(raw.body) as Map<String, dynamic>;
 
     transports.clear();
@@ -717,9 +812,7 @@ class _JobDetailScreenState extends State<JobDetailScreen> {
     return DateFormat.Hm().format(time);
   }
 
-
   void updateMarkerOnMap() async {
-
     final position = await LocationUtils.findDeviceLocation();
     final latitude = position.latitude;
     final longitude = position.longitude;
@@ -736,15 +829,12 @@ class _JobDetailScreenState extends State<JobDetailScreen> {
 
     if (_userPosition == null && _jobPosition != null) {
       _mapController.move(_jobPosition!, 8);
-    }
-    else if (_userPosition != null && _jobPosition == null) {
+    } else if (_userPosition != null && _jobPosition == null) {
       _mapController.move(_userPosition!, 8);
-    }
-    else {
+    } else {
       final bounds = LatLngBounds.fromPoints([_userPosition!, _jobPosition!]);
-      _mapController.fitCamera(CameraFit.bounds(bounds: bounds, padding: EdgeInsets.all(50)));
+      _mapController.fitCamera(
+          CameraFit.bounds(bounds: bounds, padding: EdgeInsets.all(50)));
     }
-    
   }
-
 }
