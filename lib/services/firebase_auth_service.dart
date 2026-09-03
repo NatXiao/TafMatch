@@ -53,7 +53,7 @@ class FirebaseAuthService implements AuthService {
       return uid;   // ← l'uid attendu par AuthProvider
     } on FirebaseAuthException catch (e) {
       dev.log('Auth error: ${e.code}', name: 'FirebaseAuthService');
-      return null;  // échec → AuthProvider affichera l'erreur
+      return null;  // On failure, AuthProvider displays the error.
     } catch (e) {
       dev.log('Unknown error: $e', name: 'FirebaseAuthService');
       return null;

@@ -63,7 +63,7 @@ Future<void> signInAsAdmin() async {
 
   await repository.createProfile(admin);
 
-  // On charge directement le profil.
+  // Load the profile directly.
   await userProvider.loadProfile('admin-id');
 
   expect(userProvider.isAdmin, isTrue);
@@ -123,17 +123,17 @@ Future<void> signInAsAdmin() async {
 
     await tester.pumpWidget(buildTestWidget());
 
-    // Exécute le addPostFrameCallback de initState
+    // Execute the addPostFrameCallback from initState.
     await tester.pump();
 
-    // Attend la fin de loadUsers()
+    // Wait for loadUsers() to complete.
     await tester.pump();
 
     expect(find.text('Job seekers'), findsOneWidget);
     expect(find.text('Job providers'), findsOneWidget);
     expect(find.text('All users'), findsOneWidget);
 
-    // 2 users avec role user
+    // 2 users with the user role.
     expect(find.text('2'), findsOneWidget);
 
     // 1 employer

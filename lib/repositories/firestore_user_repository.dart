@@ -31,7 +31,7 @@ class FirestoreUserRepository {
     final ids = userIds.where((id) => id.isNotEmpty).toSet().toList();
     final users = <UserModel>[];
 
-  for (var index = 0; index < ids.length; index += 30) { // TODO index += 30 ??
+  for (var index = 0; index < ids.length; index += 30) {
       final chunk = ids.sublist(index, (index + 30).clamp(0, ids.length));
       final snapshot =
           await _users.where(FieldPath.documentId, whereIn: chunk).get();

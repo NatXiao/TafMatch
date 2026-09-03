@@ -212,7 +212,7 @@ class AdminDashboardScreenState extends State<AdminDashboardScreen> {
             ),
           ),
           const SizedBox(width: 8),
-          // Badge de rôle + date
+          // Role badge + date
           Column(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [

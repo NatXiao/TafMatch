@@ -10,7 +10,7 @@ import 'package:taf_match/providers/user_provider.dart';
 import 'package:taf_match/providers/skill_provider.dart';
 import 'package:taf_match/repositories/image_storage_repository.dart';
 import 'package:taf_match/services/camera_service.dart';
-import 'package:taf_match/utils/theme.dart'; // pour AppColors
+import 'package:taf_match/utils/theme.dart'; // for AppColors
 
 class EditProfileScreen extends StatefulWidget {
   const EditProfileScreen({super.key});
@@ -117,7 +117,7 @@ class EditProfileScreenState extends State<EditProfileScreen> {
       body: SafeArea(
         child: Column(
           children: [
-            // --- Barre du haut ---
+            
             Padding(
               padding: const EdgeInsets.fromLTRB(12, 8, 22, 4),
               child: Row(
@@ -139,7 +139,7 @@ class EditProfileScreenState extends State<EditProfileScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // --- Avatar + bouton + ---
+                      
                       Center(
                         child: InkWell(
                           onTap: _isUploading ? null : () => _pickImage(),
@@ -405,8 +405,8 @@ class EditProfileScreenState extends State<EditProfileScreen> {
     FocusScope.of(context).unfocus();
     if (!(_formKey.currentState?.validate() ?? false)) return;
 
-    // Captures avant les await : le BuildContext ne doit plus etre relu
-    // apres un gap asynchrone.
+    // Capture values before await: BuildContext must not be read again
+    // after an asynchronous gap.
     final authProvider = context.read<AuthProvider>();
     final userProvider = context.read<UserProvider>();
     final navigator = Navigator.of(context);
@@ -575,8 +575,7 @@ class EditProfileScreenState extends State<EditProfileScreen> {
                     Expanded(
                       child: Builder(
                         builder: (context) {
-                          debugPrint('controller: $controller');
-                          debugPrint('isInitialized: ${controller?.value.isInitialized}');
+
                           
                           if (controller == null || !controller.value.isInitialized) {
                             return ColoredBox(

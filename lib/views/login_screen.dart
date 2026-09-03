@@ -5,7 +5,7 @@ import 'package:taf_match/views/about_screen.dart';
 import 'package:taf_match/views/face_login_screen.dart';
 
 import 'package:taf_match/views/signup_screen.dart';
-import 'package:taf_match/utils/theme.dart'; // pour AppColors
+import 'package:taf_match/utils/theme.dart'; // for AppColors
 
 import '../providers/auth_provider.dart';
 

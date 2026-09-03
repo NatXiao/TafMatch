@@ -115,11 +115,11 @@ class _JobDetailScreenState extends State<JobDetailScreen> {
     );
   }
 
-  /// Salaire annuel estimé, en CHF.
+
   ///
-  /// La valeur enregistrée à la publication fait foi. Les annonces créées
-  /// avant l'intégration du modèle n'en ont pas : on la recalcule alors à la
-  /// volée, ce qui est possible puisque les 13 colonnes sont dans le document.
+  /// The value stored when the posting was created is authoritative.
+  /// Older postings do not have it, so it is recalculated on the fly
+  /// because the 13 model columns are already stored in the document.
   double? get _estimatedAnnual {
     final stored = widget.job.predictedSalaryChf;
     if (stored != null) return stored;
@@ -130,7 +130,7 @@ class _JobDetailScreenState extends State<JobDetailScreen> {
     }
   }
 
-  /// La même estimation ramenée à l'heure, au taux d'activité de l'offre.
+  /// The same estimate converted to an hourly rate based on the posting's workload.
   double? get _estimatedHourly {
     final annual = _estimatedAnnual;
     if (annual == null) return null;
@@ -139,7 +139,7 @@ class _JobDetailScreenState extends State<JobDetailScreen> {
         .hourlyFromAnnual(annual, widget.job.workloadPercent);
   }
 
-  /// Écart entre le salaire proposé et l'estimation, en pourcentage.
+  /// Difference between the offered salary and the estimate, as a percentage.
   double? get _salaryGapPercent {
     final offered = widget.job.salaryChfPerHour;
     final estimate = _estimatedHourly;
@@ -152,8 +152,8 @@ class _JobDetailScreenState extends State<JobDetailScreen> {
     setState(() => _applying = true);
     final uid = context.read<AuthProvider>().user?.uid ?? '';
 
-    // Captures avant les await: le BuildContext ne doit plus etre relu
-    // apres un gap asynchrone.
+    // Capture values before await: BuildContext must not be read again
+    // after an asynchronous gap.
     final applications = context.read<ApplicationProvider>();
     final notifications = context.read<NotificationProvider>();
     final messenger = ScaffoldMessenger.of(context);
@@ -568,7 +568,7 @@ class _JobDetailScreenState extends State<JobDetailScreen> {
     );
   }
 
-  /// Salaire proposé à gauche, estimation du modèle à droite, écart en dessous.
+  /// Offered salary on the left, model estimate on the right, difference below.
   Widget _salaryBox(AppColors colors) {
     final job = widget.job;
     final hourly = _estimatedHourly;
@@ -622,8 +622,8 @@ class _JobDetailScreenState extends State<JobDetailScreen> {
             ],
           ),
 
-          // L'écart est l'information utile : le chiffre du modèle seul ne dit
-          // rien de plus que ce que l'étudiant lit déjà à gauche.
+          // The difference is the useful information: the model value alone does not
+          // add anything beyond what the student already sees on the left.
           if (gap != null) ...[
             const SizedBox(height: 12),
             Text(
@@ -648,7 +648,7 @@ class _JobDetailScreenState extends State<JobDetailScreen> {
     );
   }
 
-  /// Les champs de l'offre qui alimentent le modèle, tels quels.
+  /// Job fields that feed the model, as entered.
   Widget _jobFacts(AppColors colors) {
     final job = widget.job;
 

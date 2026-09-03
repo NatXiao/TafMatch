@@ -84,8 +84,8 @@ class NewPostingScreenState extends State<NewPostingScreen> {
   Timer? _addressDebounce;
   List<AddressSuggestion> _addressSuggestions = const [];
 
-  /// 400 ms sans frappe avant d'interroger l'API: swisstopo demande
-  /// explicitement d'eviter les requetes a haute intensite.
+  /// Wait 400 ms after typing stops before querying the API: swisstopo
+  /// explicitly asks clients to avoid high-intensity requests.
   void _onAddressChanged(String value) {
     _addressDebounce?.cancel();
     _addressDebounce = Timer(const Duration(milliseconds: 400), () async {
@@ -94,7 +94,7 @@ class NewPostingScreenState extends State<NewPostingScreen> {
     });
   }
 
-  /// Remplit l'adresse et, quand l'API l'a fourni, le canton.
+  /// Fills the address and, when provided by the API, the canton.
   void _pickAddress(AddressSuggestion suggestion) {
     setState(() {
       _address.text = suggestion.label;
@@ -102,7 +102,7 @@ class NewPostingScreenState extends State<NewPostingScreen> {
       _addressSuggestions = const [];
     });
     FocusScope.of(context).unfocus();
-    _recomputeEstimate(); // le canton pese lourd dans le modele
+    _recomputeEstimate(); // The canton has a strong weight in the model.
   }
 
   // ==================== FIN DU BLOC 1 ====================
@@ -324,16 +324,16 @@ class NewPostingScreenState extends State<NewPostingScreen> {
       pictureUrl: _pictureUrl ?? '',
       endDate: _endDate,
 
-      // Les deux dates sont maintenant stockees: c'est d'elles que Job deduit
-      // isPermanent, au lieu de le figer a la publication.
+      // Both dates are now stored: Job derives
+      // isPermanent from them instead of fixing it when the posting is created.
       contractStartDate: _contractStartDate,
       contractEndDate: _contractEndDate,
 
 
-      // Seules les saisies sans equivalent ailleurs sont passees ici.
+      // Only inputs with no equivalent elsewhere are passed here.
       // industry, diploma, workloadPercent, isPermanent et les trois
-      // Languages_* sont des getters de Job: ils se deduisent de domainName,
-      // degree, workPercentage, des dates de contrat et de languages.
+      // Languages_* are Job getters: they are derived from domainName,
+      // degree, workPercentage, contract dates, and languages.
       experienceMin: double.parse(_experienceMin.text),
       experienceMax: double.parse(_experienceMax.text),
       companySize: _companySize ?? 'Startup (<50)',
@@ -435,7 +435,7 @@ class NewPostingScreenState extends State<NewPostingScreen> {
                     const SizedBox(height: 18),
 
                     // ==============================================
-                    // BLOC 2 A AJOUTER - champ adresse + suggestions
+                    // BLOCK 2 TO ADD - address field + suggestions
                     // ==============================================
                     _label('Location'),
                     _input(

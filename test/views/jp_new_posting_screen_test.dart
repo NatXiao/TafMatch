@@ -13,8 +13,8 @@ import 'package:taf_match/views/jp_new_posting_screen.dart';
 
 import '../fakes.dart';
 
-/// Index des TextFormField dans l'ordre du ListView du formulaire.
-/// A mettre a jour si un champ texte est ajoute ou deplace.
+/// Index of TextFormFields in their ListView order.
+/// Update this if a text field is added or moved.
 const _title = 0;
 const _description = 1;
 const _address = 2;
@@ -23,18 +23,18 @@ const _deadline = 3;
 const _salary = 9;
 const _workTime = 10;
 
-/// Index des DropdownButtonFormField, meme principe.
+/// Index of DropdownButtonFormFields, same principle.
 const _cantonDropdown = 0;
 const _domainDropdown = 1;
 const _degreeDropdown = 2;
-// 3: role, 4: company size — les deux ont une valeur par defaut.
+// 3: role, 4: company size — both have a default value.
 
-/// Un vrai SalaryModel, sans asset ni faux.
+/// A real SalaryModel, without assets or mocks.
 ///
-/// `SalaryModel.fromJson` est public, donc le plus simple est de lui donner un
-/// modele reduit a son intercept: aucune feature, donc aucune dependance a un
-/// export de notebook. `expm1(11)` vaut environ 59'873 CHF/an, ce qui reste un
-/// ordre de grandeur credible pour le champ salaire qu'il pre-remplit.
+/// `SalaryModel.fromJson` is public, so the simplest approach is to provide a
+/// reduced model containing only its intercept: no features, so there is no dependency on a
+/// notebook export. `expm1(11)` is approximately CHF 59,873/year, which remains a
+/// realistic order of magnitude for the salary field it pre-fills.
 SalaryModel buildTestModel() => SalaryModel.fromJson({
       'created_utc': '2026-01-01T00:00:00Z',
       'model': {'intercept': 11.0},
@@ -48,11 +48,11 @@ SalaryModel buildTestModel() => SalaryModel.fromJson({
       'metrics': <String, dynamic>{},
     });
 
-/// Autocompletion qui ne propose rien, sans toucher au reseau.
+/// Autocomplete that returns no results without touching the network.
 ///
-/// Indispensable: avec le vrai client, la requete lancee par le debounce
-/// survit a la fin du test, et l'erreur qui remonte du stream de reponse une
-/// fois le client ferme fait tomber tout le shell de test.
+/// Essential: with the real client, the request triggered by the debounce
+/// survives the end of the test, and the error raised by the response stream once
+/// the client is closed causes the entire test shell to fail.
 AddressLookup buildSilentAddressLookup() => AddressLookup(
       client: MockClient(
         (_) async => http.Response('{"results": []}', 200),
@@ -144,7 +144,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    // Le menu du canton compte 26 entrees: celle visee n'est pas forcement
+    // The canton menu contains 26 entries: the target may not already be
     // deja a l'ecran.
     final item = find.text(option).last;
     await tester.ensureVisible(item);
@@ -153,18 +153,18 @@ void main() {
     await tester.pumpAndSettle();
   }
 
-  /// Saisit l'adresse et laisse expirer le debounce de l'autocompletion.
+  /// Enters the address and lets the autocomplete debounce expire.
   ///
-  /// `pumpAndSettle` ne declenche pas un Timer qui ne programme aucune frame,
-  /// donc il faut avancer l'horloge de plus de 400 ms explicitement, sinon le
-  /// test se termine sur "A Timer is still pending".
+  /// `pumpAndSettle` does not trigger a Timer that schedules no frame,
+  /// so the clock must be advanced by more than 400 ms explicitly, otherwise the
+  /// test ends with "A Timer is still pending".
   Future<void> enterAddress(WidgetTester tester, String value) async {
     await tester.enterText(find.byType(TextFormField).at(_address), value);
     await tester.pump(const Duration(milliseconds: 500));
     await tester.pumpAndSettle();
   }
 
-  /// Ouvre le date picker de la deadline et valide la date du jour.
+  /// Opens the deadline date picker and selects today's date.
   Future<void> pickDeadline(WidgetTester tester) async {
     final field = find.byType(TextFormField).at(_deadline);
     await tester.ensureVisible(field);
@@ -181,14 +181,14 @@ void main() {
     await tester.tap(button);
   }
 
-  /// Selectionne les trois dropdowns sans valeur par defaut.
+  /// Selects the three dropdowns without default values.
   Future<void> selectRequiredDropdowns(WidgetTester tester) async {
     await selectDropdownOption(tester, _cantonDropdown, 'VS');
     await selectDropdownOption(tester, _domainDropdown, 'Finance');
     await selectDropdownOption(tester, _degreeDropdown, 'Bachelor');
   }
 
-  /// Remplit tout ce qui est obligatoire, sans publier.
+  /// Fills all required fields without publishing.
   Future<void> fillRequiredFields(WidgetTester tester) async {
     await selectRequiredDropdowns(tester);
 
@@ -200,8 +200,8 @@ void main() {
     );
     await enterAddress(tester, 'Sion');
 
-    // Apres les dropdowns, l'estimation a pre-rempli le salaire; la saisie
-    // ci-dessous s'ecarte de cette valeur et fige donc le champ.
+    // After the dropdowns, the estimate pre-filled the salary; the input below
+    // differs from this value and therefore freezes the field.
     await tester.enterText(fields.at(_salary), '22');
     await tester.enterText(fields.at(_workTime), '40');
     await tester.pump();
@@ -221,7 +221,7 @@ void main() {
     expect(find.text('Contract start date'), findsOneWidget);
     expect(find.text('Contract end date'), findsOneWidget);
     expect(find.text('Language'), findsOneWidget);
-    expect(find.text('Canton'), findsWidgets); // libelle + hint du dropdown
+    expect(find.text('Canton'), findsWidgets); // dropdown label + hint
     expect(find.text('Domain'), findsOneWidget);
     expect(find.text('Degree'), findsOneWidget);
     expect(find.text('Role'), findsOneWidget);
@@ -249,8 +249,8 @@ void main() {
     await tester.pump();
 
     // Title, Location, Application deadline, Canton, Domain, Degree, Salary.
-    // Role, Company size, les deux champs d'experience, Holidays et Work time
-    // ont une valeur par defaut et passent la validation.
+    // Role, Company size, both experience fields, Holidays, and Work time
+    // have a default value and pass validation.
     expect(find.text('Required'), findsNWidgets(7));
     expect(jobRepository.createCallCount, 0);
   });
@@ -261,7 +261,7 @@ void main() {
     await signInAsEmployer(tester);
     await pumpNewPostingScreen(tester);
 
-    // Tout est rempli sauf la deadline.
+    // Everything is filled except the deadline.
     await selectRequiredDropdowns(tester);
 
     final fields = find.byType(TextFormField);
@@ -301,7 +301,7 @@ void main() {
     await signInAsEmployer(tester);
     await pumpNewPostingScreen(tester);
 
-    // Tant qu'un dropdown categoriel manque, annualFromForm rend null.
+    // While a categorical dropdown is missing, annualFromForm returns null.
     expect(find.text('Fill in the fields above'), findsOneWidget);
 
     await selectRequiredDropdowns(tester);
@@ -314,11 +314,11 @@ void main() {
     await signInAsEmployer(tester);
     await pumpNewPostingScreen(tester);
 
-    // L'estimation pre-remplit le champ...
+    // The estimate pre-fills the field...
     await selectRequiredDropdowns(tester);
 
-    // ...mais une saisie manuelle doit rester intacte, y compris quand un
-    // autre champ declenche un nouveau calcul juste apres.
+    // ...but manual input must remain unchanged, even when another
+    // field triggers a new calculation immediately afterwards.
     final fields = find.byType(TextFormField);
     await tester.enterText(fields.at(_salary), '22');
     await tester.enterText(fields.at(_workTime), '40');
@@ -356,12 +356,12 @@ void main() {
     expect(created.salaryChfPerHour, 22);
     expect(created.workPercentage, 40);
 
-    // La deadline est desormais obligatoire: elle ne peut plus etre nulle.
+    // The deadline is now required: it cannot be null.
     expect(created.endDate, isNotNull);
 
-    // L'estimation est recalculee au moment de publier et stockee avec la
-    // version du modele, pour qu'une valeur produite par un ancien export
-    // reste reconnaissable apres un reentrainement.
+    // The estimate is recalculated when publishing and stored with the
+    // model version, so a value produced by an older export
+    // remains identifiable after retraining.
     expect(created.predictedSalaryChf, isNotNull);
     expect(created.predictionModelVersion, '2026-01-01T00:00:00Z');
 
@@ -379,8 +379,8 @@ void main() {
     await tapPublish(tester);
     await tester.pumpAndSettle();
 
-    // showDatePicker rend une date a minuit: _pickEndDate la repousse a la fin
-    // de journee, sinon le jour meme de la deadline serait deja expire, cote
+    // showDatePicker returns a date at midnight: _pickEndDate moves it to the end
+    // of the day, otherwise the deadline day would already be expired
     // isLive comme cote requete Firestore.
     expect(jobRepository.lastCreatedJob!.isLive, isTrue);
   });

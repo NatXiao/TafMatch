@@ -59,7 +59,7 @@ class UserProvider with ChangeNotifier {
 
   Future<void> addSkill(String uid, String skill) async {
     await _repository.addSkill(uid, skill);
-    await loadProfile(uid); // on recharge pour refléter le changement
+    await loadProfile(uid); // reload the profile to reflect the change
   }
 
   Future<void> removeSkill(String uid, String skill) async {

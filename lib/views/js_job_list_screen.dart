@@ -345,11 +345,11 @@ class _JobCard extends StatelessWidget {
   const _JobCard({required this.job});
   final Job job;
 
-  /// Estimation du modèle, ramenée à l'heure au taux d'activité de l'offre.
+  /// Model estimate converted to an hourly rate based on the posting's workload.
   ///
-  /// La valeur figée à la publication fait foi ; pour les annonces antérieures
-  /// au modèle, elle est recalculée à la volée — les 13 colonnes sont déjà
-  /// dans le document Firestore.
+  /// The value stored when the posting was created is authoritative; for older
+  /// postings created before the model, it is recalculated on the fly because the 13
+  /// columns are already stored in the Firestore document.
   double? _estimatedHourly(BuildContext context) {
     try {
       final estimator = context.read<SalaryEstimator>();
@@ -416,9 +416,9 @@ class _JobCard extends StatelessWidget {
                   Text('${job.salaryChfPerHour!.toStringAsFixed(0)} CHF/h',
                       style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: colors.accent)),
                 const Spacer(),
-                // Le badge affiche l'estimation du modèle, pas le salaire
-                // proposé : il apparaît donc aussi quand aucun salaire n'est
-                // affiché, cas où il sert le plus.
+                // The badge displays the model estimate, not the offered salary
+                // so it also appears when no salary is displayed,
+                // which is when it is most useful.
                 if (estimate != null)
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),

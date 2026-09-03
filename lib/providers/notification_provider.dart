@@ -66,9 +66,6 @@ class NotificationProvider extends ChangeNotifier {
         debugPrint('Notification stream error for user $userId: $error');
         debugPrintStack(stackTrace: stackTrace);
       },
-      onDone: () {
-        debugPrint('Notification stream closed for user $userId');
-      },
     );
   }
 

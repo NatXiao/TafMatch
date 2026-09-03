@@ -226,7 +226,7 @@ class _ApplicantCard extends StatelessWidget {
           Row(
             children: [
               Expanded(
-                // TODO send a push notification to the student when their application is accepted or rejected
+                
                 child: ElevatedButton(
                   onPressed: application.status == 'accepted'
                       ? null

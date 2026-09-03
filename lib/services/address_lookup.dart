@@ -38,7 +38,7 @@ class AddressLookup {
     final uri = Uri.parse(_endpoint).replace(queryParameters: {
       'searchText': query.trim(),
       'type': 'locations',
-      'origins': 'address', // seulement des adresses, pas des lacs ni des parcelles
+      'origins': 'address', // addresses only, not lakes or parcels
       'limit': '$limit',
       'sr': '2056',
     });

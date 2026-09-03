@@ -4,7 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:taf_match/providers/auth_provider.dart';
 import 'package:taf_match/repositories/image_storage_repository.dart';
 import 'package:taf_match/utils/constants.dart';
-import 'package:taf_match/utils/theme.dart'; // pour AppColors
+import 'package:taf_match/utils/theme.dart'; // for AppColors
 
 class SignupScreen extends StatefulWidget {
   const SignupScreen({super.key});
